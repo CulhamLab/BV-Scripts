@@ -9,8 +9,6 @@
 %7 Generates MDM for each participant and for all participants using SDM
 %  with merged 3DMC
 
-%change!
-
 function BV20_Scripts
 
 %% parameters
