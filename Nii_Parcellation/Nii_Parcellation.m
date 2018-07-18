@@ -1,7 +1,7 @@
 function Nii_Parcellation
 
-input_file = 'Yeo2011_7Networks_MNI152_FreeSurferConformed1mm.nii.gz';
-output_file = 'Yeo2011_7Networks_MNI152_FreeSurferConformed1mm_Split.nii'; %gzip will be applied
+input_file = 'Parcels_MNI_222.nii';
+output_file = 'Parcels_MNI_222_SPLIT.nii'; %gzip will be applied
 
 %read with neuroelf toolbox
 nii = xff(input_file);
@@ -12,9 +12,16 @@ values = unique(nii.VoxelData(nii.VoxelData ~= 0));
 %convert to 4D
 number_maps = length(values);
 for m = 1:number_maps
-    map = nii.VoxelData;
-    map(map ~= values(m)) = 0;
+    map = nii.GetVolume(1);
+    ind = map(:) == values(m);
+    map(~ind) = 0;
+    if any(ind(:))
+        map(ind) = 1;
+    else
+        warning('Did not find map %d!', m)
+    end
     maps(:,:,:,m) = map;
+    clear map
 end
 nii.VoxelData = maps;
 
