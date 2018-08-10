@@ -1,13 +1,16 @@
+%All parameters are set in the excel file (not in this script).
+
 %Performs the following:
 %1 Reads parameters from bv20_script_params.xlsx
-%2 Search for existing files
+%2 Search for existing files to confirm that everything is in order
 %3 Links PRTs to VTCs
-%4 Applies Linear Trend Removal (LTR) + Temporal High Pass (THP) in one
-%  step and then Spatial Smoothing in a second step (generates VTCs)
+%4 Applies Spatial Smoothing to create set of smoothed VTCs for univariate analyses
 %5 Generates SDMs from PRTs
-%6 Merges Generated SDMs with 3DMC SDMs
-%7 Generates MDM for each participant and for all participants using SDM
-%  with merged 3DMC
+%6 Merges Generated SDMs with 3DMC SDMs (use motion as predictors of no interest)
+%7 Generates MDM for each participant and for all participants using SDM with merged 3DMC
+%8 Gather BBR values and report any issues
+%9 Run motion checks and create summary figures
+%10 (DETAILS UNKNOWN) Something to assist with functional-anatomical alignment checks
 
 function BV20_Scripts
 
