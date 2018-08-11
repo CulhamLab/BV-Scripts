@@ -9,6 +9,9 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% Temp
     xls_filepath = 'BV20_PostPreprocessing_and_QualityChecks_EXAMPLE.xlsx';
 
+    %% Handle Errors
+    try
+    
     %% Get script constants
     p = ScriptConstants;
 
@@ -21,7 +24,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
 
     %% Add parameters from excel and process them (check dirs, number of participants, participant IDs, etc)
     p = ReadExcel(p, xls_filepath);
-    ProcessParameters(p);
+    p = ProcessParameters(p);
 
     %% 1. Search for existing files to confirm that everything files exist and are named correctly + check which steps were done in preprocessing
     file_list = CreateFileList(p);
@@ -43,9 +46,38 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
 
     %% 9. Generate MDM for each participant and for all participants using SDM with merged 3DMC
 
+    %% Done
+    for fid = p.LOGFILES
+        fclose(fid);
+    end
+    disp('Complete.')
+    
+    %% Handle Errors
+    catch err
+        fclose all
+        rethrow(err);
+    end
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%this fprintf send to both command window and a log file
+function fprintf2(varargin)
+    p = varargin{1};
+    message = varargin{2};
+    
+    if nargin < 3
+        args = '';
+    else
+        args = sprintf(', varargin{%d}', 3:nargin);
+    end
+    
+    eval(sprintf('fprintf(''%s''%s);', message, args))
+    for fid = p.LOGFILES
+        eval(sprintf('fprintf(fid, ''%s''%s);', message, args))
+    end
+end
 
 function [p] = ScriptConstants
     p.XLS.FILETYPE = 'xls*';
@@ -58,7 +90,7 @@ function [xls_filepath] = GetExcel(p)
     [filename, directory, filter] = uigetfile(['*.' p.XLS.FILETYPE]);
     switch filter
         case 0
-            fprintf('No file was selected. Script will stop.\n');
+            fprintf2(p, 'No file was selected. Script will stop.\n');
             return
         case 1
             xls_filepath = [directory filename];
@@ -92,7 +124,7 @@ function [p] = ReadExcel(p, xls_filepath)
     end
 end
 
-function ProcessParameters(p)
+function [p] = ProcessParameters(p)
     %add filsep if needed
     fs = fields(p.DIR);
     for f = 1:length(fs)
@@ -101,6 +133,18 @@ function ProcessParameters(p)
             eval(sprintf('p.DIR.%s(end+1) = filesep;', fs{f}))
         end
     end
+    
+    %log directory
+    p.DIR.LOG = [p.DIR.OUT 'Logs' filesep];
+    if ~exist(p.DIR.LOG, 'dir')
+        mkdir(p.DIR.LOG);
+    end
+    
+    %start a log file
+    c = clock;
+    timestamp = sprintf('%02d-%02d-%02d_%02d-%02d-%04d', round(c([4 5 6 3 2 1])));
+    p.LOGFILES(1) = fopen(sprintf('%slog_latest.txt', p.DIR.OUT), 'w');
+    p.LOGFILES(2) = fopen(sprintf('%slog_%s.txt', p.DIR.LOG, timestamp), 'w');
 
     %check BV dir exists
     if ~exist(p.DIR.BV, 'dir')
@@ -109,7 +153,7 @@ function ProcessParameters(p)
 
     %check if output dir exists, create if not
     if ~exist(p.DIR.OUT, 'dir')
-        fprintf('Output directory does not exist and will now be created: %s\n', p.DIR.OUT)
+        fprintf2(p, 'Output directory does not exist and will now be created: %s\n', p.DIR.OUT)
         fs = find(p.DIR.OUT == filesep);
         for i = 1:length(fs)
             d = p.DIR.OUT(1:fs(i));
@@ -212,8 +256,8 @@ function ProcessParameters(p)
 
     %display number of participants and which are excluded
     excluded_texts = {'' , ' (EXCLUDED)'};
-    fprintf('\nFound %d participant(s):\n', p.PAR.NUM);
-    arrayfun(@(x) fprintf('%d: %s%s\n', x, p.PAR.ID{x}, excluded_texts{1+p.EXCLUDE.PAR(x)}), 1:p.PAR.NUM);
+    fprintf2(p, '\nFound %d participant(s):\n', p.PAR.NUM);
+    arrayfun(@(x) fprintf2(p, '%d: %s%s\n', x, p.PAR.ID{x}, excluded_texts{1+p.EXCLUDE.PAR(x)}), 1:p.PAR.NUM);
 
     %init run exclusions
     p.EXCLUDE.MATRIX = false(p.PAR.NUM, p.PAR.RUN);
@@ -224,7 +268,7 @@ function ProcessParameters(p)
     %set run exclusions - excluded runs
     p.EXCLUDE.RUN_input = p.EXCLUDE.RUN;
     p.EXCLUDE.RUN = false(1, p.PAR.RUN);
-    if ~isnan(p.EXCLUDE.PAR_input)
+    if ~isnan(p.EXCLUDE.RUN_input)
         if isnumeric(p.EXCLUDE.RUN_input)
             %single numeric input
             if p.EXCLUDE.RUN_input <= p.PAR.RUN
@@ -251,9 +295,9 @@ function ProcessParameters(p)
         end
     end
     p.EXCLUDE.MATRIX(:, p.EXCLUDE.RUN) = true;
-    fprintf('\nThere are %d globally excluded runs:\n', sum(p.EXCLUDE.RUN))
+    fprintf2(p, '\nThere are %d globally excluded runs:\n', sum(p.EXCLUDE.RUN))
     for r = find(p.EXCLUDE.RUN)
-        fprintf('Run %d\n', r)
+        fprintf2(p, 'Run %d\n', r)
     end
 
     %set run exclusions - specific runs
@@ -291,13 +335,13 @@ function ProcessParameters(p)
         end
     end
     p.EXCLUDE.PARRUN = unique(p.EXCLUDE.PARRUN, 'rows');
-    fprintf('\nThere are %d specificly excluded runs:\n', size(p.EXCLUDE.PARRUN, 1))
+    fprintf2(p, '\nThere are %d specificly excluded runs:\n', size(p.EXCLUDE.PARRUN, 1))
     for r = 1:size(p.EXCLUDE.PARRUN, 1)
-        fprintf('Participant %02d Run %02d\n', p.EXCLUDE.PARRUN(r,:))
+        fprintf2(p, 'Participant %02d Run %02d\n', p.EXCLUDE.PARRUN(r,:))
     end
     
     %display exclusion matrix
-    fprintf('\nExclusion Matrix (ROW=PAR x COL=RUN):\n')
+    fprintf2(p, '\nExclusion Matrix (ROW=PAR x COL=RUN):\n')
     disp(p.EXCLUDE.MATRIX)
 end
 
@@ -307,5 +351,5 @@ function [file_list] = CreateFileList(p)
 end
 
 function CheckFiles
-	
+	%TODO
 end
