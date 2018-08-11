@@ -20,8 +20,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     end
         
     %% Get script constants
-    global p;
-    p = ScriptConstants;
+    ScriptConstants;
 
     %% Select Excel file (unless passed as input in which case check it)
     if ~exist('xls_filepath','var')
@@ -75,6 +74,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     
     %% Handle Errors
     catch err
+        global p
         if exist('p', 'var') & any(strcmp(fields(p), 'LOGFILES'))
             for fid = p.LOGFILES
                 fclose(fid);
@@ -90,7 +90,10 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Main Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [p] = ScriptConstants
+function ScriptConstants
+    global p
+    p = struct;
+
     p.XLS.FILETYPE = 'xls*';
     p.XLS.ROW_START = 2;
     p.XLS.COL_VALUE = 3;
