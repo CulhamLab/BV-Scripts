@@ -41,18 +41,14 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
 
     %% 3. Check motion using the 3DMC SDMs from preprocessing
     p = MotionChecks(p);
+
+    %% 4. Apply Linear Trend Removal + Temporal High Pass + Spatial Smoothing (unless already done)
+
+    %% 5. Link Smoothed and Non-Smoothed VTC to PRT
     
-    %% 4. Link PRTs to VTCs
+    %% 6. Generate SDMs from PRTs (add motion from 3DMC SDMs as predictors of no interest)
 
-    %% 5. Apply Linear Trend Removal and Temporal High Pass if not already run
-
-    %% 6. Apply Spatial Smoothing to create set of smoothed VTCs for univariate analyses
-
-    %% 7. Generate SDMs from PRTs
-
-    %% 8. Merge Generated SDMs with 3DMC SDMs (use motion as predictors of no interest)
-
-    %% 9. Generate MDM for each participant and for all participants using SDM with merged 3DMC
+    %% 7. Generate MDM for each participant and for all participants
 
     %% Done
     fprintf2(p, '\n\nText outputs are sent to both the MATLAB Command Window and a log file.\nLog Directory: %s\nLog File: %s\n\nComplete!\n', p.DIR.LOG, p.LOGFILENAME);
