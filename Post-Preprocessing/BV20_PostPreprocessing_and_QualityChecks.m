@@ -537,11 +537,12 @@ function [p] = MotionChecks(p)
     fprintf2(p, '\nMotion plots will not be generated.\nIt is up to you to determine if any pars/runs contain too much motion.\nIn the future, we should include criteria for how much motion is acceptable.\nPlots Directory: %s', p.DIR.MTN);
 
     for par = 1:p.PAR.NUM
+        fprintf2(p, 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
         if ~any(~p.EXCLUDE.MATRIX(par,:))
+            fprintf2(p, '* EXCLUDED\n');
             continue
         end
-        
-        fprintf2(p, 'Participant %d: %s\n', par, p.PAR.ID{par});
         
         for run = 1:p.PAR.RUN
             fprintf2(p, '* Run %d\n', run);
@@ -672,7 +673,7 @@ function error2(varargin)
     end
     
     fprintf2(p, '\n\n\n');
-    eval(sprintf('fprintf2(p,[''ERROR: '' message],''%s''%s);', message, args))
+    eval(sprintf('fprintf2(p,''ERROR: %s''%s);', message, args))
     eval(sprintf('error(''%s''%s);', message, args))
     
 end
