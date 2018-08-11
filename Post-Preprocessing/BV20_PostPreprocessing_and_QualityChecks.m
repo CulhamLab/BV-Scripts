@@ -298,7 +298,7 @@ function [p] = ProcessParameters(p)
         end
     end
     p.EXCLUDE.MATRIX(:, p.EXCLUDE.RUN) = true;
-    fprintf2(p, '\nThere are %d globally excluded runs:\n', sum(p.EXCLUDE.RUN))
+    fprintf2(p, '\nThere in/are %d globally excluded run(s):\n', sum(p.EXCLUDE.RUN))
     for r = find(p.EXCLUDE.RUN)
         fprintf2(p, 'Run %d\n', r)
     end
@@ -338,7 +338,7 @@ function [p] = ProcessParameters(p)
         end
     end
     p.EXCLUDE.PARRUN = unique(p.EXCLUDE.PARRUN, 'rows');
-    fprintf2(p, '\nThere are %d specificly excluded runs:\n', size(p.EXCLUDE.PARRUN, 1))
+    fprintf2(p, '\nThere is/are %d specificly excluded run(s):\n', size(p.EXCLUDE.PARRUN, 1))
     for r = 1:size(p.EXCLUDE.PARRUN, 1)
         fprintf2(p, 'Participant %02d Run %02d\n', p.EXCLUDE.PARRUN(r,:))
     end
@@ -409,11 +409,12 @@ function [file_list] = CreateFileList(p)
         
         %look for all VTC and PRT
         for run = 1:p.PAR.RUN
+            fprintf2(p, '* Run %d:\n', run)
+            
             if p.EXCLUDE.MATRIX(par, run)
+                fprintf2(p, '*   EXCLUDED\n');
                 continue
             end
-            
-            fprintf2(p, '* Run %d:\n', run)
             
             %VTC
             
@@ -496,6 +497,7 @@ function [p] = CheckBBR(p)
         
         for run = 1:p.PAR.RUN
             if p.EXCLUDE.MATRIX(par, run)
+                fprintf2(p, '* Run %d: EXCLUDED\n', run);
                 continue
             end
             
@@ -545,11 +547,12 @@ function [p] = MotionChecks(p)
         fprintf2(p, 'Participant %d: %s\n', par, p.PAR.ID{par});
         
         for run = 1:p.PAR.RUN
+            fprintf2(p, '* Run %d\n', run);
+            
             if p.EXCLUDE.MATRIX(par, run)
+                fprintf2(p, '*   EXCLUDED\n');
                 continue
             end
-            
-            fprintf2(p, '* Run %d\n', run);
             
             search = sprintf('%s_%s-S1R%d_3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
             list = dir([p.file_list(par).dir search]);
@@ -612,9 +615,10 @@ function [p] = MotionChecks(p)
             a = [1 length(pos_all) 0 p.MTN.YAXIS];
             axis(a);
             hold on
+            exclude_text = {'' ' (EXCLUDE)'};
             for run = 1:p.PAR.RUN
                 plot([starts(run) starts(run)], a(3:4), 'r')
-                text(starts(run), a(4)*0.95, sprintf('Run %d', run), 'Color', 'r');
+                text(starts(run), a(4)*0.95, sprintf('Run %d%s', run, exclude_text{1 + p.EXCLUDE.MATRIX(par,run)}), 'Color', 'r');
             end
             hold off
             legend(pl, {'Position','Rotation'}, 'Location', 'EastOutside')
