@@ -583,7 +583,7 @@ function [p] = MotionChecks(p)
         
         %figure
         if ~exist('fig', 'var')
-            fig = figure('Position',get(0,'screensize'));
+            fig = figure('Position',[0 0 ((p.PAR.RUN*500)+200) 1000]);
         end
         filepath_plot = sprintf('%sPAR%02d_%s.%s', p.DIR.MTN, par, p.PAR.ID{par}, p.IMG.TYPE);
         if exist(filepath_plot, 'file') & ~p.MTN.OVERWRITE
@@ -613,7 +613,7 @@ function [p] = MotionChecks(p)
             axis(a);
             hold on
             for run = 1:p.PAR.RUN
-                plot([starts(run) starts(run)], a(3:4), 'r:')
+                plot([starts(run) starts(run)], a(3:4), 'r')
                 text(starts(run), a(4)*0.95, sprintf('Run %d', run), 'Color', 'r');
             end
             hold off
