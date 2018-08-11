@@ -14,6 +14,11 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% Handle Errors
     try
     
+    %% Check requirements
+    if ~exist('xff','file')
+        error('NeuroElf does not appear to be installed.')
+    end
+        
     %% Get script constants
     p = ScriptConstants;
 
@@ -34,8 +39,9 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% 2. Check BBR values
     p = CheckBBR(p);
 
-    %% 3. Run motion checks, create summary figures, and report any issues
-
+    %% 3. Check motion using the 3DMC SDMs from preprocessing
+    p = MotionChecks(p);
+    
     %% 4. Link PRTs to VTCs
 
     %% 5. Apply Linear Trend Removal and Temporal High Pass if not already run
@@ -73,6 +79,10 @@ function [p] = ScriptConstants
     p.BBR.GREAT = 0.5;
     p.BBR.OKAY = 0.7;
     p.BBR.POOR = 1;
+    
+    p.MTN.YAXIS = 1.5;
+    
+    p.IMG.TYPE = 'png';
 end
 
 function [xls_filepath] = GetExcel(p)
@@ -397,8 +407,6 @@ function [file_list] = CreateFileList(p)
         end
         fprintf2(p, '* VMR: %s\n', file_list(par).vmr);
         
-        %P1_Anat-S1_BRAIN_IIHC_TRF_MNI.vmr
-        
         %look for all VTC and PRT
         for run = 1:p.PAR.RUN
             if p.EXCLUDE.MATRIX(par, run)
@@ -466,7 +474,7 @@ function [file_list] = CreateFileList(p)
     end
 end
 
-function p = CheckBBR(p)
+function [p] = CheckBBR(p)
     p.BBR.bbr_cost_end = nan(p.PAR.NUM, p.PAR.RUN);
 
     fprintf2(p, '\nBoundary-Based Registration (BBR) cost values will now be checked.\nLower values indicate better FMR-VMR alignment.\n')
@@ -516,6 +524,109 @@ function p = CheckBBR(p)
             end
             
         end
+    end
+end
+
+function [p] = MotionChecks(p)
+    p.DIR.MTN = [p.DIR.OUT 'Motion_Plots' filesep];
+    if ~exist(p.DIR.MTN, 'dir')
+        mkdir(p.DIR.MTN);
+    end
+    
+    p.MTN.SDMMatrix = cell(p.PAR.NUM, p.PAR.RUN);
+
+    fprintf2(p, '\nMotion plots will not be generated.\nIt is up to you to determine if any pars/runs contain too much motion.\nIn the future, we should include criteria for how much motion is acceptable.\nPlots Directory: %s', p.DIR.MTN);
+
+    for par = 1:p.PAR.NUM
+        if ~any(~p.EXCLUDE.MATRIX(par,:))
+            continue
+        end
+        
+        fprintf2(p, 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
+        for run = 1:p.PAR.RUN
+            if p.EXCLUDE.MATRIX(par, run)
+                continue
+            end
+            
+            fprintf2(p, '* Run %d\n', run);
+            
+            search = sprintf('%s_%s-S1R%d_3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
+            list = dir([p.file_list(par).dir search]);
+            if length(list) > 1
+                error2(p, 'Too many files found for SDM searc: %s\n%s', search, sprintf('%s\n', list.name));
+            elseif isempty(list)
+                error2(p, 'No files found for SDM searc: %s', search);
+            else
+                p.file_list(par).sdm_motion_filename = list.name;
+                sdm = xff([p.file_list(par).dir p.file_list(par).sdm_motion_filename]);
+                p.MTN.SDMMatrix{par, run} = sdm.SDMMatrix;
+                p.MTN.PredictorColors{par, run} = sdm.PredictorColors;
+                p.MTN.PredictorNames{par, run} = sdm.PredictorNames;
+                sdm.clear;
+                
+                xyz = p.MTN.SDMMatrix{par, run}(:,1:3);
+                p.MTN.position{par, run} = sqrt(sqrt(xyz(:,1).^2 + xyz(:,2).^2) + xyz(:,3).^2);
+                p.MTN.position_delta{par, run} = diff(p.MTN.position{par, run});
+                xyzr = p.MTN.SDMMatrix{par, run}(:,4:6);
+                p.MTN.rotation{par, run} = sqrt(sqrt(xyzr(:,1).^2 + xyzr(:,2).^2) + xyzr(:,3).^2);
+                p.MTN.rotation_delta{par, run} = diff(p.MTN.rotation{par, run});
+                
+                fprintf2(p, '*   Translation per volume mean: %gmm\n', mean(p.MTN.position_delta{par, run}));
+                fprintf2(p, '*   Translation per volume max: %gmm\n', max(p.MTN.position_delta{par, run}));
+                fprintf2(p, '*   Translation per volume std: %gmm\n', std(p.MTN.position_delta{par, run}));
+                fprintf2(p, '*   Rotation per volume mean: %gdeg\n', mean(p.MTN.rotation_delta{par, run}));
+                fprintf2(p, '*   Rotation per volume max: %gdeg\n', max(p.MTN.rotation_delta{par, run}));
+                fprintf2(p, '*   Rotation per volume std: %gdeg\n', std(p.MTN.rotation_delta{par, run}));
+            end
+        end
+        
+        %figure
+        if ~exist('fig', 'var')
+            fig = figure('Position',get(0,'screensize'));
+        end
+        filepath_plot = sprintf('%sPAR%02d_%s.%s', p.DIR.MTN, par, p.PAR.ID{par}, p.IMG.TYPE);
+        if exist(filepath_plot, 'file') & ~p.MTN.OVERWRITE
+            fprintf2(p, '* Plot already exists and WILL NOT be overwritten\n');
+        else
+            if exist(filepath_plot, 'file')
+                fprintf2(p, '* Plot already exists, but WILL be overwritten\n');
+            end
+            
+            max_run_length = max(cellfun(@length, p.MTN.SDMMatrix(par, :)));
+            pos_all = [];
+            rot_all = [];
+            for run = 1:p.PAR.RUN
+                starts(run) = length(pos_all) + 1;
+                if isempty(p.MTN.SDMMatrix{par, run})
+                    pos_all = [pos_all; nan(max_run_length, 1)];
+                    rot_all = [rot_all; nan(max_run_length, 1)];
+                else
+                    pos_all = [pos_all; p.MTN.position{par, run}];
+                    rot_all = [rot_all; p.MTN.rotation{par, run}];
+                end
+            end
+            pl = plot([pos_all rot_all]);
+            xlabel('Volume')
+            ylabel('mm or deg');
+            a = [1 length(pos_all) 0 p.MTN.YAXIS];
+            axis(a);
+            hold on
+            for run = 1:p.PAR.RUN
+                plot([starts(run) starts(run)], a(3:4), 'r:')
+                text(starts(run), a(4)*0.95, sprintf('Run %d', run), 'Color', 'r');
+            end
+            hold off
+            legend(pl, {'Position','Rotation'}, 'Location', 'EastOutside')
+            title(sprintf('Participant %d: %s', par, p.PAR.ID{par}));
+            saveas(fig, filepath_plot, p.IMG.TYPE);
+            fprintf2(p, '* Plot: %s\n', filepath_plot);
+        end
+        
+    end
+    
+    if exist('fig', 'var')
+        close(fig);
     end
 end
 
