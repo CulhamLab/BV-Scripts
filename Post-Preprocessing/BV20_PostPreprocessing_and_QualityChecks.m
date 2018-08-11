@@ -33,7 +33,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     p = ReadExcel(p, xls_filepath);
     p = ProcessParameters(p);
 
-    %% 1. Search for existing files to confirm that everything files exist and are named correctly
+    %% 1. Search for existing files to confirm that all core files are present
     p.file_list = CreateFileList(p);
 
     %% 2. Check BBR values
@@ -42,9 +42,10 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% 3. Check motion using the 3DMC SDMs from preprocessing
     p = MotionChecks(p);
 
-    %% 4. Apply Linear Trend Removal + Temporal High Pass + Spatial Smoothing (unless already done)
-
-    %% 5. Link Smoothed and Non-Smoothed VTC to PRT
+    %% 5. Link Non-Smoothed VTC to PRT
+    LinkVTCtoPRT(p);
+    
+    %% 4. Non-Smoothed VTC: Apply Linear Trend Removal + Temporal High Pass, then Spatial Smoothing (unless already done)
     
     %% 6. Generate SDMs from PRTs (add motion from 3DMC SDMs as predictors of no interest)
 
@@ -628,6 +629,10 @@ function [p] = MotionChecks(p)
     if exist('fig', 'var')
         close(fig);
     end
+end
+
+function LinkVTCtoPRT(p)
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Utility Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
