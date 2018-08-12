@@ -13,6 +13,9 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% Temp
     xls_filepath = 'BV20_PostPreprocessing_and_QualityChecks_EXAMPLE.xlsx';
 
+    %% Disable a warning that occurs (without issue) in newer MATLAB
+    warning('off', 'xff:BadTFFCont');
+    
     %% Handle Errors
     try
     
@@ -21,7 +24,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
         error('NeuroElf does not appear to be installed.')
     end
         
-    %% Get script constants
+    %% Get script constants (also initializes global p)
     ScriptConstants;
 
     %% Select Excel file (unless passed as input in which case check it)
@@ -44,16 +47,21 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% 3. Check motion using the 3DMC SDMs from preprocessing
     MotionChecks;
 
-    %% 5. Link all VTCs to PRT
+    %% 4. Link all VTCs to PRT
     LinkVTCtoPRT;
     
-    %% 4. Linear Trend Removal + Temporal High Pass + Spatial Smoothing
+    %% 5. Linear Trend Removal + Temporal High Pass + Spatial Smoothing
     CheckAndFinishVTCPreprocessing;
     
-    %% 6. Generate SDMs from PRTs (add motion from 3DMC SDMs as predictors of no interest)
+    %% 6. Check TR and Volumes in final VTC
+    CheckVTC;
+    
+    %% 7. Generate SDMs from PRTs (add motion from 3DMC SDMs as predictors of no interest)
+    GenerateSDMs;
 
-    %% 7. Generate MDM for each participant and for all participants
-
+    %% 8. Generate MDM for each participant and for all participants
+    GenerateMDMs;
+    
     %% Save and Done
     global p
     
@@ -98,7 +106,7 @@ end
 
 function ScriptConstants
     global p
-    p = struct;
+    p = struct; %initialize global p
 
     p.XLS.FILETYPE = 'xls*';
     p.XLS.ROW_START = 2;
@@ -309,18 +317,18 @@ function ProcessParameters
     arrayfun(@(x) fprintf2( '%d: %s%s\n', x, p.PAR.ID{x}, excluded_texts{1+p.EXCLUDE.PAR(x)}), 1:p.PAR.NUM);
 
     %init run exclusions
-    p.EXCLUDE.MATRIX = false(p.PAR.NUM, p.PAR.RUN);
+    p.EXCLUDE.MATRIX = false(p.PAR.NUM, p.EXP.RUN);
 
     %set run exclusions - excluded subjects
     p.EXCLUDE.MATRIX(p.EXCLUDE.PAR, :) = true;
 
     %set run exclusions - excluded runs
     p.EXCLUDE.RUN_input = p.EXCLUDE.RUN;
-    p.EXCLUDE.RUN = false(1, p.PAR.RUN);
+    p.EXCLUDE.RUN = false(1, p.EXP.RUN);
     if ~isnan(p.EXCLUDE.RUN_input)
         if isnumeric(p.EXCLUDE.RUN_input)
             %single numeric input
-            if p.EXCLUDE.RUN_input <= p.PAR.RUN
+            if p.EXCLUDE.RUN_input <= p.EXP.RUN
                 p.EXCLUDE.RUN(p.EXCLUDE.RUN_input) = true;
             else
                 error2( 'Run exclusion list contains a number (%d) that exceeds the number of runs!', p.EXCLUDE.RUN_input)
@@ -335,7 +343,7 @@ function ProcessParameters
                     %ID provided
                     num = str2num(e{1}(2:end));
                 end
-                if num <= p.PAR.RUN
+                if num <= p.EXP.RUN
                     p.EXCLUDE.RUN(num) = true;
                 else
                     error2( 'Run exclusion list contains a number (%d) that exceeds the number of runs!', num)
@@ -374,7 +382,7 @@ function ProcessParameters
                 end
 
                 vals = cellfun(@(x) x, vals);
-                if any(vals<1) | (vals(1)>p.PAR.NUM) | (vals(2)>p.PAR.RUN)
+                if any(vals<1) | (vals(1)>p.PAR.NUM) | (vals(2)>p.EXP.RUN)
                     error2( 'The list of specific runs to exclude has an invalid pair: "%s"', e{1})
                 end
                 
@@ -461,7 +469,7 @@ function CreateFileList
         fprintf2( '* VMR: %s\n', p.file_list(par).vmr);
         
         %look for all VTC and PRT
-        for run = 1:p.PAR.RUN
+        for run = 1:p.EXP.RUN
             fprintf2( '* Run %d:\n', run)
             
             if p.EXCLUDE.MATRIX(par, run)
@@ -513,7 +521,7 @@ end
 
 function CheckBBR
     global p
-    p.BBR.bbr_cost_end = nan(p.PAR.NUM, p.PAR.RUN);
+    p.BBR.bbr_cost_end = nan(p.PAR.NUM, p.EXP.RUN);
 
     fprintf2( '\nBoundary-Based Registration (BBR) cost values will now be checked.\nLower values indicate better FMR-VMR alignment.\n')
 
@@ -533,7 +541,7 @@ function CheckBBR
             continue
         end
         
-        for run = 1:p.PAR.RUN
+        for run = 1:p.EXP.RUN
             if p.EXCLUDE.MATRIX(par, run)
                 fprintf2( '* Run %d: EXCLUDED\n', run);
                 continue
@@ -575,7 +583,7 @@ function MotionChecks
         mkdir(p.DIR.MTN);
     end
     
-    p.MTN.SDMMatrix = cell(p.PAR.NUM, p.PAR.RUN);
+    p.MTN.SDMMatrix = cell(p.PAR.NUM, p.EXP.RUN);
 
     fprintf2( '\nMotion plots will not be generated.\nIt is up to you to determine if any pars/runs contain too much motion.\nIn the future, we should include criteria for how much motion is acceptable.\nPlots Directory: %s', p.DIR.MTN);
 
@@ -587,7 +595,7 @@ function MotionChecks
             continue
         end
         
-        for run = 1:p.PAR.RUN
+        for run = 1:p.EXP.RUN
             fprintf2( '* Run %d\n', run);
             
             if p.EXCLUDE.MATRIX(par, run)
@@ -602,8 +610,8 @@ function MotionChecks
             elseif isempty(list)
                 error2( 'No files found for SDM searc: %s', search);
             else
-                p.file_list(par).sdm_motion_filename = list.name;
-                sdm = xff([p.file_list(par).dir p.file_list(par).sdm_motion_filename]);
+                p.file_list(par).run(run).sdm_motion_filename = list.name;
+                sdm = xff([p.file_list(par).dir p.file_list(par).run(run).sdm_motion_filename]);
                 p.MTN.SDMMatrix{par, run} = sdm.SDMMatrix;
                 p.MTN.PredictorColors{par, run} = sdm.PredictorColors;
                 p.MTN.PredictorNames{par, run} = sdm.PredictorNames;
@@ -627,7 +635,7 @@ function MotionChecks
         
         %figure
         if ~any(strcmp(fields(p), 'fig')) | ~ishandle(p.fig)
-            p.fig = figure('Position',[0 0 ((p.PAR.RUN*500)+200) 1000]);
+            p.fig = figure('Position',[0 0 ((p.EXP.RUN*500)+200) 1000]);
         end
         filepath_plot = sprintf('%sPAR%02d_%s.%s', p.DIR.MTN, par, p.PAR.ID{par}, p.IMG.TYPE);
         if exist(filepath_plot, 'file') & ~p.MTN.OVERWRITE
@@ -640,7 +648,7 @@ function MotionChecks
             max_run_length = max(cellfun(@length, p.MTN.SDMMatrix(par, :)));
             pos_all = [];
             rot_all = [];
-            for run = 1:p.PAR.RUN
+            for run = 1:p.EXP.RUN
                 starts(run) = length(pos_all) + 1;
                 if isempty(p.MTN.SDMMatrix{par, run})
                     pos_all = [pos_all; nan(max_run_length, 1)];
@@ -657,7 +665,7 @@ function MotionChecks
             axis(a);
             hold on
             exclude_text = {'' ' (EXCLUDE)'};
-            for run = 1:p.PAR.RUN
+            for run = 1:p.EXP.RUN
                 plot([starts(run) starts(run)], a(3:4), 'r')
                 text(starts(run), a(4)*0.95, sprintf('Run %d%s', run, exclude_text{1 + p.EXCLUDE.MATRIX(par,run)}), 'Color', 'r');
             end
@@ -688,7 +696,7 @@ function LinkVTCtoPRT
             continue
         end
         
-        for run = 1:p.PAR.RUN
+        for run = 1:p.EXP.RUN
             fprintf2( '* Run %d\n', run);
             
             if p.EXCLUDE.MATRIX(par, run)
@@ -730,7 +738,12 @@ function CheckAndFinishVTCPreprocessing
             continue
         end
         
-        for run = 1:p.PAR.RUN
+        if ~isempty(p.bv)
+            %open the vmr
+            vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+        end
+        
+        for run = 1:p.EXP.RUN
             fprintf2( '* Run %d\n', run);
             
             if p.EXCLUDE.MATRIX(par, run)
@@ -800,10 +813,10 @@ function CheckAndFinishVTCPreprocessing
                 fn_final = sprintf('%s_SD3DVSS%.2fmm', fn_final, p.VTC.SS);
             end
             fn_final = [fn_final '.vtc'];
-            p.file_list(par).run(run).vtc_smoothed = fn_final;
+            p.file_list(par).run(run).vtc_final = fn_final;
             
             %needs spatial smoothing?
-            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_smoothed], 'file')
+            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_final], 'file')
                 needs_ss = true;
             else
                 needs_ss = false;
@@ -819,10 +832,10 @@ function CheckAndFinishVTCPreprocessing
                     catch
                         error2('Could not connect to BV. Either BV is not installed or the COM server is not registered.');
                     end
+                    
+                    %open the vmr
+                    vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
                 end
-                
-                %open the vmr
-                vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
                 
                 %link the vtc
                 vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
@@ -839,10 +852,12 @@ function CheckAndFinishVTCPreprocessing
                     vmr.SpatialGaussianSmoothing(p.VTC.SS, 'mm');
                 end
                 
-                %close files
-                vmr.Close;
-                
             end
+        end
+        
+        if ~isempty(p.bv)
+            %close files
+            vmr.Close;
         end
     end
     
@@ -850,6 +865,184 @@ function CheckAndFinishVTCPreprocessing
         fprintf2('Closing BV link...\n')
         p.bv.Exit;
     end
+end
+
+function CheckVTC
+    global p
+    
+    fprintf2( '\nChecked the TR and number of volumes in final VTCs...\n');
+    
+    for par = 1:p.PAR.NUM
+        fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
+        if ~any(~p.EXCLUDE.MATRIX(par,:))
+            fprintf2( '* EXCLUDED\n');
+            continue
+        end
+        
+        for run = 1:p.EXP.RUN
+            fprintf2( '* Run %d\n', run);
+            
+            if p.EXCLUDE.MATRIX(par, run)
+                fprintf2( '*   EXCLUDED\n');
+                continue
+            end
+            
+            %load VTC
+            fprintf2('*   VTC: %s\n', p.file_list(par).run(run).vtc_final);
+            fp = [p.file_list(par).dir p.file_list(par).run(run).vtc_final];
+            if ~exist(fp, 'file')
+                error2('Expected VTC does not exist: %s\n', fp)
+            end
+            vtc = xff(fp);
+            
+            %check TR
+            if vtc.TR ~= p.EXP.TR
+                TR = vtc.TR;
+                vtc.clear;
+                error2('Unexpected TR = %d in VTC = %s\n', TR, p.file_list(par).run(run).vtc_final)
+            end
+            
+            %check number of volumes
+            p.file_list(par).run(run).num_vol = vtc.NrOfVolumes;
+            vtc.clear;
+            if p.file_list(par).run(run).num_vol ~= p.EXP.VOL
+                if p.EXP.VOL_VARIES
+                    fprintf2( '*     WARNING: unexpected number of volumes = %d\n', p.file_list(par).run(run).num_vol);
+                else
+                    error2('Unexpected number of volumes = %d in VTC = %s\n', p.file_list(par).run(run).num_vol, p.file_list(par).run(run).vtc_final);
+                end
+            else
+                fprintf2( '*     No issues found.\n');
+            end
+            
+        end
+    end
+    
+end
+
+function GenerateSDMs
+    global p
+    
+    fprintf2( '\nCreate SDMs from PRTs...\n');
+    
+    %prt to sdm parameters
+    param.rcond = []; %no exclude
+    param.prtr = p.EXP.TR;
+    
+    for par = 1:p.PAR.NUM
+        fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
+        if ~any(~p.EXCLUDE.MATRIX(par,:))
+            fprintf2( '* EXCLUDED\n');
+            continue
+        end
+        
+        for run = 1:p.EXP.RUN
+            fprintf2( '* Run %d\n', run);
+            
+            if p.EXCLUDE.MATRIX(par, run)
+                fprintf2( '*   EXCLUDED\n');
+                continue
+            end
+            
+            %number of volumes in this run
+            param.nvol = p.file_list(par).run(run).num_vol;
+            
+            %prt to sdm
+            fprintf2('*   PRT: %s\n', p.file_list(par).run(run).prt);
+            prt = xff([p.file_list(par).dir p.file_list(par).run(run).prt]);
+            fprintf2('*     Creating SDM...\n');
+            sdm = prt.CreateSDM(param);
+            
+            %load motion sdm
+            fprintf2('*   SDM: %s\n', p.file_list(par).run(run).sdm_motion_filename);
+            sdm_motion = xff([p.file_list(par).dir p.file_list(par).run(run).sdm_motion_filename]);
+            
+            %combine
+            fprintf2('*     Copying motion...\n');
+            sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
+            sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
+            sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+            sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
+
+            %save
+            p.file_list(par).run(run).sdm = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
+            fprintf2('*   New SDM: %s\n', p.file_list(par).run(run).sdm);
+            sdm.SaveAs([p.file_list(par).dir p.file_list(par).run(run).sdm]);
+            
+            %clear memory
+            prt.clear;
+            sdm.clear;
+            sdm_motion.clear;
+        end
+    end
+    
+end
+
+function GenerateMDMs
+        global p
+    
+    fprintf2( '\nCreate MDMs...\n');
+    
+    suffix = '';
+    if isnan(p.VTC.SS) | (p.VTC.SS <= 0)
+        suffix = '_NonSmoothed';
+        fprintf2('WARNING: Non-Smoothed VTC will be added to MDMs!\n');
+    end
+    
+    %start all-subs mdm
+    mdm_all = xff('mdm');
+    mdm_all.TypeOfFunctionalData = 'VTC';
+    mdm_all.PSCTransformation = 1;
+    mdm_all.zTransformation = 0;
+    
+    for par = 1:p.PAR.NUM
+        fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
+        if ~any(~p.EXCLUDE.MATRIX(par,:))
+            fprintf2( '* EXCLUDED\n');
+            continue
+        end
+        
+        %start mdm
+        mdm = xff('mdm');
+        mdm.TypeOfFunctionalData = 'VTC';
+        mdm.RFX_GLM = 0;
+        mdm.PSCTransformation = 1;
+        mdm.zTransformation = 0;
+        mdm.SeparatePredictors = 0;
+        
+        for run = 1:p.EXP.RUN
+            fprintf2( '* Run %d\n', run);
+            
+            if p.EXCLUDE.MATRIX(par, run)
+                fprintf2( '*   EXCLUDED\n');
+                continue
+            end
+            
+            fprintf2( '*   Adding...\n');
+            
+            mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm};
+            mdm.NrOfStudies = mdm.NrOfStudies + 1;
+            
+            fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+            mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm]};
+            mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
+            
+        end
+        
+        p.file_list(par).mdm = sprintf('%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, suffix);
+        fprintf2('* MDM: %s\n', p.file_list(par).mdm);
+        mdm.SaveAs([p.file_list(par).dir p.file_list(par).mdm]);
+        mdm.clear;
+    end
+    
+    
+    p.mdm_all = sprintf('Multi-Participant_%s%s.mdm', p.VTC.NAME, suffix);
+    fprintf2('Multi-Participant MDM: %s\n', p.mdm_all);
+    mdm_all.SaveAs([p.DIR.BV p.mdm_all]);
+    mdm_all.clear;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Utility Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
