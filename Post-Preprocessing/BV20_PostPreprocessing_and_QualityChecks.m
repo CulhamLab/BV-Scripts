@@ -2,10 +2,12 @@
 %
 % Requirements:
 % * NeuroElf toolbox installed (tested with neuroelf_v10_5153)
-% * BV20 COM is configured
+% * BV20 COM server must be registered if performing THP/LTR or SS on VTC
+% * Temporal High Pass Filter values must be in cycles (not herz)
 % * Data must have been preprocessed with the BV20 workflow
 % * Single session only
 % * Data must not have individual run directories (session directory is okay, but only single session is supported)
+% * Files must use BV file naming conventions (i.e., don't rename files in the BV folders)
 %
 function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% Temp
@@ -42,10 +44,11 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     %% 3. Check motion using the 3DMC SDMs from preprocessing
     MotionChecks;
 
-    %% 5. Link Non-Smoothed VTC to PRT
+    %% 5. Link all VTCs to PRT
     LinkVTCtoPRT;
     
-    %% 4. Non-Smoothed VTC: Apply Linear Trend Removal + Temporal High Pass, then Spatial Smoothing (unless already done)
+    %% 4. Linear Trend Removal + Temporal High Pass + Spatial Smoothing
+    CheckAndFinishVTCPreprocessing;
     
     %% 6. Generate SDMs from PRTs (add motion from 3DMC SDMs as predictors of no interest)
 
@@ -64,7 +67,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
     save([p.DIR.SAVE fn],'p');
     save([p.DIR.OUT 'run_latest.mat'],'p');
     
-    fprintf2( '\n\nRutime data is saved:\nDirectory: %s\nFile: %s\n', p.DIR.SAVE, fn);
+    fprintf2( '\n\nData Directory: %s\nData File: %s\n', p.DIR.SAVE, fn);
     
     fprintf2( '\n\nComplete!\n');
     
@@ -82,6 +85,9 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
         end
         if exist('p', 'var') & any(strcmp(fields(p), 'fig')) & ishandle(p.fig)
             close(p.fig);
+        end
+        if exist('p', 'var') & any(strcmp(fields(p), 'bv')) & ~isempty(p.bv)
+            p.bv.Exit;
         end
         rethrow(err);
     end
@@ -187,6 +193,19 @@ function ProcessParameters
     %print parameters
     fprintf2( 'PARAMETERS:\n')
     PrintParameters;
+    
+    %THP
+    if isnan(p.VTC.THP_FMR)
+        p.VTC.THP_FMR = 0;
+    end
+    if isnan(p.VTC.THP_VTC)
+        p.VTC.THP_VTC = 0;
+    end
+    
+    %temporal high pass filtering should not be applied on BOTH FMR and VTC
+    if p.VTC.THP_FMR & p.VTC.THP_VTC
+        error2('Temporal high pass filtering should not be applied to both FMR and VTC! Check the values of VTC.THP_FMR and VTC.THP_VTC')
+    end
     
     %check BV dir exists
     if ~exist(p.DIR.BV, 'dir')
@@ -461,27 +480,10 @@ function CreateFileList
                 error2( 'Could not find any VTC for search: %s', vtc_search)
             end
             
-            %discard files that have not been motion corrected
-            filenames(cellfun(@isempty, strfind(filenames, '3DMCTS'))) = [];
-            
-            %error if no motion corrected results
-            if ~isempty(list) & isempty(filenames)
-                error2( 'Could not find motion corrected VTC for search: %s', vtc_search)
-            end
-            
-            %discard any that are already smoothed (on FMR or VTC level)
-            ind_smoothed = ~cellfun(@isempty, regexp(filenames, 'SS[-.0-9]*mm'));
-            filenames(ind_smoothed) = [];
-            
-            %expect a single result (the output VTC from preprocessing)
-            if length(filenames) > 1
-                error2( 'Too many potential VTC found for search: %s\n%s', vtc_search, sprintf('%s\n', filenames{:}))
-            elseif isempty(filenames)
-                error2( 'No potential VTC found. This can occur if spatial smoothing was performed during preprocessing. For search: %s', vtc_search)
-            else
-                p.file_list(par).run(run).vtc_base = filenames{1};
-            end
-            fprintf2( '*   VTC: %s\n', p.file_list(par).run(run).vtc_base)
+            %found
+            p.file_list(par).run(run).vtcs = filenames;
+            p.file_list(par).run(run).num_vtcs = length(p.file_list(par).run(run).vtcs);
+            fprintf2( '*   VTC(s):\n%s', sprintf('      %s\n', p.file_list(par).run(run).vtcs{:}))
             
             
             %PRT
@@ -615,11 +617,11 @@ function MotionChecks
                 p.MTN.rotation_delta{par, run} = diff(p.MTN.rotation{par, run});
                 
                 fprintf2( '*   Translation per volume mean: %gmm\n', mean(p.MTN.position_delta{par, run}));
-                fprintf2( '*   Translation per volume max: %gmm\n', max(p.MTN.position_delta{par, run}));
-                fprintf2( '*   Translation per volume std: %gmm\n', std(p.MTN.position_delta{par, run}));
+                fprintf2( '*   Translation per volume max:  %gmm\n', max(p.MTN.position_delta{par, run}));
+                fprintf2( '*   Translation per volume std:  %gmm\n', std(p.MTN.position_delta{par, run}));
                 fprintf2( '*   Rotation per volume mean: %gdeg\n', mean(p.MTN.rotation_delta{par, run}));
-                fprintf2( '*   Rotation per volume max: %gdeg\n', max(p.MTN.rotation_delta{par, run}));
-                fprintf2( '*   Rotation per volume std: %gdeg\n', std(p.MTN.rotation_delta{par, run}));
+                fprintf2( '*   Rotation per volume max:  %gdeg\n', max(p.MTN.rotation_delta{par, run}));
+                fprintf2( '*   Rotation per volume std:  %gdeg\n', std(p.MTN.rotation_delta{par, run}));
             end
         end
         
@@ -676,7 +678,7 @@ end
 function LinkVTCtoPRT
     global p
     
-    fprintf2( '\nLinking PRTs to non-smoothed VTCs...\n');
+    fprintf2( '\nLinking all VTCs to PRTs...\n');
     
     for par = 1:p.PAR.NUM
         fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
@@ -693,17 +695,160 @@ function LinkVTCtoPRT
                 fprintf2( '*   EXCLUDED\n');
                 continue
             end
-            
-            fn_vtc = p.file_list(par).run(run).vtc_base;
+
             fn_prt = p.file_list(par).run(run).prt;
+            fprintf2('*   Linking to: %s\n', fn_prt);
             
-            if LinkPRT([p.file_list(par).dir fn_vtc], fn_prt)
-                fprintf2( '*   set link to %s\n', fn_prt);
-            else
-                fprintf2( '*   already linked to %s\n', fn_prt);
+            for i = 1:p.file_list(par).run(run).num_vtcs
+            
+                fn_vtc = p.file_list(par).run(run).vtcs{i};
+                fprintf2('*   VTC: %s\n', fn_vtc);
+                
+                if LinkPRT([p.file_list(par).dir fn_vtc], fn_prt)
+                    fprintf2( '*     Set Link\n');
+                else
+                    fprintf2( '*     Already Linked\n');
+                end
+            
             end
             
         end
+    end
+end
+
+function CheckAndFinishVTCPreprocessing
+    global p
+    p.bv = [];
+    
+    fprintf2( '\nChecking and finishing any FMR preprocessing (LTR, THP, and Spatial Smoothing)...\n');
+    
+    for par = 1:p.PAR.NUM
+        fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
+        
+        if ~any(~p.EXCLUDE.MATRIX(par,:))
+            fprintf2( '* EXCLUDED\n');
+            continue
+        end
+        
+        for run = 1:p.PAR.RUN
+            fprintf2( '* Run %d\n', run);
+            
+            if p.EXCLUDE.MATRIX(par, run)
+                fprintf2( '*   EXCLUDED\n');
+                continue
+            end
+    
+            %looking for the best vtc to finish preprocessing (if needed) + dospatial smoothing on
+            filenames = p.file_list(par).run(run).vtcs;
+            
+            %exclude spatially smoothed vtcs
+            ind_smoothed = ~cellfun(@isempty, regexp(filenames, 'SS[-.0-9]*mm'));
+            filenames(ind_smoothed) = [];
+            
+            %if VTC.THP_FMR then select those with correct FMR THP, else select those with no FMR THP
+            if p.VTC.THP_FMR
+                filenames = filenames(cellfun(@(x) ~isempty(strfind(x, sprintf('THPGLMF%dc', p.VTC.THP_FMR))), filenames));
+            else
+                filenames = filenames(cellfun(@(x) isempty(strfind(x, 'THPGLMF')), filenames));
+            end
+            
+            %if VTC.THP_VTC then discard those with other VTC THP values, else select those with no VTC THP
+            if p.VTC.THP_VTC
+                matches = regexp(filenames, 'THPFFT[0-9]*c', 'match');
+                ind_bad_thp = cellfun(@(x) ~isempty(x) && ~strcmp(x, sprintf('THPFFT%dc', p.VTC.THP_VTC)), matches);
+                filenames(ind_bad_thp) = [];
+            else
+                filenames = filenames(cellfun(@(x) isempty(strfind(x, 'THPFFT')), filenames));
+            end
+            
+            %at this point, all VTC are not spatially smoothed and either have no THP or have the desired THP
+            
+            %try to narrow down to single best option
+            needs_thp = false;
+            if p.VTC.THP_FMR
+                %all files already have correct THP
+            elseif p.VTC.THP_VTC
+                %if one option has VTC THP, select it - otherwise can apply THP
+                ind = find(cellfun(@(x) ~isempty(strfind(x, sprintf('THPFFT%dc', p.VTC.THP_VTC))), filenames));
+                if length(ind) == 1
+                    filenames = filenames(ind);
+                else
+                    needs_thp = true;
+                end
+            else
+                %all files already have no THP
+            end
+            
+            %should ideally have one file left
+            if isempty(filenames)
+                error2('Could not find any suitable VTC in list: \n%s', sprintf('%s\n', p.file_list(par).run(run).vtcs{:}))
+            elseif length(filenames) > 1
+                error2('Could not narrow search to a single best file in list: \n%s', sprintf('%s\n', filenames{:}))
+            else
+                %success
+            end
+            
+            p.file_list(par).run(run).vtc_base = filenames{1};
+            fprintf2('*   Selected VTC: %s\n', p.file_list(par).run(run).vtc_base);
+
+            %determine if spatial smoothing needs to be performed
+            fn_final = p.file_list(par).run(run).vtc_base(1 : find(p.file_list(par).run(run).vtc_base=='.',1,'last')-1);
+            if needs_thp
+                fn_final = sprintf('%s_LTR_THPFFT%dc', fn_final, p.VTC.THP_VTC);
+            end
+            if ~isnan(p.VTC.SS) & (p.VTC.SS > 0)
+                fn_final = sprintf('%s_SD3DVSS%.2fmm', fn_final, p.VTC.SS);
+            end
+            fn_final = [fn_final '.vtc'];
+            p.file_list(par).run(run).vtc_smoothed = fn_final;
+            
+            %needs spatial smoothing?
+            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_smoothed], 'file')
+                needs_ss = true;
+            else
+                needs_ss = false;
+            end
+            
+            %apply THP/LTR and/or SS
+            if needs_thp | needs_ss
+                %open BV connection if it's not already open
+                if isempty(p.bv)
+                    try
+                        fprintf2('Opening BV link...\n')
+                        p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
+                    catch
+                        error2('Could not connect to BV. Either BV is not installed or the COM server is not registered.');
+                    end
+                end
+                
+                %open the vmr
+                vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+                
+                %link the vtc
+                vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
+                
+                %thp/ltr
+                if needs_thp
+                    fprintf2('*     Applying Temporal High Pass Filter (THP) and Linear Trend Removal (LTR)...\n')
+                    vmr.TemporalHighPassFilter(p.VTC.THP_VTC, 'cycles');
+                end
+                
+                %ss
+                if needs_ss
+                    fprintf2('*     Applying Spatial Smoothing (ss)...\n')
+                    vmr.SpatialGaussianSmoothing(p.VTC.SS, 'mm');
+                end
+                
+                %close files
+                vmr.Close;
+                
+            end
+        end
+    end
+    
+    if ~isempty(p.bv)
+        fprintf2('Closing BV link...\n')
+        p.bv.Exit;
     end
 end
 
