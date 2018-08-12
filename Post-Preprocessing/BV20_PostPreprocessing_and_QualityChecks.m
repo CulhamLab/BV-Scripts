@@ -10,14 +10,11 @@
 % * Files must use BV file naming conventions (i.e., don't rename files in the BV folders)
 %
 function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
-    %% Temp
-    xls_filepath = 'BV20_PostPreprocessing_and_QualityChecks_EXAMPLE.xlsx';
-
-    %% Disable a warning that occurs (without issue) in newer MATLAB
-    warning('off', 'xff:BadTFFCont');
-    
     %% Handle Errors
     try
+	
+	%% Disable a warning that occurs (without issue) in newer MATLAB
+    warning('off', 'xff:BadTFFCont');
     
     %% Check requirements
     if ~exist('xff','file')
