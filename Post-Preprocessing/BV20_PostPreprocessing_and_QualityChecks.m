@@ -225,6 +225,16 @@ function ProcessParameters
     else
         p.PRT.ALLOW_COPY = true;
     end
+    
+    %PRT sets
+    p.PRT.SETS = strrep(p.PRT.SETS,' ','');
+    if ~isnan(p.PRT.SETS)
+        p.PRT.SETS = strsplit(p.PRT.SETS, ',');
+    end
+    p.PRT.SETS_num = length(p.PRT.SETS);
+    if p.PRT.SETS_num < 1
+        p.PRT.SETS_num = 1;
+    end
 
     %participant IDs
     pid_provided = false;
@@ -492,25 +502,27 @@ function CreateFileList
             
             
             %PRT
-            search = ApplyNamingConvention(p.PRT.NAMING, par, run);
-            list = dir([p.file_list(par).dir search]);
-            do_copy = false;
-            if isempty(list) & p.PRT.ALLOW_COPY
-                list = dir([p.DIR.PRT search]);
-                do_copy = true;
-            end
-            if length(list) > 1
-                error2( 'Too many potential PRT found for search: %s\n%s', search, sprintf('%s\n', list.name))
-            elseif isempty(list)
-                error2( 'No PRT found for search: %s', search)
-            else
-                %select the one result
-                p.file_list(par).run(run).prt = list.name;
-            end
-            fprintf2( '*   PRT: %s\n', p.file_list(par).run(run).prt)
-            if do_copy
-                fprintf2( '*   Copying PRT to BV folder from: %s\n', p.DIR.PRT)
-                copyfile([p.DIR.PRT p.file_list(par).run(run).prt], [p.file_list(par).dir p.file_list(par).run(run).prt])
+            for prt_num = 1:p.PRT.SETS_num
+                search = ApplyNamingConvention(p.PRT.NAMING, par, run, prt_num);
+                list = dir([p.file_list(par).dir search]);
+                do_copy = false;
+                if isempty(list) & p.PRT.ALLOW_COPY
+                    list = dir([p.DIR.PRT search]);
+                    do_copy = true;
+                end
+                if length(list) > 1
+                    error2( 'Too many potential PRT found for search: %s\n%s', search, sprintf('%s\n', list.name))
+                elseif isempty(list)
+                    error2( 'No PRT found for search: %s', search)
+                else
+                    %select the one result
+                    p.file_list(par).run(run).prt{prt_num} = list.name;
+                end
+                fprintf2( '*   PRT: %s\n', p.file_list(par).run(run).prt{prt_num});
+                if do_copy
+                    fprintf2( '*   Copying PRT to BV folder from: %s\n', p.DIR.PRT)
+                    copyfile([p.DIR.PRT p.file_list(par).run(run).prt{prt_num}], [p.file_list(par).dir p.file_list(par).run(run).prt{prt_num}])
+                end
             end
         end 
     end
@@ -701,7 +713,7 @@ function LinkVTCtoPRT
                 continue
             end
 
-            fn_prt = p.file_list(par).run(run).prt;
+            fn_prt = p.file_list(par).run(run).prt{1};
             fprintf2('*   Linking to: %s\n', fn_prt);
             
             for i = 1:p.file_list(par).run(run).num_vtcs
@@ -946,31 +958,42 @@ function GenerateSDMs
             %number of volumes in this run
             param.nvol = p.file_list(par).run(run).num_vol;
             
-            %prt to sdm
-            fprintf2('*   PRT: %s\n', p.file_list(par).run(run).prt);
-            prt = xff([p.file_list(par).dir p.file_list(par).run(run).prt]);
-            fprintf2('*     Creating SDM...\n');
-            sdm = prt.CreateSDM(param);
-            
             %load motion sdm
             fprintf2('*   SDM: %s\n', p.file_list(par).run(run).sdm_motion_filename);
             sdm_motion = xff([p.file_list(par).dir p.file_list(par).run(run).sdm_motion_filename]);
             
-            %combine
-            fprintf2('*     Copying motion...\n');
-            sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
-            sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
-            sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
-            sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
+            for set = 1:p.PRT.SETS_num
+            
+                %prt to sdm
+                fprintf2('*   PRT: %s\n', p.file_list(par).run(run).prt{set});
+                prt = xff([p.file_list(par).dir p.file_list(par).run(run).prt{set}]);
+                fprintf2('*     Creating SDM...\n');
+                sdm = prt.CreateSDM(param);
 
-            %save
-            p.file_list(par).run(run).sdm = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
-            fprintf2('*   New SDM: %s\n', p.file_list(par).run(run).sdm);
-            sdm.SaveAs([p.file_list(par).dir p.file_list(par).run(run).sdm]);
+                %combine
+                fprintf2('*     Copying motion...\n');
+                sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
+                sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
+                sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+                sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
+
+                %save
+                if ~iscell(p.PRT.SETS)
+                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
+                else
+                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, p.VTC.NAME, run, p.PRT.SETS{set});
+                end
+                
+                p.file_list(par).run(run).sdm = fn_out;
+                fprintf2('*   New SDM: %s\n', p.file_list(par).run(run).sdm);
+                sdm.SaveAs([p.file_list(par).dir p.file_list(par).run(run).sdm]);
+
+                %clear memory
+                prt.clear;
+                sdm.clear;
+            end
             
             %clear memory
-            prt.clear;
-            sdm.clear;
             sdm_motion.clear;
         end
     end
@@ -988,58 +1011,68 @@ function GenerateMDMs
         fprintf2('WARNING: Non-Smoothed VTC will be added to MDMs!\n');
     end
     
-    %start all-subs mdm
-    mdm_all = xff('mdm');
-    mdm_all.TypeOfFunctionalData = 'VTC';
-    mdm_all.PSCTransformation = 1;
-    mdm_all.zTransformation = 0;
+    for set = 1:p.PRT.SETS_num
     
-    for par = 1:p.PAR.NUM
-        fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
-        
-        if ~any(~p.EXCLUDE.MATRIX(par,:))
-            fprintf2( '* EXCLUDED\n');
-            continue
-        end
-        
-        %start mdm
-        mdm = xff('mdm');
-        mdm.TypeOfFunctionalData = 'VTC';
-        mdm.RFX_GLM = 0;
-        mdm.PSCTransformation = 1;
-        mdm.zTransformation = 0;
-        mdm.SeparatePredictors = 0;
-        
-        for run = 1:p.EXP.RUN
-            fprintf2( '* Run %d\n', run);
-            
-            if p.EXCLUDE.MATRIX(par, run)
-                fprintf2( '*   EXCLUDED\n');
+        %start all-subs mdm
+        mdm_all = xff('mdm');
+        mdm_all.TypeOfFunctionalData = 'VTC';
+        mdm_all.PSCTransformation = 1;
+        mdm_all.zTransformation = 0;
+
+        for par = 1:p.PAR.NUM
+            fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
+
+            if ~any(~p.EXCLUDE.MATRIX(par,:))
+                fprintf2( '* EXCLUDED\n');
                 continue
             end
-            
-            fprintf2( '*   Adding...\n');
-            
-            mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm};
-            mdm.NrOfStudies = mdm.NrOfStudies + 1;
-            
-            fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
-            mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm]};
-            mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
-            
+
+            %start mdm
+            mdm = xff('mdm');
+            mdm.TypeOfFunctionalData = 'VTC';
+            mdm.RFX_GLM = 0;
+            mdm.PSCTransformation = 1;
+            mdm.zTransformation = 0;
+            mdm.SeparatePredictors = 0;
+
+            for run = 1:p.EXP.RUN
+                fprintf2( '* Run %d\n', run);
+
+                if p.EXCLUDE.MATRIX(par, run)
+                    fprintf2( '*   EXCLUDED\n');
+                    continue
+                end
+
+                fprintf2( '*   Adding...\n');
+
+                mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm};
+                mdm.NrOfStudies = mdm.NrOfStudies + 1;
+
+                fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+                mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm]};
+                mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
+
+            end
+
+            if ~iscell(p.PRT.SETS)
+                p.file_list(par).mdm{set} = sprintf('%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, suffix);
+            else
+                p.file_list(par).mdm{set} = sprintf('%s_%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, p.PRT.SETS{set}, suffix);
+            end
+            fprintf2('* MDM: %s\n', p.file_list(par).mdm{set});
+            mdm.SaveAs([p.file_list(par).dir p.file_list(par).mdm{set}]);
+            mdm.clear;
         end
-        
-        p.file_list(par).mdm = sprintf('%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, suffix);
-        fprintf2('* MDM: %s\n', p.file_list(par).mdm);
-        mdm.SaveAs([p.file_list(par).dir p.file_list(par).mdm]);
-        mdm.clear;
+
+        if ~iscell(p.PRT.SETS)
+            p.mdm_all{set} = sprintf('Multi-Participant_%s%s.mdm', p.VTC.NAME, suffix);
+        else
+            p.mdm_all{set} = sprintf('Multi-Participant_%s_%s%s.mdm', p.VTC.NAME, p.PRT.SETS{set}, suffix);
+        end
+        fprintf2('Multi-Participant MDM: %s\n', p.mdm_all{set});
+        mdm_all.SaveAs([p.DIR.BV p.mdm_all{set}]);
+        mdm_all.clear;
     end
-    
-    
-    p.mdm_all = sprintf('Multi-Participant_%s%s.mdm', p.VTC.NAME, suffix);
-    fprintf2('Multi-Participant MDM: %s\n', p.mdm_all);
-    mdm_all.SaveAs([p.DIR.BV p.mdm_all]);
-    mdm_all.clear;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Utility Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1055,9 +1088,13 @@ function [did_link] = LinkPRT(fp_vtc, fn_prt)
     vtc.clear;
 end
 
-function [string] = ApplyNamingConvention(string, par, run)
+function [string] = ApplyNamingConvention(string, par, run, set)
     global p
     string = strrep(string, '[PID]', p.PAR.ID{par});
+    
+    if iscell(p.PRT.SETS) | ~isnan(p.PRT.SETS)
+        string = strrep(string, '[PRED_SET]', p.PRT.SETS{set});
+    end
     
     expressions = regexp(string, '\[R#[0-9]*\]', 'match');
     for exp = expressions
