@@ -843,7 +843,7 @@ function CheckAndFinishVTCPreprocessing
                     end
                     
                     %open the vmr
-                    vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+                    vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
                 end
                 
                 %link the vtc
