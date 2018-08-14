@@ -984,9 +984,9 @@ function GenerateSDMs
                     fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, p.VTC.NAME, run, p.PRT.SETS{set});
                 end
                 
-                p.file_list(par).run(run).sdm = fn_out;
-                fprintf2('*   New SDM: %s\n', p.file_list(par).run(run).sdm);
-                sdm.SaveAs([p.file_list(par).dir p.file_list(par).run(run).sdm]);
+                p.file_list(par).run(run).sdm{set} = fn_out;
+                fprintf2('*   New SDM: %s\n', p.file_list(par).run(run).sdm{set});
+                sdm.SaveAs([p.file_list(par).dir p.file_list(par).run(run).sdm{set}]);
 
                 %clear memory
                 prt.clear;
@@ -1045,11 +1045,11 @@ function GenerateMDMs
 
                 fprintf2( '*   Adding...\n');
 
-                mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm};
+                mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm{set}};
                 mdm.NrOfStudies = mdm.NrOfStudies + 1;
 
                 fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
-                mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm]};
+                mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm{set}]};
                 mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
 
             end
