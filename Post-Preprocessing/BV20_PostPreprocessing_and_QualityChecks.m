@@ -110,6 +110,7 @@ function ScriptConstants
     p.XLS.COL_VALUE = 3;
     p.XLS.COL_ID = 5;
     
+    p.BBR.STRANGE = 0.25;
     p.BBR.GREAT = 0.5;
     p.BBR.OKAY = 0.7;
     p.BBR.POOR = 1;
@@ -454,7 +455,7 @@ function CreateFileList
         fprintf2( '* Searching for files in: %s\n', p.file_list(par).dir)
         
         %look for VMR
-        vmr_search = sprintf('%s_%s-S1_BRAIN_IIHC*_MNI.vmr', p.PAR.ID{par}, p.VMR.NAME);
+        vmr_search = sprintf('%s_%s-S1_*BRAIN_IIHC*_MNI.vmr', p.PAR.ID{par}, p.VMR.NAME);
         list = dir([p.file_list(par).dir vmr_search]);
 %         fprintf2( '* VMR search results: %s\n', sprintf('%s ', list.name));
         if length(list) > 2
@@ -469,9 +470,12 @@ function CreateFileList
                 p.file_list(par).vmr = list(ind_use).name;
                 fprintf2( 'WARNING: Two VMR files were found, but one has TRF so that one will be selected under the assumption that the TRF was to solve the corregistration bug and the non-TRF is left-over from the first attempt.\n');
             end
-        else
+        elseif ~isempty(list)
             %one result
             p.file_list(par).vmr = list.name;
+        else
+            %no result
+            error2('No VMR found for search: %s', vmr_search)
         end
         fprintf2( '* VMR: %s\n', p.file_list(par).vmr);
         
@@ -540,7 +544,7 @@ function CheckBBR
         return
     end
     
-    fprintf2( 'The cutoff values used are:\nGREAT <= %g\nOKAY <= %g\nPOOR <= %g\nUNACCEPTABLE > %g\n', p.BBR.GREAT, p.BBR.OKAY, p.BBR.POOR, p.BBR.POOR);
+    fprintf2( 'The cutoff values used are:\nSTRANGE < %g\nGREAT <= %g\nOKAY <= %g\nPOOR <= %g\nUNACCEPTABLE > %g\n', p.BBR.STRANGE, p.BBR.GREAT, p.BBR.OKAY, p.BBR.POOR, p.BBR.POOR);
     
     for par = 1:p.PAR.NUM
         fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
@@ -565,9 +569,11 @@ function CheckBBR
                 error2( 'No BBR files found for search: %s', search)
             else
                 text = fileread([fol list.name]);
-                p.BBR.bbr_cost_end(par, run) = str2num(text(find(text=='.',1,'last')-1:end));
+                p.BBR.bbr_cost_end(par, run) = str2num(text(find(text==' ',1,'last')+1:end));
                 
-                if p.BBR.bbr_cost_end(par, run) <= p.BBR.GREAT
+                if p.BBR.bbr_cost_end(par, run) <= p.BBR.STRANGE
+                    p.BBR.bbr_cost_end_assessment{par, run} = 'STRANGE - could be exceptional or perhaps an issue occurred';
+                elseif p.BBR.bbr_cost_end(par, run) <= p.BBR.GREAT
                     p.BBR.bbr_cost_end_assessment{par, run} = 'GREAT';
                 elseif p.BBR.bbr_cost_end(par, run) <= p.BBR.OKAY
                     p.BBR.bbr_cost_end_assessment{par, run} = 'OKAY';
