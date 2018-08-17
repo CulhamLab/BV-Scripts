@@ -673,10 +673,24 @@ function MotionChecks
                     rot_all = [rot_all; p.MTN.rotation{par, run}];
                 end
             end
-            pl = plot([pos_all rot_all]);
+            clf
+            hold on
+            pl(1) = plot(pos_all,'g');
+            pl(2) = plot(rot_all,'b');
+            hold off
             xlabel('Volume')
             ylabel('mm or deg');
-            a = [1 length(pos_all) 0 p.MTN.YAXIS];
+            
+            m = max([pos_all; rot_all]);
+            t = sprintf('Participant %d: %s', par, p.PAR.ID{par});
+            if m > p.MTN.YAXIS
+                a = [1 length(pos_all) 0 m];
+                t = sprintf('%s (extended y-axis: %g)', t, m);
+                fprintf2('WARNING: Motion plot y-axis exceeds limit. Will draw larger axis. (new max = %g)\n', m)
+            else
+                a = [1 length(pos_all) 0 p.MTN.YAXIS];
+            end
+            
             axis(a);
             hold on
             exclude_text = {'' ' (EXCLUDE)'};
@@ -686,7 +700,7 @@ function MotionChecks
             end
             hold off
             legend(pl, {'Position','Rotation'}, 'Location', 'EastOutside')
-            title(sprintf('Participant %d: %s', par, p.PAR.ID{par}));
+            title(t);
             saveas(p.fig, filepath_plot, p.IMG.TYPE);
             fprintf2( '* Plot: %s\n', filepath_plot);
         end
@@ -753,9 +767,18 @@ function CheckAndFinishVTCPreprocessing
             continue
         end
         
+        %need absolute path
+        if strcmp(p.file_list(par).dir,'.') || strcmp(p.file_list(par).dir,['.' filesep])
+            dir_abs = [pwd filesep];
+        elseif length(p.file_list(par).dir)>=2 && strcmp(p.file_list(par).dir(1:2),['.' filesep])
+            dir_abs = [pwd filesep p.file_list(par).dir(3:end)]
+        else
+            dir_abs = p.file_list(par).dir;
+        end
+        
         if ~isempty(p.bv)
             %open the vmr
-            vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+            vmr = bv.OpenDocument([dir_abs p.file_list(par).vmr]);
         end
         
         for run = 1:p.EXP.RUN
@@ -831,7 +854,7 @@ function CheckAndFinishVTCPreprocessing
             p.file_list(par).run(run).vtc_final = fn_final;
             
             %needs spatial smoothing?
-            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_final], 'file')
+            if ~exist([dir_abs p.file_list(par).run(run).vtc_final], 'file')
                 needs_ss = true;
             else
                 needs_ss = false;
@@ -842,18 +865,34 @@ function CheckAndFinishVTCPreprocessing
                 %open BV connection if it's not already open
                 if isempty(p.bv)
                     try
-                        fprintf2('Opening BV link...\n')
+                        fprintf2('Opening connection to BV20...\n')
                         p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
                     catch
-                        error2('Could not connect to BV. Either BV is not installed or the COM server is not registered.');
+					
+                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.');
+						
+						try
+							fprintf2('Opening connection to BVQX (2.2 or newer)...\n')
+							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXScriptAccess.1');
+                        catch
+                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.');
+                            
+                            try
+                                fprintf2('Opening connection to BVQX (1.9 or 2.0)...\n')
+                                p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXInterface.1')
+                            catch
+                                error2('Could not connect to any BV COM servers.');
+                            end
+						end
+						
                     end
                     
                     %open the vmr
-                    vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+                    vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
                 end
                 
                 %link the vtc
-                vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
+                vmr.LinkVTC([dir_abs p.file_list(par).run(run).vtc_base]);
                 
                 %thp/ltr
                 if needs_thp
