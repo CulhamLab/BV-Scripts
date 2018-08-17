@@ -842,10 +842,19 @@ function CheckAndFinishVTCPreprocessing
                 %open BV connection if it's not already open
                 if isempty(p.bv)
                     try
-                        fprintf2('Opening BV link...\n')
+                        fprintf2('Opening BV20 link...\n')
                         p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
                     catch
-                        error2('Could not connect to BV. Either BV is not installed or the COM server is not registered.');
+					
+                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.');
+						
+						try
+							fprintf2('Opening BVQX link...\n')
+							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXInterface.1');
+						catch
+							error2('Could not connect to any BV COM servers.');
+						end
+						
                     end
                     
                     %open the vmr
