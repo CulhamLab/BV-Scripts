@@ -673,10 +673,24 @@ function MotionChecks
                     rot_all = [rot_all; p.MTN.rotation{par, run}];
                 end
             end
-            pl = plot([pos_all rot_all]);
+            clf
+            hold on
+            pl(1) = plot(pos_all,'g');
+            pl(2) = plot(rot_all,'b');
+            hold off
             xlabel('Volume')
             ylabel('mm or deg');
-            a = [1 length(pos_all) 0 p.MTN.YAXIS];
+            
+            m = max([pos_all; rot_all]);
+            t = sprintf('Participant %d: %s', par, p.PAR.ID{par});
+            if m > p.MTN.YAXIS
+                a = [1 length(pos_all) 0 m];
+                t = sprintf('%s (extended y-axis: %g)', t, m);
+                fprintf2('WARNING: Motion plot y-axis exceeds limit. Will draw larger axis. (new max = %g)\n', m)
+            else
+                a = [1 length(pos_all) 0 p.MTN.YAXIS];
+            end
+            
             axis(a);
             hold on
             exclude_text = {'' ' (EXCLUDE)'};
@@ -686,7 +700,7 @@ function MotionChecks
             end
             hold off
             legend(pl, {'Position','Rotation'}, 'Location', 'EastOutside')
-            title(sprintf('Participant %d: %s', par, p.PAR.ID{par}));
+            title(t);
             saveas(p.fig, filepath_plot, p.IMG.TYPE);
             fprintf2( '* Plot: %s\n', filepath_plot);
         end
