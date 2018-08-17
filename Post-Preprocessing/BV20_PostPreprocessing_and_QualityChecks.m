@@ -753,9 +753,18 @@ function CheckAndFinishVTCPreprocessing
             continue
         end
         
+        %need absolute path
+        if strcmp(p.file_list(par).dir,'.') || strcmp(p.file_list(par).dir,['.' filesep])
+            dir_abs = [pwd filesep];
+        elseif length(p.file_list(par).dir)>=2 && strcmp(p.file_list(par).dir(1:2),['.' filesep])
+            dir_abs = [pwd filesep p.file_list(par).dir(3:end)]
+        else
+            dir_abs = p.file_list(par).dir;
+        end
+        
         if ~isempty(p.bv)
             %open the vmr
-            vmr = bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+            vmr = bv.OpenDocument([dir_abs p.file_list(par).vmr]);
         end
         
         for run = 1:p.EXP.RUN
@@ -831,7 +840,7 @@ function CheckAndFinishVTCPreprocessing
             p.file_list(par).run(run).vtc_final = fn_final;
             
             %needs spatial smoothing?
-            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_final], 'file')
+            if ~exist([dir_abs p.file_list(par).run(run).vtc_final], 'file')
                 needs_ss = true;
             else
                 needs_ss = false;
@@ -842,27 +851,34 @@ function CheckAndFinishVTCPreprocessing
                 %open BV connection if it's not already open
                 if isempty(p.bv)
                     try
-                        fprintf2('Opening BV20 link...\n')
+                        fprintf2('Opening connection to BV20...\n')
                         p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
                     catch
 					
                         fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.');
 						
 						try
-							fprintf2('Opening BVQX link...\n')
-							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXInterface.1');
-						catch
-							error2('Could not connect to any BV COM servers.');
+							fprintf2('Opening connection to BVQX (2.2 or newer)...\n')
+							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXScriptAccess.1');
+                        catch
+                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.');
+                            
+                            try
+                                fprintf2('Opening connection to BVQX (1.9 or 2.0)...\n')
+                                p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXInterface.1')
+                            catch
+                                error2('Could not connect to any BV COM servers.');
+                            end
 						end
 						
                     end
                     
                     %open the vmr
-                    vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
+                    vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
                 end
                 
                 %link the vtc
-                vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
+                vmr.LinkVTC([dir_abs p.file_list(par).run(run).vtc_base]);
                 
                 %thp/ltr
                 if needs_thp
