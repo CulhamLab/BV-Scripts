@@ -778,7 +778,7 @@ function CheckAndFinishVTCPreprocessing
         
         if ~isempty(p.bv)
             %open the vmr
-            vmr = bv.OpenDocument([dir_abs p.file_list(par).vmr]);
+            vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
         end
         
         for run = 1:p.EXP.RUN
