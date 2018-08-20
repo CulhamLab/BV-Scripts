@@ -236,6 +236,22 @@ function ProcessParameters
     if p.PRT.SETS_num < 1
         p.PRT.SETS_num = 1;
     end
+    p.PRT.NUM_POI = strrep(p.PRT.NUM_POI,' ','');
+    if ~isnan(p.PRT.NUM_POI)
+        if ischar(p.PRT.NUM_POI)
+            try
+                p.PRT.NUM_POI = cellfun(@str2num, strsplit(p.PRT.NUM_POI, ','));
+            catch
+                error2('Cannot parse PRT number of POI as numbers: %s\n', p.PRT.NUM_POI);
+            end
+        end
+        if length(p.PRT.NUM_POI) ~= p.PRT.SETS_num
+            error2('Length of PRT number of POI must match number of PRT sets!')
+        end
+        p.PRT.NUM_POI(p.PRT.NUM_POI < 1) = nan;
+    else
+        p.PRT.NUM_POI = nan(1, p.PRT.SETS_num);
+    end
 
     %participant IDs
     pid_provided = false;
@@ -1020,8 +1036,15 @@ function GenerateSDMs
                 sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
                 sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
                 sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+                
+                %pred of interest
+                if ~isnan(p.PRT.NUM_POI)
+                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI + 1;
+                else
+                    %leave default (all in PRT are POI)
+                end
                 sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
-
+                
                 %save
                 if ~iscell(p.PRT.SETS)
                     fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
