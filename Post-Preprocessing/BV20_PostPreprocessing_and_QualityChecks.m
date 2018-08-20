@@ -2,9 +2,9 @@
 %
 % Requirements:
 % * NeuroElf toolbox installed (tested with neuroelf_v10_5153)
-% * BV20 COM server must be registered if performing THP/LTR or SS on VTC
+% * BV20 (or BVQX version 1.9 or later) COM server must be registered if performing THP/LTR or SS on VTC
 % * Temporal High Pass Filter values must be in cycles (not herz)
-% * Data must have been preprocessed with the BV20 workflow
+% * Data must have been preprocessed with the BV20 workflow or have been renamed to match workflow output
 % * Single session only
 % * Data must not have individual run directories (session directory is okay, but only single session is supported)
 % * Files must use BV file naming conventions (i.e., don't rename files in the BV folders)
