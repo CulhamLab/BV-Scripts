@@ -2,9 +2,9 @@
 %
 % Requirements:
 % * NeuroElf toolbox installed (tested with neuroelf_v10_5153)
-% * BV20 COM server must be registered if performing THP/LTR or SS on VTC
+% * BV20 (or BVQX version 1.9 or later) COM server must be registered if performing THP/LTR or SS on VTC
 % * Temporal High Pass Filter values must be in cycles (not herz)
-% * Data must have been preprocessed with the BV20 workflow
+% * Data must have been preprocessed with the BV20 workflow or have been renamed to match workflow output
 % * Single session only
 % * Data must not have individual run directories (session directory is okay, but only single session is supported)
 % * Files must use BV file naming conventions (i.e., don't rename files in the BV folders)
@@ -236,6 +236,22 @@ function ProcessParameters
     if p.PRT.SETS_num < 1
         p.PRT.SETS_num = 1;
     end
+    p.PRT.NUM_POI = strrep(p.PRT.NUM_POI,' ','');
+    if ~isnan(p.PRT.NUM_POI)
+        if ischar(p.PRT.NUM_POI)
+            try
+                p.PRT.NUM_POI = cellfun(@str2num, strsplit(p.PRT.NUM_POI, ','));
+            catch
+                error2('Cannot parse PRT number of POI as numbers: %s\n', p.PRT.NUM_POI);
+            end
+        end
+        if length(p.PRT.NUM_POI) ~= p.PRT.SETS_num
+            error2('Length of PRT number of POI must match number of PRT sets!')
+        end
+        p.PRT.NUM_POI(p.PRT.NUM_POI < 1) = nan;
+    else
+        p.PRT.NUM_POI = nan(1, p.PRT.SETS_num);
+    end
 
     %participant IDs
     pid_provided = false;
@@ -424,7 +440,7 @@ function PrintParameters(in) %recursive method
         if ischar(in{1})
             fprintf2( '%s = %s\n', in{2}, sprintf('%s ', in{1}));
         else
-            fprintf2( '%s = %s\n', in{2}, sprintf('%d ', in{1}));
+            fprintf2( '%s = %s\n', in{2}, sprintf('%g ', in{1}));
         end
     end
 end
@@ -869,13 +885,13 @@ function CheckAndFinishVTCPreprocessing
                         p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
                     catch
 					
-                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.');
+                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.\n');
 						
 						try
 							fprintf2('Opening connection to BVQX (2.2 or newer)...\n')
 							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXScriptAccess.1');
                         catch
-                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.');
+                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.\n');
                             
                             try
                                 fprintf2('Opening connection to BVQX (1.9 or 2.0)...\n')
@@ -1020,8 +1036,15 @@ function GenerateSDMs
                 sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
                 sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
                 sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+                
+                %pred of interest
+                if ~isnan(p.PRT.NUM_POI)
+                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI + 1;
+                else
+                    %leave default (all in PRT are POI)
+                end
                 sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
-
+                
                 %save
                 if ~iscell(p.PRT.SETS)
                     fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
