@@ -869,13 +869,13 @@ function CheckAndFinishVTCPreprocessing
                         p.bv = actxserver('BrainVoyager.BrainVoyagerScriptAccess.1');
                     catch
 					
-                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.');
+                        fprintf2('WARNING: Could not connect to BV20. Either BV20 is not installed or the COM server is not registered.\n');
 						
 						try
 							fprintf2('Opening connection to BVQX (2.2 or newer)...\n')
 							p.bv = actxserver('BrainVoyagerQX.BrainVoyagerQXScriptAccess.1');
                         catch
-                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.');
+                            fprintf2('WARNING: Could not connect to BVQX (2.2 or newer). Either BVQX (2.2 or newer) is not installed or the COM server is not registered.\n');
                             
                             try
                                 fprintf2('Opening connection to BVQX (1.9 or 2.0)...\n')
