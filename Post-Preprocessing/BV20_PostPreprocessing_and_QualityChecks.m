@@ -424,7 +424,7 @@ function PrintParameters(in) %recursive method
         if ischar(in{1})
             fprintf2( '%s = %s\n', in{2}, sprintf('%s ', in{1}));
         else
-            fprintf2( '%s = %s\n', in{2}, sprintf('%d ', in{1}));
+            fprintf2( '%s = %s\n', in{2}, sprintf('%g ', in{1}));
         end
     end
 end
