@@ -37,16 +37,16 @@ function [p] = ALL_STEP0_PARAMETERS
 
 %% numbers
 %2 subs, 12runs, 4conditions, 2models required just 9minutes to run start to finish on my machine
-NUMBER_OF_PARTICIPANTS = 23;
-NUMBER_OF_RUNS = 8;
-NUMBER_OF_CONDITIONS = 8;
+NUMBER_OF_PARTICIPANTS = 2;
+NUMBER_OF_RUNS = 10;
+NUMBER_OF_CONDITIONS = 54;
 
 %% file locations (subfolders are automatically created)
 %If multiple filepaths are entered, the first valid path will be used. This
 %is intended to allow shared scripts to be used on different machines as
 %each machine will have its own unique path to the data and output folders.
-FILEPATH_TO_VTC_AND_SDM = {'..\..\Rita-Kevin_BigFiles\Large RSA Files\BV Files' 'C:\Users\kmstu\Downloads\RitaRSA'}; %this is the folder where your VTCs and SDMs are located
-FILEPATH_TO_SAVE_LOCATION = {'..\..\Rita-Kevin_BigFiles\Large RSA Files' 'C:\Users\kmstu\Downloads\RitaRSA'}; %this where you would like the output files to be saved - several subfolders will be generated within this folder
+FILEPATH_TO_VTC_AND_SDM = {'C:\Users\kstubbs4\Documents\BrainVoyagerData\Guy_Aug2018'}; %this is the folder where your VTCs and SDMs are located
+FILEPATH_TO_SAVE_LOCATION = {'D:\Users\kstubbs4\Guy\RSA'}; %this where you would like the output files to be saved - several subfolders will be generated within this folder
 SUBFOLDER_SHARED_DATA = 'Both';
 SUBFOLDER_SEARCHLIGHT_DATA = 'Searchlight';
 SUBFOLDER_ROI_DATA = 'ROI';
@@ -57,10 +57,11 @@ VOI_FILE = 'neurosynth_Rubik_final_radius_7mm.voi';
 
 %% file list (for vtc/sdm)
 FILELIST_FILENAME = 'filelist.xls';
-FILELIST_PAR_ID = arrayfun(@(x) sprintf('P%d',x), 1:NUMBER_OF_PARTICIPANTS, 'UniformOutput', false); %must be strings
-FILELIST_RUN_ID = arrayfun(@(x) sprintf('func-S1R%d',x), 1:NUMBER_OF_RUNS, 'UniformOutput', false); %must be strings
+FILELIST_PAR_ID = arrayfun(@(x) sprintf('P%d',x), 1 + (1:NUMBER_OF_PARTICIPANTS), 'UniformOutput', false); %must be strings
+FILELIST_RUN_ID = arrayfun(@(x) sprintf('Func-S1R%d',x), 1:NUMBER_OF_RUNS, 'UniformOutput', false); %must be strings
 FILELIST_FORMAT_VTC = '[PAR]_[RUN]_3DMCTS_LTR_THPGLMF2c_MNI.vtc'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
-FILELIST_FORMAT_SDM = '[PAR]_[RUN]_PredWithMotion_NoBaseline.sdm'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
+FILELIST_FORMAT_SDM = '[PAR]_[RUN]_PRT-and-3DMC_Video.sdm'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
+FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named the same as PAR_ID, else set false if all files are in a single directory
 
 %% options
 
@@ -178,49 +179,12 @@ paramList = who;
 %array called "CONDITIONS" which has one cell per condition, which contain
 %the condition names.
 
-%DEFAULT: name conditions numerically (e.g., 1 to 10)
-%CONDITIONS = cellfun(@num2str,num2cell(1:NUMBER_OF_CONDITIONS),'UniformOutput',false);
+CONDITIONS.PREDICTOR_NAMES = cellfun(@num2str,num2cell(1:NUMBER_OF_CONDITIONS),'UniformOutput',false);
+CONDITIONS.DISPLAY_NAMES = CONDITIONS.PREDICTOR_NAMES;
 
-% % % %psych9223
-% % % face = [1 1 1 0 0 0];
-% % % dir = [-1 0 +1 -1 0 +1];
-% % % CONDITIONS.PREDICTOR_NAMES = {'Face_Left',
-% % %                                 'Face_Center',
-% % %                                 'Face_Right',
-% % %                                 'Hand_Left',
-% % %                                 'Hand_Center',
-% % %                                 'Hand_Right'};
-% % % CONDITIONS.DISPLAY_NAMES = strrep(CONDITIONS.PREDICTOR_NAMES,'_','');
-
-%RITA
-
-cond_size = [1 1 2 2 1 1 2 2]; %1=small, 2=large
-cond_distance = [1 1 1 1 2 2 2 2]; %1=near, 2=far
-cond_id = [1 2 1 2 1 2 1 2]; %1=die, 2=rubik
-cond_retinal = [5 5 15 15 1 1 5 5];
-cond_congruent = [1 0 0 1 1 0 0 1]; %1=true, 0=false
-cond_fullid = [1 2 3 4 1 2 3 4]; %id + size
-cond_squares = [1 1 2 2 3 3 4 4];
-
-CONDITIONS.PREDICTOR_NAMES = {  'SP SF N 5 (Small Die Near)'
-                                'SP LF N 5 (Small Rubik Near)'
-                                'LP SF N 15 (Big Die Near)'
-                                'LP LF N 15 (Big Rubik Near)'
-                                'SP SF F 1.4 (Small Die Far)'
-                                'SP LF F 1.4 (Small Rubik Far)'
-                                'LP SF F 5 (Big Die Far)'
-                                'LP LF F 5 (Big Rubik Far)'
-                                };
-                            
-CONDITIONS.DISPLAY_NAMES = {    'Sm Die N'
-                                'Sm Rubik N'
-                                'Lg Die N'
-                                'Lg Rubik N'
-                                'Sm Die F'
-                                'Sm Rubik F'
-                                'Lg Die F'
-                                'Lg Rubik F'
-                                };
+% DEFAULT EXAMPLE
+% CONDITIONS.PREDICTOR_NAMES = cellfun(@num2str,num2cell(1:NUMBER_OF_CONDITIONS),'UniformOutput',false);
+% CONDITIONS.DISPLAY_NAMES = CONDITIONS.PREDICTOR_NAMES;
 
 % %NON-DEFAULT EXAMPLE
 % taskNames = {'View' 'P2' 'P5' 'WH'};
@@ -329,538 +293,6 @@ for c2 = 1:NUMBER_OF_CONDITIONS
 end
 end
 
-%Identity
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Identity';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_id(c1) == cond_id(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Identity no diag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Identity_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_id(c1) == cond_id(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Identity NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Identity_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    elseif cond_id(c1) == cond_id(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-%Identity Half/Between Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Identity_BtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if (c1 == c2)
-    elseif cond_id(c1) == cond_id(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-    %%% removes top right and bot left
-    if cond_distance(c1) ~= cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%Identity Half/Within Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Identity_WtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if (c1 == c2)
-    elseif cond_id(c1) == cond_id(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-    %%% removes top right and bot left
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%physical size
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'PhysicalSize';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_size(c1) == cond_size(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-
-%physical size no diag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'PhysicalSize_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_size(c1) == cond_size(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%physical size NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'PhysicalSize_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    elseif cond_size(c1) == cond_size(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Physical Size Half/Between Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'PhysicalSize_BtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_size(c1) == cond_size(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-    %%% removes top right and bot left
-    if cond_distance(c1) ~= cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%Physical Size Half/Within Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'PhysicalSize_WtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_size(c1) == cond_size(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-    %%% removes top left and bot right
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%SameSize_SameLocation_DifID
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'SameSize_SameDistance_DifID';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif (cond_size(c1) == cond_size(c2)) && (cond_distance(c1) == cond_distance(c2))
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Distance
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Distance';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Distance no diag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Distance_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Distance NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Distance_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    elseif cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-% % % %Distance Half/Between Distances
-% % % m = m+1;
-% % % MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-% % % MODELS.names{m} = 'Distance_BtDist';
-% % % for c1 = 1:NUMBER_OF_CONDITIONS
-% % % for c2 = 1:NUMBER_OF_CONDITIONS
-% % %     if c1==c2
-% % %         %leave nan
-% % %     elseif cond_distance(c1) == cond_distance(c2)
-% % %         MODELS.matrices{m}(c1,c2) = 1;
-% % %     else
-% % %         MODELS.matrices{m}(c1,c2) = 0;
-% % %     end
-% % %     
-% % %     
-% % % %%% removes top right and bot left
-% % %     if cond_distance(c1) ~= cond_distance(c2)
-% % %         MODELS.matrices{m}(c1,c2) = nan;
-% % %     end
-% % % end
-% % % end
-
-% % % %Distance Half/Within Distances
-% % % m = m+1;
-% % % MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-% % % MODELS.names{m} = 'Distance_WtDist';
-% % % for c1 = 1:NUMBER_OF_CONDITIONS
-% % % for c2 = 1:NUMBER_OF_CONDITIONS
-% % %     if c1==c2
-% % %         %leave nan
-% % %     elseif cond_distance(c1) == cond_distance(c2)
-% % %         MODELS.matrices{m}(c1,c2) = 1;
-% % %     else
-% % %         MODELS.matrices{m}(c1,c2) = 0;
-% % %     end
-% % %     
-% % % %%% removes top left and bot right
-% % %     if cond_distance(c1) == cond_distance(c2)
-% % %         MODELS.matrices{m}(c1,c2) = nan;
-% % %     end
-% % % end
-% % % end
-
-%RetinalSize
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'RetinalSize';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    MODELS.matrices{m}(c1,c2) = (14 - abs(cond_retinal(c1) - cond_retinal(c2))) / 14;
-end
-end
-
-%RetinalSize NoDiag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'RetinalSize_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    else
-        MODELS.matrices{m}(c1,c2) = (14 - abs(cond_retinal(c1) - cond_retinal(c2))) / 14;
-    end
-end
-end
-
-%RetinalSize NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'RetinalSize_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    else
-        MODELS.matrices{m}(c1,c2) = (14 - abs(cond_retinal(c1) - cond_retinal(c2))) / 14;
-    end
-end
-end
-
-%RetinalSize Half/Between Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'RetinalSize_BtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    else
-        MODELS.matrices{m}(c1,c2) = (14 - abs(cond_retinal(c1) - cond_retinal(c2))) / 14;
-    end
-    
-%%% removes top right and bot left
-    if cond_distance(c1) ~= cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%RetinalSize Half/Within Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'RetinalSize_WtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    else
-        MODELS.matrices{m}(c1,c2) = (14 - abs(cond_retinal(c1) - cond_retinal(c2))) / 14;
-    end
-    
-%%% removes top left and bot right
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%Congruency
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Congruency';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_congruent(c1) == cond_congruent(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Congruency NoDiag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Congruency_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_congruent(c1) == cond_congruent(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Congruency NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Congruency_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    elseif cond_congruent(c1) == cond_congruent(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%Congruency Half/Between Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Congruency_BtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_congruent(c1) == cond_congruent(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-%%% removes top right and bot left
-    if cond_distance(c1) ~= cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%Congruency Half/Within Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'Congruency_WtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_congruent(c1) == cond_congruent(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-%%% removes top left and bot right
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-%SizeConstancy
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'SizeConstancy';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_fullid(c1) == cond_fullid(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%SizeConstancy NoDiag
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'SizeConstancy_NoDiag';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_fullid(c1) == cond_fullid(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-%SizeConstancy NoDiagSquare
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'SizeConstancy_NoDiagSquare';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if cond_squares(c1)==cond_squares(c2)
-        %leave nan
-    elseif cond_fullid(c1) == cond_fullid(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-end
-end
-
-% % % %SizeConstancy Half/Between Distances
-% % % m = m+1;
-% % % MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-% % % MODELS.names{m} = 'SizeConstancy_BtDist';
-% % % for c1 = 1:NUMBER_OF_CONDITIONS
-% % % for c2 = 1:NUMBER_OF_CONDITIONS
-% % %     if c1==c2
-% % %         %leave nan
-% % %     elseif cond_fullid(c1) == cond_fullid(c2)
-% % %         MODELS.matrices{m}(c1,c2) = 1;
-% % %     else
-% % %         MODELS.matrices{m}(c1,c2) = 0;
-% % %     end
-% % %     
-% % % %%% removes top right and bot left
-% % %     if cond_distance(c1) ~= cond_distance(c2)
-% % %         MODELS.matrices{m}(c1,c2) = nan;
-% % %     end
-% % % end
-% % % end
-
-%SizeConstancy Half/Within Distances
-m = m+1;
-MODELS.matrices{m} = nan(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
-MODELS.names{m} = 'SizeConstancy_WtDist';
-for c1 = 1:NUMBER_OF_CONDITIONS
-for c2 = 1:NUMBER_OF_CONDITIONS
-    if c1==c2
-        %leave nan
-    elseif cond_fullid(c1) == cond_fullid(c2)
-        MODELS.matrices{m}(c1,c2) = 1;
-    else
-        MODELS.matrices{m}(c1,c2) = 0;
-    end
-    
-%%% removes top left and bot right
-    if cond_distance(c1) == cond_distance(c2)
-        MODELS.matrices{m}(c1,c2) = nan;
-    end
-end
-end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODELS END HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -952,12 +384,18 @@ end
 %run
 xls = {'Participant' 'Run' 'VTC' 'SDM'};
 for par = 1:p.NUMBER_OF_PARTICIPANTS
+    if p.FILELIST_SUBFOLDERS
+        dir = [p.FILEPATH_TO_VTC_AND_SDM p.FILELIST_PAR_ID{par} filesep];
+    else
+        dir = p.FILEPATH_TO_VTC_AND_SDM;
+    end
+    
     for run = 1:p.NUMBER_OF_RUNS
         fn_vtc = strrep(strrep(p.FILELIST_FORMAT_VTC,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
         fn_sdm = strrep(strrep(p.FILELIST_FORMAT_SDM,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
         
-        fp_vtc = [p.FILEPATH_TO_VTC_AND_SDM fn_vtc];
-        fp_sdm = [p.FILEPATH_TO_VTC_AND_SDM fn_sdm];
+        fp_vtc = [dir fn_vtc];
+        fp_sdm = [dir fn_sdm];
         
         %check if files exist
         if ~exist(fp_vtc,'file')
