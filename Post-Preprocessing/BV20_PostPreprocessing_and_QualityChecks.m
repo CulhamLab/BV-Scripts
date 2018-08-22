@@ -172,6 +172,17 @@ function ProcessParameters
         end
     end
     
+    %convert relative paths to absolute
+    dir_start = p.XLS.PATH(1:find(p.XLS.PATH==filesep,1,'last'));
+    for f = 1:length(fs)
+        eval(sprintf('val = p.DIR.%s;', fs{f}))
+        if strcmp(val,'.') || strcmp(val,['.' filesep])
+            eval(sprintf('p.DIR.%s = dir_start;', fs{f}))
+        elseif length(val)>=2 && strcmp(val(1:2),['.' filesep])
+            eval(sprintf('p.DIR.%s = [dir_start val];', fs{f}))
+        end
+    end
+
     %check if output dir exists, create if not
     if ~exist(p.DIR.OUT, 'dir')
         fs = find(p.DIR.OUT == filesep);
@@ -783,18 +794,9 @@ function CheckAndFinishVTCPreprocessing
             continue
         end
         
-        %need absolute path
-        if strcmp(p.file_list(par).dir,'.') || strcmp(p.file_list(par).dir,['.' filesep])
-            dir_abs = [pwd filesep];
-        elseif length(p.file_list(par).dir)>=2 && strcmp(p.file_list(par).dir(1:2),['.' filesep])
-            dir_abs = [pwd filesep p.file_list(par).dir(3:end)]
-        else
-            dir_abs = p.file_list(par).dir;
-        end
-        
         if ~isempty(p.bv)
             %open the vmr
-            vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
+            vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
         end
         
         for run = 1:p.EXP.RUN
@@ -870,7 +872,7 @@ function CheckAndFinishVTCPreprocessing
             p.file_list(par).run(run).vtc_final = fn_final;
             
             %needs spatial smoothing?
-            if ~exist([dir_abs p.file_list(par).run(run).vtc_final], 'file')
+            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_final], 'file')
                 needs_ss = true;
             else
                 needs_ss = false;
@@ -904,11 +906,11 @@ function CheckAndFinishVTCPreprocessing
                     end
                     
                     %open the vmr
-                    vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
+                    vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
                 end
                 
                 %link the vtc
-                vmr.LinkVTC([dir_abs p.file_list(par).run(run).vtc_base]);
+                vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
                 
                 %thp/ltr
                 if needs_thp
