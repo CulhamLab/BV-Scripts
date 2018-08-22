@@ -93,6 +93,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
         end
         if exist('p', 'var') & any(strcmp(fields(p), 'bv')) & ~isempty(p.bv)
             p.bv.Exit;
+            p.bv = [];
         end
         rethrow(err);
     end
@@ -172,6 +173,17 @@ function ProcessParameters
         end
     end
     
+    %convert relative paths to absolute
+    dir_start = p.XLS.PATH(1:find(p.XLS.PATH==filesep,1,'last'));
+    for f = 1:length(fs)
+        eval(sprintf('val = p.DIR.%s;', fs{f}))
+        if strcmp(val,'.') || strcmp(val,['.' filesep])
+            eval(sprintf('p.DIR.%s = dir_start;', fs{f}))
+        elseif length(val)>=2 && strcmp(val(1:2),['.' filesep])
+            eval(sprintf('p.DIR.%s = [dir_start val];', fs{f}))
+        end
+    end
+
     %check if output dir exists, create if not
     if ~exist(p.DIR.OUT, 'dir')
         fs = find(p.DIR.OUT == filesep);
@@ -783,18 +795,9 @@ function CheckAndFinishVTCPreprocessing
             continue
         end
         
-        %need absolute path
-        if strcmp(p.file_list(par).dir,'.') || strcmp(p.file_list(par).dir,['.' filesep])
-            dir_abs = [pwd filesep];
-        elseif length(p.file_list(par).dir)>=2 && strcmp(p.file_list(par).dir(1:2),['.' filesep])
-            dir_abs = [pwd filesep p.file_list(par).dir(3:end)]
-        else
-            dir_abs = p.file_list(par).dir;
-        end
-        
         if ~isempty(p.bv)
             %open the vmr
-            vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
+            vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
         end
         
         for run = 1:p.EXP.RUN
@@ -870,7 +873,7 @@ function CheckAndFinishVTCPreprocessing
             p.file_list(par).run(run).vtc_final = fn_final;
             
             %needs spatial smoothing?
-            if ~exist([dir_abs p.file_list(par).run(run).vtc_final], 'file')
+            if ~exist([p.file_list(par).dir p.file_list(par).run(run).vtc_final], 'file')
                 needs_ss = true;
             else
                 needs_ss = false;
@@ -904,25 +907,27 @@ function CheckAndFinishVTCPreprocessing
                     end
                     
                     %open the vmr
-                    vmr = p.bv.OpenDocument([dir_abs p.file_list(par).vmr]);
+                    vmr = p.bv.OpenDocument([p.file_list(par).dir p.file_list(par).vmr]);
                 end
                 
                 %link the vtc
-                vmr.LinkVTC([dir_abs p.file_list(par).run(run).vtc_base]);
+                vmr.LinkVTC([p.file_list(par).dir p.file_list(par).run(run).vtc_base]);
                 
                 %thp/ltr
                 if needs_thp
-                    fprintf2('*     Applying Temporal High Pass Filter (THP) and Linear Trend Removal (LTR)...\n')
+                    fprintf2('*     Applying Temporal High Pass Filter and Linear Trend Removal...\n')
                     vmr.TemporalHighPassFilter(p.VTC.THP_VTC, 'cycles');
                 end
                 
                 %ss
                 if needs_ss
-                    fprintf2('*     Applying Spatial Smoothing (ss)...\n')
+                    fprintf2('*     Applying Spatial Smoothing...\n')
                     vmr.SpatialGaussianSmoothing(p.VTC.SS, 'mm');
                 end
                 
             end
+			
+			fprintf2('*     Complete');
         end
         
         if ~isempty(p.bv)
@@ -934,6 +939,7 @@ function CheckAndFinishVTCPreprocessing
     if ~isempty(p.bv)
         fprintf2('Closing BV link...\n')
         p.bv.Exit;
+        p.bv = [];
     end
 end
 
@@ -1036,10 +1042,11 @@ function GenerateSDMs
                 sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
                 sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
                 sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+                sdm.NrOfPredictors = size(sdm.PredictorColors,1);
                 
                 %pred of interest
                 if ~isnan(p.PRT.NUM_POI)
-                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI + 1;
+                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI(set) + 1;
                 else
                     %leave default (all in PRT are POI)
                 end
@@ -1116,7 +1123,11 @@ function GenerateMDMs
                 mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm{set}};
                 mdm.NrOfStudies = mdm.NrOfStudies + 1;
 
-                fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+				if p.MDM.PATH_ABS
+					fol = p.file_list(par).dir;
+				else
+					fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+				end
                 mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm{set}]};
                 mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
 
