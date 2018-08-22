@@ -47,6 +47,9 @@ end
 %backup target
 ind = find(filepath_target == '.', 1, 'last');
 fp_backup = sprintf('%s_BACKUP%s', filepath_target(1:ind-1), filepath_target(ind:end));
+if exist(fp_backup,'file')
+    error('Backup file already exists: %s', fp_backup)
+end
 fprintf('Saving backup: %s\n', fp_backup);
 xlswrite(fp_backup, xls_target, 1);
 
@@ -120,20 +123,6 @@ for f = 1:num_fields
         
         
     end
-    
-    
-%     if any(strcmp(fields_target, field))
-%         fprintf('found\n');
-%     else
-%         fprintf('adding!!!\n');
-%         changes_made = true;
-%         ind = find(strcmp(xls_template(:,COLUMN_FIELD_NAME), field));
-%         if length(ind) ~= 1
-%             error('Potential duplicate field.')
-%         else
-%             xls_target(end+2,1:col_template) = xls_template(ind,:);
-%         end
-%     end
 end
 
 %save
