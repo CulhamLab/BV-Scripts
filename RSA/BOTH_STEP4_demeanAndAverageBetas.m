@@ -57,12 +57,23 @@ doOnce = 0;
 for run = 1:p.NUMBER_OF_RUNS
     %pick removal file first
     folderToUse = betaFolCondRemoved;
-    betaList = dir(sprintf('%s%s_%s*.mat',betaFolCondRemoved,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}));
+    
+    search = sprintf('%s_%s',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run});
+    betaList = dir(sprintf('%s%s_filled.mat',folderToUse,search));
+    if isempty(betaList)
+        betaList = dir(sprintf('%s%s.mat',folderToUse,search));
+    end
+    
     if length(betaList)>1
         error(sprintf('Too many files found in condition removed beta folder for SUB%02d RUN%02d.\n',par,run))
     elseif ~length(betaList)
         folderToUse = betaFol;
-        betaList = dir(sprintf('%s%s_%s*.mat',betaFol,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}));
+
+        betaList = dir(sprintf('%s%s_filled.mat',folderToUse,search));
+        if isempty(betaList)
+            betaList = dir(sprintf('%s%s.mat',folderToUse,search));
+        end
+        
         if length(betaList)>1
             error(sprintf('Too many files found in beta folder for %s_%s.\n',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}))
         elseif ~length(betaList)
