@@ -37,7 +37,12 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
         fprintf('Removing %d conditions from %s_%s: %s\n',length(condsToRemove),p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run},sprintf('%d ',condsToRemove))
         
         %load in the beta file
-        list = dir(sprintf('%s%s_%s*.mat',folRead,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run})); 
+        search = sprintf('%s_%s',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run});
+        list = dir(sprintf('%s%s_filled.mat',folRead,search));
+        if isempty(list)
+            list = dir(sprintf('%s%s.mat',folRead,search));
+        end
+        
         if length(list)==0
             error(sprintf('No file found for %s_%s.\n',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}))
         elseif length(list)>1
