@@ -93,6 +93,7 @@ function BV20_PostPreprocessing_and_QualityChecks(xls_filepath)
         end
         if exist('p', 'var') & any(strcmp(fields(p), 'bv')) & ~isempty(p.bv)
             p.bv.Exit;
+            p.bv = [];
         end
         rethrow(err);
     end
@@ -914,13 +915,13 @@ function CheckAndFinishVTCPreprocessing
                 
                 %thp/ltr
                 if needs_thp
-                    fprintf2('*     Applying Temporal High Pass Filter (THP) and Linear Trend Removal (LTR)...\n')
+                    fprintf2('*     Applying Temporal High Pass Filter and Linear Trend Removal...\n')
                     vmr.TemporalHighPassFilter(p.VTC.THP_VTC, 'cycles');
                 end
                 
                 %ss
                 if needs_ss
-                    fprintf2('*     Applying Spatial Smoothing (ss)...\n')
+                    fprintf2('*     Applying Spatial Smoothing...\n')
                     vmr.SpatialGaussianSmoothing(p.VTC.SS, 'mm');
                 end
                 
@@ -936,6 +937,7 @@ function CheckAndFinishVTCPreprocessing
     if ~isempty(p.bv)
         fprintf2('Closing BV link...\n')
         p.bv.Exit;
+        p.bv = [];
     end
 end
 
@@ -1038,10 +1040,11 @@ function GenerateSDMs
                 sdm.PredictorColors = [sdm.PredictorColors(1:end-1,:); sdm_motion.PredictorColors; sdm.PredictorColors(end,:)];
                 sdm.PredictorNames = [sdm.PredictorNames(1:end-1) sdm_motion.PredictorNames sdm.PredictorNames(end)];
                 sdm.SDMMatrix = [sdm.SDMMatrix(:,1:end-1) sdm_motion.SDMMatrix(:,:) sdm.SDMMatrix(:,end)];
+                sdm.NrOfPredictors = size(sdm.PredictorColors,1);
                 
                 %pred of interest
                 if ~isnan(p.PRT.NUM_POI)
-                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI + 1;
+                    sdm.FirstConfoundPredictor = p.PRT.NUM_POI(set) + 1;
                 else
                     %leave default (all in PRT are POI)
                 end
