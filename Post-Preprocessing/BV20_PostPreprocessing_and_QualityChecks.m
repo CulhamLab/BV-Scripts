@@ -926,6 +926,8 @@ function CheckAndFinishVTCPreprocessing
                 end
                 
             end
+			
+			fprintf2('*     Complete');
         end
         
         if ~isempty(p.bv)
@@ -1121,7 +1123,11 @@ function GenerateMDMs
                 mdm.XTC_RTC(end+1,:) = {p.file_list(par).run(run).vtc_final p.file_list(par).run(run).sdm{set}};
                 mdm.NrOfStudies = mdm.NrOfStudies + 1;
 
-                fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+				if p.MDM.PATH_ABS
+					fol = p.file_list(par).dir;
+				else
+					fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+				end
                 mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm{set}]};
                 mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
 
