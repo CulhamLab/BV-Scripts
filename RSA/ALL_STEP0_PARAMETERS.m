@@ -37,8 +37,8 @@ function [p] = ALL_STEP0_PARAMETERS
 
 %% numbers
 %2 subs, 12runs, 4conditions, 2models required just 9minutes to run start to finish on my machine
-NUMBER_OF_PARTICIPANTS = 2;
-NUMBER_OF_RUNS = 2;
+NUMBER_OF_PARTICIPANTS = 10;
+NUMBER_OF_RUNS = 8;
 NUMBER_OF_CONDITIONS = 54;
 
 %% file locations (subfolders are automatically created)
