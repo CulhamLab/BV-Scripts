@@ -37,8 +37,8 @@ function [p] = ALL_STEP0_PARAMETERS
 
 %% numbers
 %2 subs, 12runs, 4conditions, 2models required just 9minutes to run start to finish on my machine
-NUMBER_OF_PARTICIPANTS = 2;
-NUMBER_OF_RUNS = 10;
+NUMBER_OF_PARTICIPANTS = 10;
+NUMBER_OF_RUNS = 8;
 NUMBER_OF_CONDITIONS = 54;
 
 %% file locations (subfolders are automatically created)
@@ -46,7 +46,7 @@ NUMBER_OF_CONDITIONS = 54;
 %is intended to allow shared scripts to be used on different machines as
 %each machine will have its own unique path to the data and output folders.
 FILEPATH_TO_VTC_AND_SDM = {'C:\Users\kstubbs4\Documents\BrainVoyagerData\Guy_Aug2018'}; %this is the folder where your VTCs and SDMs are located
-FILEPATH_TO_SAVE_LOCATION = {'D:\Users\kstubbs4\Guy\RSA'}; %this where you would like the output files to be saved - several subfolders will be generated within this folder
+FILEPATH_TO_SAVE_LOCATION = {'D:\Users\kstubbs4\Guy\RSA\Temp'}; %this where you would like the output files to be saved - several subfolders will be generated within this folder
 SUBFOLDER_SHARED_DATA = 'Both';
 SUBFOLDER_SEARCHLIGHT_DATA = 'Searchlight';
 SUBFOLDER_ROI_DATA = 'ROI';
@@ -346,6 +346,20 @@ for c2 = 1:NUMBER_OF_CONDITIONS
     end
 end
 end
+
+% % % %example: actor
+% % % actor = round(rand(1,54)*4); %<-----should be actual values (not rand)
+% % % MODELS.matrices{m} = zeros(NUMBER_OF_CONDITIONS,NUMBER_OF_CONDITIONS);
+% % % MODELS.names{m} = 'Actor_NoDiag';
+% % % for c1 = 1:NUMBER_OF_CONDITIONS
+% % % for c2 = 1:NUMBER_OF_CONDITIONS
+% % %     if c1==c2
+% % %         MODELS.matrices{m}(c1,c2) = nan;
+% % %     elseif actor(c1)==actor(c2)
+% % %         MODELS.matrices{m}(c1,c2) = 1;
+% % %     end
+% % % end
+% % % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% MODELS END HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
