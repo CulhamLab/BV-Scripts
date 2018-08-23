@@ -2,6 +2,7 @@
 Collection of scripts for use with Brain Voyager.
 
 # NeuroElf Installation
+Wiki: http://neuroelf.net/wiki/doku.php
 1.	Download the same version of NeuroElf that Kevin uses here: https://www.dropbox.com/sh/e9z4ckagqvh9pe1/AAAZbRWT3KmNtBIyw6vBqNOva?dl=1
 1.	Extract the zip file
 1.	In MATLAB, navigate to the extracted files and run “NeuroElf_v10_5153 –i” (without the quotation marks)
