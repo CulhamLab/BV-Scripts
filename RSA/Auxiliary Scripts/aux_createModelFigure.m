@@ -9,11 +9,6 @@ end
 %font size
 FONT_SIZE = 4; %nan to leave as automatic
 
-%colors
-COLOUR_HIGH = [0 1 0];
-COLOUR_LOW = [1 0 0];
-COLOUR_EXCLUDED = [0 0 0];
-
 %get params (contains models)
 returnPath = pwd;
 cd ..
@@ -29,7 +24,9 @@ numCol = ceil(sqrt(numModels));
 fig = figure('Position', get(0,'ScreenSize'));
 
 %colormap
-cmap = [COLOUR_EXCLUDED; COLOUR_LOW; COLOUR_HIGH];
+% cmap = [COLOUR_EXCLUDED; COLOUR_LOW; COLOUR_HIGH];
+cmap = jet(100);
+cmap(end+1,:) = [0 0 0];
 
 % % %load condition names
 % % fp = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SHARED_DATA filesep '1. Betas' filesep 'SUB01_RUN01.mat'];
@@ -60,8 +57,19 @@ for split = 1:2
                 model = p.MODELS.matricesNonsplit{m};
         end
         
+%         u = unique(model(~isnan(model)));
+%         if length(u)==2
+%             h = max(u);
+%             l = min(u);
+%             model(model==h) = 1;
+%             model(model==l) = -1;
+%         end
+
+        model = (model - nanmin(model(:)));
+        model = (model / (0.5 * nanmax(model(:)))) - 1;
+        
         %set nans to -1
-        model(isnan(model)) = -1;
+        model(isnan(model)) = inf;
         
         %select subplot
         subplot(numRow,numCol,m)
@@ -76,7 +84,7 @@ for split = 1:2
         axis square
         
         %colour axis
-        caxis([-1 1]);
+        caxis([-1 +1.05]);
         
         %set colours
         colormap(cmap);

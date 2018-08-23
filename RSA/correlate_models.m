@@ -1,4 +1,4 @@
-function correlate_models
+function [corrs] = correlate_models
 
 p = ALL_STEP0_PARAMETERS;
 
@@ -19,11 +19,33 @@ for m2 = 1:num_model
     notnans = ~isnan(mat1(:)) & ~isnan(mat2(:));
     
     if ~any(notnans(:))
-        corrs(m1,m2) = nan;
+        corrs(m1,m2) = inf;
+    elseif ~any(diff(mat1(notnans))) | ~any(diff(mat2(notnans)))
+        corrs(m1,m2) = inf;
     else
         corrs(m1,m2) = corr(mat1(notnans),mat2(notnans),'Type','Spearman');
+        if isnan(corrs(m1,m2))
+            corrs(m1,m2) = 1;
+        end
     end
+    
 end
 end
 
 corrs
+
+fig = figure('Position', get(0,'ScreenSize'));
+imagesc(corrs)
+axis image
+colorbar
+caxis([-1 +1.05])
+
+cmap = jet(100);
+cmap(end+1,:) = [0 0 0];
+colormap(cmap)
+
+labels = arrayfun(@(x) sprintf('%d-%s', x, strrep(p.MODELS.names{x},'_','-')), 1:num_model, 'UniformOutput', false); 
+set(gca,'ytick',1:num_model,'yticklabel',labels,'xtick',1:num_model)
+
+saveas(fig, 'model_corrs.png', 'png')
+
