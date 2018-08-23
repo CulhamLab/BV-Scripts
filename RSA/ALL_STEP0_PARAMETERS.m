@@ -410,59 +410,9 @@ for i = 1:length(paramList)
     eval(['p.' paramList{i} '=' paramList{i} ';'])
 end
 
-%% Create filelist if it doesn't yet exist
-if ~exist(FILELIST_FILENAME,'file')
-    create_filelist(p);
-end
-
 %ids must be strings in cell array
 if ~iscell(p.FILELIST_PAR_ID) | ~iscell(p.FILELIST_RUN_ID) | any(~cellfun(@isstr, p.FILELIST_PAR_ID)) | any(~cellfun(@isstr, p.FILELIST_RUN_ID))
     error('IDs must be strings.')
 end
-
-end
-
-function create_filelist(p)
-
-%% checks
-if length(p.FILELIST_PAR_ID) ~= p.NUMBER_OF_PARTICIPANTS
-    error('Invalid number of participants ids.');
-end
-
-%% run
-%delete prior filelist if any
-if exist(p.FILELIST_FILENAME,'file')
-    delete(p.FILELIST_FILENAME);
-end
-
-%run
-xls = {'Participant' 'Run' 'VTC' 'SDM'};
-for par = 1:p.NUMBER_OF_PARTICIPANTS
-    if p.FILELIST_SUBFOLDERS
-        dir = [p.FILEPATH_TO_VTC_AND_SDM p.FILELIST_PAR_ID{par} filesep];
-    else
-        dir = p.FILEPATH_TO_VTC_AND_SDM;
-    end
-    
-    for run = 1:p.NUMBER_OF_RUNS
-        fn_vtc = strrep(strrep(p.FILELIST_FORMAT_VTC,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
-        fn_sdm = strrep(strrep(p.FILELIST_FORMAT_SDM,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
-        
-        fp_vtc = [dir fn_vtc];
-        fp_sdm = [dir fn_sdm];
-        
-        %check if files exist
-        if ~exist(fp_vtc,'file')
-            warning(sprintf('Cannot Find VTC: %s\n',fp_vtc));
-        end
-        if ~exist(fp_sdm,'file')
-            warning(sprintf('Cannot Find SDM: %s\n',fp_sdm));
-        end
-        
-        xls(end+1,:) = {par run fp_vtc fp_sdm};
-    end
-end
-
-xlswrite(p.FILELIST_FILENAME,xls);
 
 end
