@@ -53,7 +53,7 @@ SUBFOLDER_ROI_DATA = 'ROI';
 
 %Path to VOI file used in ROI steps. If left as NaN, "ROI_STEP6_extractROI"
 %will prompt you to choose a VOI file with a file selector.
-VOI_FILE = 'neurosynth_Rubik_final_radius_7mm.voi';
+VOI_FILE = nan;
 
 %% file list (for vtc/sdm)
 FILELIST_FILENAME = 'filelist.xls';
