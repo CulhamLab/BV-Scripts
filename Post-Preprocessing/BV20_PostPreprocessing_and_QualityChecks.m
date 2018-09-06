@@ -592,7 +592,7 @@ function CheckBBR
             list = dir([fol search]);
             
             if length(list) > 1
-                error2( 'Too many BBR files found for search: %s\n%s', search, sprintf('%s\n', list.name))
+                error2( 'Too many BBR files found for search: %s\nIn Directory: %s\nResults:\n%s', search, fol, sprintf('%s\n', list.name))
             elseif isempty(list)
                 error2( 'No BBR files found for search: %s', search)
             else
