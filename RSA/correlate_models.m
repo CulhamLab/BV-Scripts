@@ -32,8 +32,6 @@ for m2 = 1:num_model
 end
 end
 
-corrs
-
 fig = figure('Position', get(0,'ScreenSize'));
 imagesc(corrs)
 axis image
@@ -48,4 +46,11 @@ labels = arrayfun(@(x) sprintf('%d-%s', x, strrep(p.MODELS.names{x},'_','-')), 1
 set(gca,'ytick',1:num_model,'yticklabel',labels,'xtick',1:num_model)
 
 saveas(fig, 'model_corrs.png', 'png')
+close(fig);
 
+%excel output
+xls = cell(size(corrs)+1);
+xls(2:end,2:end) = num2cell(corrs);
+xls(2:end,1) = labels;
+xls(1,2:end) = labels;
+xlswrite('model_corrs.xls', xls);
