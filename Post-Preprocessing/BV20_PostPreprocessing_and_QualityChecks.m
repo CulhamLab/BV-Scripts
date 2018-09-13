@@ -388,7 +388,7 @@ function ProcessParameters
         end
     end
     p.EXCLUDE.MATRIX(:, p.EXCLUDE.RUN) = true;
-    fprintf2( '\nThere in/are %d globally excluded run(s):\n', sum(p.EXCLUDE.RUN))
+    fprintf2( '\nThere is/are %d globally excluded run(s):\n', sum(p.EXCLUDE.RUN))
     for r = find(p.EXCLUDE.RUN)
         fprintf2( 'Run %d\n', r)
     end
