@@ -90,18 +90,19 @@ for m = 1:num_model
     errorbar(1:length(VOI_type_names), model_corrs_avg_all(:,m), errorbars_all(:,m), 'Color', colours(m,:))
 end
 
-x = [1 c] + [-0.1 -0.9];
+x = [1 length(VOI_type_names)] + [-0.1 +0.1];
 plot(x, [0 0], 'k')
 
 hold off
 
 legend(pl, leg, 'Location', 'EastOutside');
 
-ylabel('r-value')
-set(gca, 'XTick', 1:length(VOI_type_names), 'XTickLabel', strrep(VOI_type_names,'_',' '));
-grid on
 v = axis;
 axis([x v(3:4)]);
+ylabel('r-value')
+set(gca, 'XTick', 1:length(VOI_type_names), 'XTickLabel', strrep(VOI_type_names,'_',' '));
+xticklabel_rotate([], 30, [], 'Fontsize', 10);
+grid on
 
 saveas(fig, [saveFolUse 'Summary.png'], 'png')
 
