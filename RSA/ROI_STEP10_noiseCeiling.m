@@ -60,7 +60,50 @@ for voi = 1:length(VOI_type_names)
     end
     
     saveas(fig, [saveFolUse strrep(VOI_type_names{voi},' ','_') '.png'], 'png')
+    
+    model_corrs_avg_all(voi,:) = model_corrs_avg;
+    errorbars_all(voi,:) = eb;
+    upper_all(voi) = upper;
+    lower_all(voi) = lower;
 end
+
+%% new figure
+clf
+
+c=0;
+hold on
+
+c=c+1;
+pl(c) = plot(upper_all, '.--', 'Color', [0 0 0]);
+leg{c} = 'Noise (upper)';
+
+c=c+1;
+pl(c) = plot(lower_all, '.:', 'Color', [0 0 0]);
+leg{c} = 'Noise (lower)';
+
+colours = jet(num_model);
+for m = 1:num_model
+    c=c+1;
+    pl(c) = plot(model_corrs_avg_all(:,m), '.-', 'Color', colours(m,:));
+    leg{c} = strrep(p.MODELS.names{m},'_',' ');
+    
+    errorbar(1:length(VOI_type_names), model_corrs_avg_all(:,m), errorbars_all(:,m), 'Color', colours(m,:))
+end
+
+x = [1 c] + [-0.1 -0.9];
+plot(x, [0 0], 'k')
+
+hold off
+
+legend(pl, leg, 'Location', 'EastOutside');
+
+ylabel('r-value')
+set(gca, 'XTick', 1:length(VOI_type_names), 'XTickLabel', strrep(VOI_type_names,'_',' '));
+grid on
+v = axis;
+axis([x v(3:4)]);
+
+saveas(fig, [saveFolUse 'Summary.png'], 'png')
 
 %done
 close(fig)
