@@ -70,24 +70,49 @@ end
 %% new figure
 clf
 
+xls = cell(0);
+xls(3:(2+length(VOI_type_names))) = VOI_type_names;
+row = 1;
+num_voi = length(upper_all);
+
 c=0;
 hold on
 
 c=c+1;
 pl(c) = plot(upper_all, '.--', 'Color', [0 0 0]);
 leg{c} = 'Noise (upper)';
+row = row + 1;
+xls{row,1} = 'Noise Ceiling';
+xls{row,2} = 'Upper';
+xls(row,3:(2+num_voi)) = num2cell(upper_all);
 
 c=c+1;
 pl(c) = plot(lower_all, '.:', 'Color', [0 0 0]);
 leg{c} = 'Noise (lower)';
+row = row + 1;
+xls{row,1} = 'Noise Ceiling';
+xls{row,2} = 'Lower';
+xls(row,3:(2+num_voi)) = num2cell(lower_all);
 
 colours = jet(num_model);
 for m = 1:num_model
     c=c+1;
-    pl(c) = plot(model_corrs_avg_all(:,m), '.-', 'Color', colours(m,:));
+	rvals = model_corrs_avg_all(:,m);
+    pl(c) = plot(rvals, '.-', 'Color', colours(m,:));
     leg{c} = strrep(p.MODELS.names{m},'_',' ');
     
-    errorbar(1:length(VOI_type_names), model_corrs_avg_all(:,m), errorbars_all(:,m), 'Color', colours(m,:))
+	ebs = errorbars_all(:,m);
+    errorbar(1:length(VOI_type_names), rvals, ebs, 'Color', colours(m,:))
+	
+	row = row + 1;
+	xls{row,1} = p.MODELS.names{m};
+	xls{row,2} = 'mean r-value';
+	xls(row,3:(2+num_voi)) = num2cell(rvals);
+	
+	row = row + 1;
+	xls{row,1} = p.MODELS.names{m};
+	xls{row,2} = '95% CI +-';
+	xls(row,3:(2+num_voi)) = num2cell(ebs);
 end
 
 x = [1 length(VOI_type_names)] + [-0.1 +0.1];
@@ -105,6 +130,12 @@ xticklabel_rotate([], 30, [], 'Fontsize', 10);
 grid on
 
 saveas(fig, [saveFolUse 'Summary.png'], 'png')
+
+xls_fp = [saveFolUse 'Summary.xlsx'];
+if exist(xls_fp,'file')
+	delete(xls_fp)
+end
+xlswrite(xls_fp, xls);
 
 %done
 close(fig)
