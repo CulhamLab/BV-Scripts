@@ -628,7 +628,7 @@ function MotionChecks
     
     p.MTN.SDMMatrix = cell(p.PAR.NUM, p.EXP.RUN);
 
-    fprintf2( '\nMotion plots will now be generated.\nIt is up to you to determine if any pars/runs contain too much motion.\nIn the future, we should include criteria for how much motion is acceptable.\nPlots Directory: %s', p.DIR.MTN);
+    fprintf2( '\nMotion plots will now be generated.\nIt is up to you to determine if any pars/runs contain too much motion.\nIn the future, we should include criteria for how much motion is acceptable.\nPlots Directory: %s\n', p.DIR.MTN);
 
     for par = 1:p.PAR.NUM
         fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
