@@ -745,6 +745,7 @@ function LinkVTCtoPRT
     
     if ~p.VTC.LINK_PRT
         fprintf2( 'WARNING: Linking of PRT to VTCs is set to be skipped!\n')
+		return
     end
     
     fprintf2( '\nLinking all VTCs to PRTs...\n');
