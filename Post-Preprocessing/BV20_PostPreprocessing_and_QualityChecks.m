@@ -743,6 +743,10 @@ end
 function LinkVTCtoPRT
     global p
     
+    if ~p.VTC.LINK_PRT
+        fprintf2( 'WARNING: Linking of PRT to VTCs is set to be skipped!\n')
+    end
+    
     fprintf2( '\nLinking all VTCs to PRTs...\n');
     
     for par = 1:p.PAR.NUM
@@ -839,7 +843,7 @@ function CheckAndFinishVTCPreprocessing
                 %all files already have correct THP
             elseif p.VTC.THP_VTC
                 %if one option has VTC THP, select it - otherwise can apply THP
-                ind = find(cellfun(@(x) ~isempty(strfind(x, sprintf('THPFFT%dc', p.VTC.THP_VTC))), filenames));
+                ind = find(cellfun(@(x) ~isempty(strfind(x, sprintf('THP%dc', p.VTC.THP_VTC))), filenames));
                 if length(ind) == 1
                     filenames = filenames(ind);
                 else
