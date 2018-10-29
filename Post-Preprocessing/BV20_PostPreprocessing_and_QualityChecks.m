@@ -864,7 +864,6 @@ function CheckAndFinishVTCPreprocessing
             %determine if spatial smoothing needs to be performed
             fn_final = p.file_list(par).run(run).vtc_base(1 : find(p.file_list(par).run(run).vtc_base=='.',1,'last')-1);
             if needs_thp
-                fn_final = sprintf('%s_LTR_THPFFT%dc', fn_final, p.VTC.THP_VTC);
             end
             if ~isnan(p.VTC.SS) & (p.VTC.SS > 0)
                 fn_final = sprintf('%s_SD3DVSS%.2fmm', fn_final, p.VTC.SS);
