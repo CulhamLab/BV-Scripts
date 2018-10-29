@@ -825,7 +825,7 @@ function CheckAndFinishVTCPreprocessing
             %if VTC.THP_VTC then discard those with other VTC THP values, else select those with no VTC THP
             if p.VTC.THP_VTC
                 matches = regexp(filenames, 'THPFFT[0-9]*c', 'match');
-                ind_bad_thp = cellfun(@(x) ~isempty(x) && ~strcmp(x, sprintf('THPFFT%dc', p.VTC.THP_VTC)), matches);
+                ind_bad_thp = cellfun(@(x) ~isempty(x) && ~strcmp(x, sprintf('THP%dc', p.VTC.THP_VTC)), matches);
                 filenames(ind_bad_thp) = [];
             else
                 filenames = filenames(cellfun(@(x) isempty(strfind(x, 'THPFFT')), filenames));
