@@ -932,7 +932,7 @@ function CheckAndFinishVTCPreprocessing
                 
             end
 			
-			fprintf2('*     Complete');
+			fprintf2('*     Complete\n');
         end
         
         if ~isempty(p.bv)
