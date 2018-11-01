@@ -1131,7 +1131,7 @@ function GenerateMDMs
 				if p.MDM.PATH_ABS
 					fol = p.file_list(par).dir;
 				else
-					fol = strrep(p.file_list(par).dir, p.DIR.BV, ['.' filesep]);
+					fol = strrep(p.file_list(par).dir, p.DIR.BV, filesep);
 				end
                 mdm_all.XTC_RTC(end+1,:) = {[fol p.file_list(par).run(run).vtc_final] [fol p.file_list(par).run(run).sdm{set}]};
                 mdm_all.NrOfStudies = mdm.NrOfStudies + 1;
