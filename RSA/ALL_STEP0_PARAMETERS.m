@@ -51,6 +51,13 @@ SUBFOLDER_SHARED_DATA = 'Both';
 SUBFOLDER_SEARCHLIGHT_DATA = 'Searchlight';
 SUBFOLDER_ROI_DATA = 'ROI';
 
+%If runs number does not correspond with chronological order, enter actual run order here [#participant x #runs]
+%Otherwise, set to empty or nan
+%Example:
+%RUN_ORDER = [1 2 3;
+%             3 2 1]; %P1 run order was 1,2,3 and P2 order was 3,2,1
+RUN_ORDER = nan;
+
 %Path to VOI file used in ROI steps. If left as NaN, "ROI_STEP6_extractROI"
 %will prompt you to choose a VOI file with a file selector.
 VOI_FILE = nan;

@@ -129,9 +129,24 @@ end
 %display
 fprintf('-Calculating demeaned betas (for even runs, odd runs, and all runs) and then saving...\n')
 
+%index odd/even runs
+ind_even = 2:2:p.NUMBER_OF_RUNS;
+ind_odd = 1:2:p.NUMBER_OF_RUNS;
+if length(p.RUN_ORDER)>1
+	warning('Using non-standard run order:')
+	ind = p.RUN_ORDER(par,:)
+	ind_even = unique(arrayfun(@(x) find(ind==x), ind_even))
+	ind_odd = unique(arrayfun(@(x) find(ind==x), ind_odd))
+    
+    if ((length(ind_even) + length(ind_odd)) ~= p.NUMBER_OF_RUNS) || (length(unique([ind_even ind_odd])) ~= p.NUMBER_OF_RUNS)
+        error('p.RUN_ORDER is probably not correct')
+    end
+else
+end
+
 %split even and odd runs
-evenBetas = allBetas(:,:,2:2:end);
-oddBetas = allBetas(:,:,1:2:end);
+evenBetas = allBetas(:,:,ind_even);
+oddBetas = allBetas(:,:,ind_odd);
 
 %all
 meanVector = nanmean(nanmean(allBetas,3),2);
