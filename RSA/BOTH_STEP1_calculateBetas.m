@@ -70,7 +70,7 @@ if ~exist('doSave','var')
 	doSave = true;
 end
 if exist('fig','var') & ishandle(fig)
-	clf(fig)
+	clf(fig);
 	close_fig = false;
 else
 	fig = figure('Position', get(0,'ScreenSize'));
@@ -205,35 +205,35 @@ XwithCorner = originCoords(1) - Xs(1) + 1;
 YwithCorner = originCoords(2) - Ys(1) + 1;
 ZwithCorner = originCoords(3) - Zs(1) + 1;
 for z = 1:voiCubeWidth
-    subplot(3,4,z)
+    subplot(3,4,z);
     hold on
-    imagesc(timecourse3D(:,:,z))
+    imagesc(timecourse3D(:,:,z));
     if ~mod(ZwithCorner - z,vtc.Resolution)
         for x = 1:voiCubeWidth
             for y = 1:voiCubeWidth
                 if ~mod(XwithCorner-x,vtc.Resolution) & ~mod(YwithCorner-y,vtc.Resolution)
-                    plot(x,y,'*m','MarkerSize',12)
+                    plot(x,y,'*m','MarkerSize',12);
                 end
             end
         end
     end
     if z == ZwithCorner
-        plot(YwithCorner,XwithCorner,'*w','MarkerSize',12)
+        plot(YwithCorner,XwithCorner,'*w','MarkerSize',12);
     end
-    hold off
-    axis([0.5 voiCubeWidth+0.5 0.5 voiCubeWidth+0.5])
-    axis square
+    hold off;
+    axis([0.5 voiCubeWidth+0.5 0.5 voiCubeWidth+0.5]);
+    axis square;
     set(gca,'YDir','reverse','Xtick',1:voiCubeWidth,'YTick',1:voiCubeWidth);
-    ylabel('X Coord (1)')
-    xlabel('Y Coord (2)')
-    title(['Z Coord (3) = ' num2str(z)])
-    colorbar
+    ylabel('X Coord (1)');
+    xlabel('Y Coord (2)');
+    title(['Z Coord (3) = ' num2str(z)]);
+    colorbar;
 end
-suptitle('White * marks the cube corner found | Purple * marks corners based on this origin')
-drawnow
-saveas(fig,outputFilepath,'jpg')
+suptitle('White * marks the cube corner found | Purple * marks corners based on this origin');
+drawnow;
+saveas(fig,outputFilepath,'jpg');
 if close_fig
-	close(fig)
+	close(fig);
 end
 
 %only need a few things kept
