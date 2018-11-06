@@ -15,10 +15,10 @@ end
 
 %load
 load([readFolA 'VOI_RSMs'])
-load([readFolB 'VOI_corrs_organized'])
+load([readFolB 'VOI_corrs'])
 
 %range
-% temp = mean(corrs_split_organized,1);
+% temp = mean(corrs_split,1);
 % ran = [min(temp(:)) max(temp(:))];
 % ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 ran = [-0.4 +1];
@@ -29,12 +29,12 @@ cd 'Required Methods'
 
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
-num_model = size(corrs_split_organized, 2);
-for voi = 1:length(VOI_type_names)
-    RSMs = rsms_split_organized(:,:,:,voi);
+num_model = size(corrs_split, 2);
+for voi = 1:length(voi_names)
+    RSMs = rsms_split(:,:,:,voi);
     
     [upper,lower] = compute_rsm_noise_ceiling(RSMs);
-    model_corrs = corrs_split_organized(:,:,voi);
+    model_corrs = corrs_split(:,:,voi);
     model_corrs_avg = mean(model_corrs, 1);
     
     s = std(model_corrs,1) / sqrt(size(model_corrs,1));
@@ -51,7 +51,7 @@ for voi = 1:length(VOI_type_names)
     set(gca, 'XTick', 1:num_model, 'XTickLabel', strrep(p.MODELS.names,'_',' '));
     xticklabel_rotate([], 30, [], 'Fontsize', 10);
     ylabel('Mean Correlation (r-value)')
-    title(strrep(VOI_type_names{voi},'_',' '))
+    title(strrep(voi_names{voi},'_',' '))
     
     if saveFol(1) == '.' %is a relative path
         saveFolUse = ['..' filesep saveFol];
@@ -59,7 +59,7 @@ for voi = 1:length(VOI_type_names)
         saveFolUse = saveFol;
     end
     
-    saveas(fig, [saveFolUse strrep(VOI_type_names{voi},' ','_') '.png'], 'png')
+    saveas(fig, [saveFolUse strrep(voi_names{voi},' ','_') '.png'], 'png')
     
     model_corrs_avg_all(voi,:) = model_corrs_avg;
     errorbars_all(voi,:) = eb;
@@ -71,7 +71,7 @@ end
 clf
 
 xls = cell(0);
-xls(3:(2+length(VOI_type_names))) = VOI_type_names;
+xls(3:(2+length(voi_names))) = voi_names;
 row = 1;
 num_voi = length(upper_all);
 
@@ -102,7 +102,7 @@ for m = 1:num_model
     leg{c} = strrep(p.MODELS.names{m},'_',' ');
     
 	ebs = errorbars_all(:,m);
-    errorbar(1:length(VOI_type_names), rvals, ebs, 'Color', colours(m,:))
+    errorbar(1:length(voi_names), rvals, ebs, 'Color', colours(m,:))
 	
 	row = row + 1;
 	xls{row,1} = p.MODELS.names{m};
@@ -115,7 +115,7 @@ for m = 1:num_model
 	xls(row,3:(2+num_voi)) = num2cell(ebs);
 end
 
-x = [1 length(VOI_type_names)] + [-0.1 +0.1];
+x = [1 length(voi_names)] + [-0.1 +0.1];
 plot(x, [0 0], 'k')
 
 hold off
@@ -125,7 +125,7 @@ legend(pl, leg, 'Location', 'EastOutside');
 v = axis;
 axis([x v(3:4)]);
 ylabel('r-value')
-set(gca, 'XTick', 1:length(VOI_type_names), 'XTickLabel', strrep(VOI_type_names,'_',' '));
+set(gca, 'XTick', 1:length(voi_names), 'XTickLabel', strrep(voi_names,'_',' '));
 xticklabel_rotate([], 30, [], 'Fontsize', 10);
 grid on
 

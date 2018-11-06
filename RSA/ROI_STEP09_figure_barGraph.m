@@ -15,10 +15,10 @@ end
 
 %load
 load([readFolA 'VOI_RSMs'])
-load([readFolB 'VOI_corrs_organized'])
+load([readFolB 'VOI_corrs'])
 
 %range
-temp = mean(corrs_split_organized,1);
+temp = mean(corrs_split,1);
 ran = [min(temp(:)) max(temp(:))];
 ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 
@@ -33,7 +33,7 @@ cs= jet(length(p.MODELS.names));
 %how many row/col
 r=0;
 c=0;
-while (r*c)<(length(VOI_type_names))
+while (r*c)<(length(voi_names))
     if r==c
         r=r+1;
     else
@@ -43,11 +43,11 @@ end
 r=r+3;
 
 %plot
-for voi = 1:length(VOI_type_names)
-    name = VOI_type_names{voi};
+for voi = 1:length(voi_names)
+    name = voi_names{voi};
     name(name=='_') = ' ';
     subplot(r,c,voi)
-    corrs = mean(corrs_split_organized(:,:,voi),1);
+    corrs = mean(corrs_split(:,:,voi),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
@@ -96,7 +96,7 @@ clear b
 %% for each model
 
 %colours
-cs= jet(length(VOI_type_names));
+cs= jet(length(voi_names));
 
 %how many row/col
 r=0;
@@ -115,7 +115,7 @@ for m = 1:length(p.MODELS.names)
     name = p.MODELS.names{m};
     name(name=='_') = ' ';
     subplot(r,c,m)
-    corrs = mean(corrs_split_organized(:,m,:),1);
+    corrs = mean(corrs_split(:,m,:),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
@@ -129,7 +129,7 @@ for m = 1:length(p.MODELS.names)
 end
 
 %legend
-l_all = cellfun(@(x) strrep(x,'_',' '),VOI_type_names,'UniformOutput',false);
+l_all = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 if length(l_all)<=10
     l = l_all;
     m = ((r-2) * c) + round(c/2);

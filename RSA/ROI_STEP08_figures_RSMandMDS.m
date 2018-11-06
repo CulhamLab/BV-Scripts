@@ -25,29 +25,29 @@ if ~exist(saveFol_roi)
 end
 
 %load ROI RSMs
-load([readFol 'VOI_corrs_organized'])
+load([readFol 'VOI_corrs'])
 
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
 
 %num voi
-numVOI_type = length(VOI_type_names);
+numVOI_type = length(voi_names);
 
 %remove underscore from condition names
 CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformOutput',false);
 
 %remove underscore from voi names
-voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),VOI_type_names,'UniformOutput',false);
+voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 
 %% Condition RSM (split)
 for vid = 1:numVOI_type
-    clf
+    clf;
     %mean rsm across subs
-    rsm = mean(rsms_split_organized(:,:,:,vid),3);
-    imagesc(rsm)
-    caxis(p.RSM_COLOUR_RANGE_COND)
-    colormap(p.RSM_COLOURMAP)
-    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS)
+    rsm = mean(rsms_split(:,:,:,vid),3);
+    imagesc(rsm);
+    caxis(p.RSM_COLOUR_RANGE_COND);
+    colormap(p.RSM_COLOURMAP);
+    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
     
     returnPath = pwd;
     try
@@ -59,11 +59,11 @@ for vid = 1:numVOI_type
         rethrow(e)
     end
         
-    axis square
-    t = VOI_type_names{vid};
+    axis square;
+    t = voi_names{vid};
     t(t=='_') = ' ';
-    suptitle(t)
-    colorbar
+    suptitle(t);
+    colorbar;
 
     saveas(fig,[saveFol_condRSM 'SPLIT RSM - ' t],'png')
 end
@@ -72,7 +72,7 @@ end
 for vid = 1:numVOI_type
     clf
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit_organized(:,:,:,vid),3);
+    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
     imagesc(rsm)
     caxis(p.RSM_COLOUR_RANGE_COND)
     colormap(p.RSM_COLOURMAP)
@@ -89,7 +89,7 @@ for vid = 1:numVOI_type
     end
     
     axis square
-    t = VOI_type_names{vid};
+    t = voi_names{vid};
     t(t=='_') = ' ';
     suptitle(t)
     colorbar
@@ -106,7 +106,7 @@ for vid = 1:numVOI_type
     clf
     
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit_organized(:,:,:,vid),3);
+    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
 
     %apply fisher (if desired)
     if p.DO_FISHER_CONDITION_MDS
@@ -143,7 +143,7 @@ for vid = 1:numVOI_type
     axis([min(v) max(v) min(v) max(v)] + [-r r -r r])
     grid on
 
-    t = VOI_type_names{vid};
+    t = voi_names{vid};
     t(t=='_') = ' ';
     suptitle(t)
     
@@ -159,7 +159,7 @@ rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
-    rsm = mean(rsms_split_organized(:,:,:,vid),3);
+    rsm = mean(rsms_split(:,:,:,vid),3);
     rsm_array = rsm(:);
     rsms(:,vid) = rsm_array;
 end
