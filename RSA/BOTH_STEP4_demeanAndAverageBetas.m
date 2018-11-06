@@ -59,7 +59,7 @@ for run = 1:p.NUMBER_OF_RUNS
     folderToUse = betaFolCondRemoved;
     
     search = sprintf('%s_%s',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run});
-    betaList = dir(sprintf('%s%s_filled.mat',folderToUse,search));
+    betaList = dir(sprintf('%s%s_filler.mat',folderToUse,search));
     if isempty(betaList)
         betaList = dir(sprintf('%s%s.mat',folderToUse,search));
     end
@@ -69,7 +69,7 @@ for run = 1:p.NUMBER_OF_RUNS
     elseif ~length(betaList)
         folderToUse = betaFol;
 
-        betaList = dir(sprintf('%s%s_filled.mat',folderToUse,search));
+        betaList = dir(sprintf('%s%s_filler.mat',folderToUse,search));
         if isempty(betaList)
             betaList = dir(sprintf('%s%s.mat',folderToUse,search));
         end
