@@ -950,6 +950,11 @@ end
 
 function CheckVTC
     global p
+	
+	if ~p.VTC.CHECK
+        fprintf2( 'WARNING: Checking of VTCs TR/volumes is set to be skipped!\n')
+		return
+    end
     
     fprintf2( '\nChecked the TR and number of volumes in final VTCs...\n');
     
@@ -1028,7 +1033,12 @@ function GenerateSDMs
             end
             
             %number of volumes in this run
-            param.nvol = p.file_list(par).run(run).num_vol;
+            if p.VTC.CHECK
+                param.nvol = p.file_list(par).run(run).num_vol;
+            else
+                fprintf2( 'WARNING: Checking of VTCs TR/volumes was skipped so expected number of volumes will be used instead of actual!\n')
+                param.nvol = p.EXP.VOL;
+            end
             
             %load motion sdm
             fprintf2('*   SDM: %s\n', p.file_list(par).run(run).sdm_motion_filename);
