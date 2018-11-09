@@ -150,7 +150,10 @@ for vid = 1:numVOI_type
 %     saveas(fig,[saveFol_condMDS 'NONSPLIT MDS - ' t],'png')
     set(fig, 'PaperPosition', [0 0 5 5])
     print(fig, [saveFol_condMDS 'NONSPLIT MDS - ' t], '-dpng', '-r1200' ); 
+	
+	all_MD2D(:,:,vid) = MD2D;
 end
+save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS')
     
 %% VOI-VOI MDS
 colours = jet(numVOI_type);
