@@ -551,7 +551,7 @@ function CreateFileList
                     p.file_list(par).run(run).prt{prt_num} = list.name;
                 end
                 fprintf2( '*   PRT: %s\n', p.file_list(par).run(run).prt{prt_num});
-                if do_copy
+                if do_copy || p.PRT.OVERWRITE
                     fprintf2( '*   Copying PRT to BV folder from: %s\n', p.DIR.PRT)
                     copyfile([p.DIR.PRT p.file_list(par).run(run).prt{prt_num}], [p.file_list(par).dir p.file_list(par).run(run).prt{prt_num}])
                 end
