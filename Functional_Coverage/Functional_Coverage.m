@@ -50,7 +50,7 @@ for sub = 1:num_sub
         fprintf('  Run %d of %d: %s\n', run, num_run, run_id);
         
         fn = strrep(strrep(vtc_filename_format, '[SUB]', sub_id), '[RUN]', run_id);
-        fprintf('    VTC: %s\n', fn);
+        fprintf('    Search: %s\n', fn);
         
         list = dir([folder fn]);
         if ~length(list)
@@ -58,6 +58,8 @@ for sub = 1:num_sub
         elseif length(list)>1
             warning('More than 1 VTC found for search criteria! Skipping!')
         else
+            fprintf('      VTC: %s\n', list.name);
+            
             fp = [folder list.name];
             vtc = xff(fp);
             
