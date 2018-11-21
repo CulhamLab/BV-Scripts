@@ -1,3 +1,9 @@
+% Your parameter file must be named "ALL_STEP0_PARAMETERS.m"
+
+
+
+
+
 %Step0: setting parameters
 %
 %The first step to using this pipeline is to specify the number of
