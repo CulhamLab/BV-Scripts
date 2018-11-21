@@ -1,4 +1,9 @@
+%Uses "modify_image_filename.m", which will need to be modified if image
+%filenames do not exactly match predictor names
+
 function ROI_Image_MDS
+
+%% parameters
 
 %loaded images
 image_folder = [pwd filesep 'images' filesep];
@@ -11,6 +16,8 @@ transparency_threshold = 5;
 image_output = [pwd filesep 'image_mds' filesep];
 colour_background = [255 255 255];
 area_size_pixels = 2000;
+
+%% run
 
 %make output folder if needed
 if ~exist(image_output, 'dir')
@@ -122,14 +129,4 @@ catch err
     cd(return_path);
     rethrow(err)
 end
-
-
-function [image_name] = modify_image_filename(condition_name)
-image_name = condition_name;
-
-%make any changes needed to get image filename from condition name here:
-
-% %Example: Carol 2018
-% image_name(find(image_name==' ',1,'first')) = '_';
-% image_name(find(image_name==' ',1,'first')) = '';
 
