@@ -2,6 +2,8 @@ function ROI_Image_MDS
 
 %% parameters
 
+%Parameters must also be set in "load_predictor_images.m"
+
 %output path
 OUTPUT_PATH = [pwd filesep 'image_mds' filesep];
 
