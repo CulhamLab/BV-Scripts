@@ -66,6 +66,8 @@ RUN_ORDER = nan;
 
 %Path to VOI file used in ROI steps. If left as NaN, "ROI_STEP6_extractROI"
 %will prompt you to choose a VOI file with a file selector.
+%To merge multiple VOI files, provide a cell array of strings containing the names (or pahts)
+%e.g., VOI_FILE = {'.\VOI\file1.voi' '.\VOI\file2.voi'};
 VOI_FILE = nan;
 
 %% file list (for vtc/sdm)
