@@ -12,15 +12,64 @@ if ~exist(saveFol)
     mkdir(saveFol)
 end
 
+%% process each voi
+if ~iscell(p.VOI_FILE) && isnan(p.VOI_FILE)
+    voi_data = process_voi(nan, p, readFol);
+else
+    if ~iscell(p.VOI_FILE)
+        p.VOI_FILE = {p.VOI_FILE};
+    end
+    
+    num_voi = length(p.VOI_FILE);
+    for i = 1:num_voi
+        voi_path = p.VOI_FILE{i};
+        fprintf('Processing VOI file %d of %d (%s) ...\n', i, num_voi, voi_path);
+        
+        voi_data(i) = process_voi(voi_path, p, readFol);
+    end
+end
+
+%% merge
+data = voi_data(1).data;
+vtcRes = voi_data(1).vtcRes;
+
+count_voi = size(data.RSM_split,4);
+
+for i = 2:length(voi_data)
+    
+    if voi_data(i).vtcRes ~= vtcRes
+        error('Inconsistent VTC Resolution!')
+    end
+    
+    num_voi_add = size(voi_data(i).data.RSM_split,4);
+    for j = 1:num_voi_add
+        count_voi = count_voi + 1;
+        data.RSM_split(:,:,:,count_voi) = voi_data(i).data.RSM_split(:,:,:,j);
+        data.RSM_nonsplit(:,:,:,count_voi) = voi_data(i).data.RSM_nonsplit(:,:,:,j);
+        data.VOINames{count_voi} = voi_data(i).data.VOINames{j};
+        data.VOINames_short{count_voi} = voi_data(i).data.VOINames_short{j};
+        data.VOInumVox(count_voi) = voi_data(i).data.VOInumVox(j);
+    end
+end
+
+fprintf('Total VOIs: %d\n', count_voi);
+
+%% save
+
+save([saveFol 'VOI_RSMs'],'data','vtcRes')
+disp Done.
+
+function [voi_data] = process_voi(voi_filepath, p, readFol)
+
 %load VOI file
-if isnan(p.VOI_FILE)
+if isnan(voi_filepath)
     disp('Select a VOI file to use. This file should contain all ROIs.')
     [fn_in,fp_in] = uigetfile('*.voi','VOI','INPUT','MultiSelect','off');
     disp('Loading VOI...');
     voi = xff([fp_in fn_in]);
 else
     disp('Loading VOI...');
-    voi = xff(p.VOI_FILE);
+    voi = xff(voi_filepath);
 end
 
 %init data struct
@@ -120,5 +169,5 @@ for vid = 1:voi.NrOfVOIs %for each voi...
    end
 end
 
-save([saveFol 'VOI_RSMs'],'data','vtcRes')
-disp Done.
+voi_data.data = data;
+voi_data.vtcRes = vtcRes;
