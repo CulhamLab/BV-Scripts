@@ -26,7 +26,7 @@ MAX_LUMINANCE = sqrt(sum( APPROX_LUMINANCE_VALUES .^ 2 ));
 
 FONT_SIZE = 6;
 
-COLOUR_RANGE = nan; %set nan to use dynamic range, else set [min max]
+MODEL_COLOUR_RANGE = nan; %set nan to use dynamic range, else set [min max], these are r-values so the widest range is [-1 +1]
 
 %% Prepare Images
 
@@ -142,7 +142,7 @@ fig = figure('Position', [1 1 1200 1000]);
     axis image
     colormap jet
     colorbar
-    if ~any(isnan(COLOUR_RANGE))
+    if ~any(isnan(MODEL_COLOUR_RANGE))
         caxis([-1 +1])
     end
     fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES(image_pred_value), 'UniformOutput', false);
@@ -188,7 +188,7 @@ if any(image_is_collapse)
         axis image
         colormap jet
         colorbar
-        if ~any(isnan(COLOUR_RANGE))
+        if ~any(isnan(MODEL_COLOUR_RANGE))
             caxis([-1 +1])
         end
         fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES, 'UniformOutput', false);
@@ -259,7 +259,7 @@ fig = figure('Position', [1 1 1200 1000]);
     axis image
     colormap jet
     colorbar
-    if ~any(isnan(COLOUR_RANGE))
+    if ~any(isnan(MODEL_COLOUR_RANGE))
         caxis([-1 +1])
     end
     fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES(image_pred_value), 'UniformOutput', false);
@@ -305,7 +305,7 @@ if any(image_is_collapse)
         axis image
         colormap jet
         colorbar
-        if ~any(isnan(COLOUR_RANGE))
+        if ~any(isnan(MODEL_COLOUR_RANGE))
             caxis([-1 +1])
         end
         fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES, 'UniformOutput', false);
