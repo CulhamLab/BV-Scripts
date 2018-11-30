@@ -25,7 +25,7 @@ FIGURE_COLOUR_BACKGROUND = [255 255 255];
 
 %load
 fprintf('\nLoading images...\n')
-images = load_predictor_images;
+[images, p, image_names, image_pred_value, image_is_collapse] = load_predictor_images;
 
 %resize and get transparency
 fprintf('\nProcessing images...\n')
@@ -87,7 +87,7 @@ end
 
 fprintf('\nCreating figures...\n');
 
-num_pred = length(images);
+num_pred = p.NUMBER_OF_CONDITIONS;
 fig = figure('Position',get(0,'screensize'));
 num_voi = length(voi_names);
 fprintf('Create voi image mds in %s\n', OUTPUT_PATH);
@@ -111,8 +111,12 @@ for v = 1:num_voi
     for i = 1:num_pred
         x = MD2D(i, 1);
         y = MD2D(i, 2);
+		
+		ind_img = find(image_pred_value == i, 1, 'first');
+		
+		fprintf('  %s => %s\n', p.CONDITIONS.DISPLAY_NAMES{i}, image_names{ind_img});
 
-        img = images{i};
+        img = images{ind_img};
         sz = size(img);
         ind = find(repmat(foreground{i}, [1 1 3]));
         [x_foreground, y_foreground, z_foreground] = ind2sub(sz, ind);
