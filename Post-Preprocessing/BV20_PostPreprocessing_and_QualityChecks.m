@@ -208,6 +208,9 @@ function ProcessParameters
     p.LOGFILES(1) = fopen(sprintf('%slog_latest.txt', p.DIR.OUT), 'w');
     p.LOGFILES(2) = fopen([p.DIR.LOG p.LOGFILENAME], 'w');
 
+	%support for wildcard in p.VTC.NAME
+	p.VTC.NAME_NOWILDCARD = strrep(p.VTC.NAME, '*', '');
+	
     %print parameters
     fprintf2( 'PARAMETERS:\n')
     PrintParameters;
@@ -1069,9 +1072,9 @@ function GenerateSDMs
                 
                 %save
                 if ~iscell(p.PRT.SETS)
-                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
+                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, run);
                 else
-                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, p.VTC.NAME, run, p.PRT.SETS{set});
+                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, run, p.PRT.SETS{set});
                 end
                 
                 p.file_list(par).run(run).sdm{set} = fn_out;
@@ -1149,9 +1152,9 @@ function GenerateMDMs
             end
 
             if ~iscell(p.PRT.SETS)
-                p.file_list(par).mdm{set} = sprintf('%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, suffix);
+                p.file_list(par).mdm{set} = sprintf('%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, suffix);
             else
-                p.file_list(par).mdm{set} = sprintf('%s_%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME, p.PRT.SETS{set}, suffix);
+                p.file_list(par).mdm{set} = sprintf('%s_%s_%s%s.mdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, p.PRT.SETS{set}, suffix);
             end
             fprintf2('* MDM: %s\n', p.file_list(par).mdm{set});
             mdm.SaveAs([p.file_list(par).dir p.file_list(par).mdm{set}]);
@@ -1159,9 +1162,9 @@ function GenerateMDMs
         end
 
         if ~iscell(p.PRT.SETS)
-            p.mdm_all{set} = sprintf('Multi-Participant_%s%s.mdm', p.VTC.NAME, suffix);
+            p.mdm_all{set} = sprintf('Multi-Participant_%s%s.mdm', p.VTC.NAME_NOWILDCARD, suffix);
         else
-            p.mdm_all{set} = sprintf('Multi-Participant_%s_%s%s.mdm', p.VTC.NAME, p.PRT.SETS{set}, suffix);
+            p.mdm_all{set} = sprintf('Multi-Participant_%s_%s%s.mdm', p.VTC.NAME_NOWILDCARD, p.PRT.SETS{set}, suffix);
         end
         fprintf2('Multi-Participant MDM: %s\n', p.mdm_all{set});
         mdm_all.SaveAs([p.DIR.BV p.mdm_all{set}]);
