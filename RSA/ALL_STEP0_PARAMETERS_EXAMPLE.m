@@ -80,6 +80,18 @@ FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named t
 
 %% options
 
+%Searchlight - Memory Available
+%When the RSM data is large (i.e., many predictors, <3mm functional voxels,
+%above-average coverage), you may run out of memory during the searchlight
+%even on workstations with 16gb RAM. When this happens, paging file will be
+%used (if available) and the script will become so slow that it might as
+%well have crashed (could take weeks to complete!). One solution is to work
+%on a computer or server with extra memory. Another option is to break the
+%searchlight data into more-managable pieces.
+%If memory is not a concern, leave this setting NaN. Otherwise, set it to
+%the amount of memory in Gigabytes that you expect to be available.
+SEARCHLIGHT_AVAILABLE_MEMORY_GIGABYTES = 7; %%TODO - NOT YET IMPLEMENTED
+
 %searchlight radius (not including center voxel) in function voxels
 %For example, radius 2 equates to diameters of 5 function voxels.
 SEARCHLIGHT_RADIUS = 3;
