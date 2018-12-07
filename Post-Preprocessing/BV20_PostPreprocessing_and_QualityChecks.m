@@ -495,7 +495,7 @@ function CreateFileList
             num_trf = cellfun(@length, strfind({list.name}, '_TRF'));
             ind_use = find(num_trf);
             if length(ind_use) ~= 1
-                error2( '2 VMR were found but both have TRFs applied so it is inclear which to use. For search: %s\n%s', vmr_search, sprintf('%s\n', list.name));
+                error2( '2 VMR were found but both have TRFs applied so it is inclear which to use. For search: %s\n%s\n\nTo resolve this issue, look at the BV preprocessing data tab and determine which file was used. Move the other file(s) to another directory (e.g., an obselete folder) or delete it/them.\n', vmr_search, sprintf('%s\n', list.name));
             else
                 %select the TRF VMR
                 p.file_list(par).vmr = list(ind_use).name;
