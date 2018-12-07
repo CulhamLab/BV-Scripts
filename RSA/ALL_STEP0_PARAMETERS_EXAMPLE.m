@@ -90,6 +90,8 @@ FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named t
 %searchlight data into more-managable pieces.
 %If memory is not a concern, leave this setting NaN. Otherwise, set it to
 %the amount of memory in Gigabytes that you expect to be available.
+%Setting this value very low will result in many files and longer
+%processing times.
 SEARCHLIGHT_AVAILABLE_MEMORY_GIGABYTES = 7; %%TODO - NOT YET IMPLEMENTED
 
 %searchlight radius (not including center voxel) in function voxels
