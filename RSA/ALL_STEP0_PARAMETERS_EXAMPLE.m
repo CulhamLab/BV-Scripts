@@ -113,9 +113,11 @@ FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named t
 %enough to work with but not so small that they become too many.
 %
 %NOTE4:
-%If running on a sever with considerable memory, you can set this value to
-%inf (infinte) to store all data in a single file.
-%
+%Even if running on a sever with considerable memory, will may still need to
+%do this calculation. If a large value were entered so that data was not
+%divided into separate files, then the memory needed can be excessive. For
+%example, 20 subjects with 50 predictors in 2mm data would require >187 GB
+%of RAM!
 %
 %Step-by-step Example:
 %
