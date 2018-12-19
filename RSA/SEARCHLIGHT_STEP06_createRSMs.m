@@ -18,15 +18,33 @@ if ~exist(saveFol,'dir')
     mkdir(saveFol);
 end
 
+set_ss_ref = false;
+
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol
+clearvars -except par p inputFol saveFol ss_ref set_ss_ref number_parts
 load([inputFol sprintf('step3_organize3D_%s.mat',p.FILELIST_PAR_ID{par})])
 
 %init cell matrix
 ss = size(betas_3D_all);
 ss = ss(1:3);
-RSMs = cell(ss);
+
+%check that dimensions are constant
+if ~set_ss_ref
+    set_ss_ref = true;
+    
+    ss_ref = ss;
+    fprintf('3D Beta Matrix Size: %s\n', num2str(ss));
+    
+    number_voxels = prod(ss_ref);
+    number_parts = ceil(number_voxels / p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+    fprintf('%d voxels will be split into %d files (%d voxels each)\n', number_voxels, number_parts, p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+    
+else
+    if any(ss ~= ss_ref)
+        error('Sizes of 3D beta matrices are not consistent!')
+    end
+end
 
 %sphere list prep (e.g., 33 positions if radius 2)
 cubeList = [];
@@ -40,26 +58,41 @@ end
 end
 end
 
+%is split used?
+usedSplit = p.SEARCHLIGHT_USE_SPLIT;
+
 %for each vox with data...
-c = 0;
-pctAchieved = 0;
-l = length(indxVoxWithData);
-tic
-nanMadeItIn = 0; %I don't think this is being used anymore
-for voxInd = indxVoxWithData'
-    c=c+1;
-    pctDone = round(c/l*100*100)/100;
-    if floor(pctDone) > pctAchieved
-        pctAchieved = pctDone;
-        timeTaken = round(toc/60*100)/100;
-        timePerPctAvg = timeTaken/pctDone;
-        pctRemain = 100 - pctDone;
-        timeRemain = pctRemain * timePerPctAvg;
-        
-        fprintf('%g%% complete (%g minutes elapsed, ETA %g min)\n',pctDone,timeTaken,timeRemain)
-        
-%         fprintf('%g%% complete (%g minutes elapsed)\n',round(c/l*100*100)/100,round(toc/60*100)/100)
-    end
+% c = 0;
+% pctAchieved = 0;
+% l = length(indxVoxWithData);
+% tic
+
+for part = 1:number_parts
+
+%(re)init
+RSMs = cell(ss);
+
+part_min = 1 + ((part-1) * p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+part_max = part * p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
+
+fprintf('-Starting part %d (voxels %d to %d)...\n', part, part_min, part_max);
+
+indxVoxWithData_part = indxVoxWithData((indxVoxWithData >= part_min) & (indxVoxWithData <= part_max));
+
+for voxInd = indxVoxWithData_part'
+%     c=c+1;
+%     pctDone = round(c/l*100*100)/100;
+%     if floor(pctDone) > pctAchieved
+%         pctAchieved = pctDone;
+%         timeTaken = round(toc/60*100)/100;
+%         timePerPctAvg = timeTaken/pctDone;
+%         pctRemain = 100 - pctDone;
+%         timeRemain = pctRemain * timePerPctAvg;
+%         
+%         fprintf('%g%% complete (%g minutes elapsed, ETA %g min)\n',pctDone,timeTaken,timeRemain)
+%         
+% %         fprintf('%g%% complete (%g minutes elapsed)\n',round(c/l*100*100)/100,round(toc/60*100)/100)
+%     end
     
     %get XYZ coord of center
     [x_center,y_center,z_center] = ind2sub(ss,voxInd);
@@ -125,10 +158,7 @@ for voxInd = indxVoxWithData'
             end
 
             if sum(isnan(rsm(:)))
-                if ~nanMadeItIn %show only once
-                    warning('nans should not make it into rsm') %%this is happening
-                    nanMadeItIn = 1;
-                end
+                warning('nans should not make it into rsm') %%this is happening
             else
                 RSMs{x_center,y_center,z_center} = rsm;
             end
@@ -169,9 +199,13 @@ for voxInd = indxVoxWithData'
     end
     
 end
-fprintf('Saving...')
-usedSplit = p.SEARCHLIGHT_USE_SPLIT;
-save([saveFol sprintf('step4_RSMs_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','RSMs','usedSplit','vtcRes','-v7.3')
+
+%save part
+fprintf('-Saving part %d (voxels %d to %d)...\n', part, part_min, part_max);
+save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
+
+end
+
 fprintf('done.\n')
 end
 

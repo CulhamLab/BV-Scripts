@@ -144,9 +144,11 @@ FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named t
 %voxels_per_file = max(roots([(1/5555) (10 + (8 * number_predictors^2)) (-memory_per_file_in_GB * 1024^3)]));
 %
 %6. This tells me that I should be able to store 17,169 voxels in each data
-%file without issue, but I might choose to store just 15,000 instead.
+%file without issue, but I might choose to store just 15,000 instead to be
+%on the safe side.
 %
-SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000; %%TODO - NOT YET IMPLEMENTED
+%
+SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
 
 %% options
 

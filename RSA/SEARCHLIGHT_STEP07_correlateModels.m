@@ -46,7 +46,7 @@ try %if anything goes wrong, close the parallel workers
 tic
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('\nRunning participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol useParfor
+clearvars -except par p inputFol saveFol useParfor ss_ref
 
 %% prep models
 %place in vectors
@@ -90,73 +90,87 @@ else
 end
 
 %% test models
-clear ss
 num_models_run = length(models_to_do);
 if ~num_models_run
     fprintf('All models have already been run ...\n');
     vtcRes = prior.vtcRes;
 else
     fprintf('Loading RSMs ...\n');
-    load([inputFol sprintf('step4_RSMs_%s',p.FILELIST_PAR_ID{par})])
+    step4 = load([inputFol sprintf('step4_RSMs_%s_PART01',p.FILELIST_PAR_ID{par})]);
     
     if ~exist('resultMat','var')
-        ss = size(RSMs);
-        resultMat = nan([ss p.MODELS.mNum]);
+        resultMat = nan([step4.ss_ref p.MODELS.mNum]);
     end
-    pctAchieved = 0;
-    numElem=numel(RSMs);
-end
-
-if ~exist('ss','var')
-    ss = size(RSMs);
+    if ~exist('ss_ref','var')
+        ss_ref = step4.ss_ref;
+    end
+    if ~exist('vtcRes','var')
+        vtcRes = step4.vtcRes;
+    end
 end
 
 for mn = 1:length(models_to_do)
     m = models_to_do(mn);
-    fprintf('Starting model %d (%d of %d to run) ... ',m,mn,num_models_run)
+    fprintf('Starting model %d (%d of %d to run) ',m,mn,num_models_run)
     
     %work in model-specific 3D
-    resultMat_this = nan(ss);
+    resultMat_this = nan(ss_ref);
     
-    %parallel loop through all voxels' RSM
-    if useParfor
-        parfor i = 1:numElem
-            %has result in this center?
-            if numel(RSMs{i})
-                %which to use
-                if p.USE_SLOW_RSM_CALCULATION
-                    indBad = find(isnan(RSMs{i}(:)));
-                    indVecUse = find(arrayfun(@(x) ~any(find(x==indBad)),modelVecs_indxGood{m}));
-                    indUse = modelVecs_indxGood{m}(indVecUse);
-                else
-                    indVecUse = 1:length(modelVecs{m});
-                    indUse = modelVecs_indxGood{m};
+    %process each part
+    for part = 1:step4.number_parts
+        fprintf('.');
+        
+        %load
+        if part > 1
+            step4 = load([inputFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)]);
+        end
+        
+        %check size
+        if any(step4.ss_ref ~= ss_ref)
+            error('Size is not constant (ss_ref)!')
+        end
+    
+        %parallel loop through all voxels' RSM
+        if useParfor
+            parfor i = step4.indxVoxWithData_part'
+                %has result in this center?
+                if numel(step4.RSMs{i})
+                    %which to use
+                    if p.USE_SLOW_RSM_CALCULATION
+                        indBad = find(isnan(step4.RSMs{i}(:)));
+                        indVecUse = find(arrayfun(@(x) ~any(find(x==indBad)),modelVecs_indxGood{m}));
+                        indUse = modelVecs_indxGood{m}(indVecUse);
+                    else
+                        indVecUse = 1:length(modelVecs{m});
+                        indUse = modelVecs_indxGood{m};
+                    end
+
+                    %correlate with model
+                    if length(indVecUse) && length(indUse)
+                        resultMat_this(i) = corr(step4.RSMs{i}(indUse),modelVecs{m}(indVecUse),'type','Spearman');
+                    end
                 end
-                
-                %correlate with model
-                if length(indVecUse) && length(indUse)
-                    resultMat_this(i) = corr(RSMs{i}(indUse),modelVecs{m}(indVecUse),'type','Spearman');
+            end
+        else
+            for i = step4.indxVoxWithData_part'
+                %has result in this center?
+                if numel(step4.RSMs{i})
+                    %which to use
+                    if p.USE_SLOW_RSM_CALCULATION
+                        indBad = find(isnan(step4.RSMs{i}(:)));
+                        indVecUse = find(arrayfun(@(x) ~any(find(x==indBad)),modelVecs_indxGood{m}));
+                        indUse = modelVecs_indxGood{m}(indVecUse);
+                    else
+                        indVecUse = 1:length(modelVecs{m});
+                        indUse = modelVecs_indxGood{m};
+                    end
+
+                    %correlate with model
+                    resultMat_this(i) = corr(step4.RSMs{i}(indUse),modelVecs{m}(indVecUse),'type','Spearman');
                 end
             end
         end
-    else
-        for i = 1:numElem
-            %has result in this center?
-            if numel(RSMs{i})
-                %which to use
-                if p.USE_SLOW_RSM_CALCULATION
-                    indBad = find(isnan(RSMs{i}(:)));
-                    indVecUse = find(arrayfun(@(x) ~any(find(x==indBad)),modelVecs_indxGood{m}));
-                    indUse = modelVecs_indxGood{m}(indVecUse);
-                else
-                    indVecUse = 1:length(modelVecs{m});
-                    indUse = modelVecs_indxGood{m};
-                end
-                
-                %correlate with model
-                resultMat_this(i) = corr(RSMs{i}(indUse),modelVecs{m}(indVecUse),'type','Spearman');
-            end
-        end
+        
     end
     
     try
@@ -166,7 +180,7 @@ for mn = 1:length(models_to_do)
         rethrow(err)
     end
     
-    fprintf('completed at %f seconds.\n',toc)
+    fprintf(' completed at %f seconds.\n',toc)
 end
 
 %% save
