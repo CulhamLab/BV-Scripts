@@ -18,15 +18,33 @@ if ~exist(saveFol,'dir')
     mkdir(saveFol);
 end
 
+set_ss_ref = false;
+
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol
+clearvars -except par p inputFol saveFol ss_ref set_ss_ref
 load([inputFol sprintf('step3_organize3D_%s.mat',p.FILELIST_PAR_ID{par})])
 
 %init cell matrix
 ss = size(betas_3D_all);
 ss = ss(1:3);
-RSMs = cell(ss);
+
+%check that dimensions are constant
+if ~set_ss_ref
+    set_ss_ref = true;
+    
+    ss_ref = ss;
+    fprintf('3D Beta Matrix Size: %s\n', num2str(ss));
+    
+    number_voxels = prod(ss_ref);
+    number_parts = ceil(number_voxels / p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+    fprintf('%d voxels will be split into %d files (%d voxels each)\n', number_voxels, number_parts, p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+    
+else
+    if any(ss ~= ss_ref)
+        error('Sizes of 3D beta matrices are not consistent!')
+    end
+end
 
 %sphere list prep (e.g., 33 positions if radius 2)
 cubeList = [];
@@ -40,13 +58,34 @@ end
 end
 end
 
+%sort indices with data so that they can be correctly split
+indxVoxWithData = sort(indxVoxWithData);
+
+%is split used?
+usedSplit = p.SEARCHLIGHT_USE_SPLIT;
+
 %for each vox with data...
 c = 0;
 pctAchieved = 0;
 l = length(indxVoxWithData);
 tic
 nanMadeItIn = 0; %I don't think this is being used anymore
+RSMs = cell(ss);
+part = 1;
+part_min = 1;
+part_max = p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
 for voxInd = indxVoxWithData'
+    %if past limit, save part
+    if voxInd > part_max
+        fprintf('Saving part %d (%d to %d)...\n', part, part_min, part_max);
+        save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts')
+        
+        part = part + 1;
+        part_min = part_min + p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
+        part_max = part_max + p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
+        RSMs = cell(ss); %re-init
+    end
+    
     c=c+1;
     pctDone = round(c/l*100*100)/100;
     if floor(pctDone) > pctAchieved
@@ -169,9 +208,11 @@ for voxInd = indxVoxWithData'
     end
     
 end
-fprintf('Saving...')
-usedSplit = p.SEARCHLIGHT_USE_SPLIT;
-save([saveFol sprintf('step4_RSMs_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','RSMs','usedSplit','vtcRes','-v7.3')
+
+%save last part
+fprintf('Saving part %d (%d to %d)...\n', part, part_min, part_max);
+save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts')
+
 fprintf('done.\n')
 end
 
