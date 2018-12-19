@@ -22,7 +22,7 @@ set_ss_ref = false;
 
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol ss_ref set_ss_ref
+clearvars -except par p inputFol saveFol ss_ref set_ss_ref number_parts
 load([inputFol sprintf('step3_organize3D_%s.mat',p.FILELIST_PAR_ID{par})])
 
 %init cell matrix
@@ -58,47 +58,41 @@ end
 end
 end
 
-%sort indices with data so that they can be correctly split
-indxVoxWithData = sort(indxVoxWithData);
-
 %is split used?
 usedSplit = p.SEARCHLIGHT_USE_SPLIT;
 
 %for each vox with data...
-c = 0;
-pctAchieved = 0;
-l = length(indxVoxWithData);
-tic
-nanMadeItIn = 0; %I don't think this is being used anymore
+% c = 0;
+% pctAchieved = 0;
+% l = length(indxVoxWithData);
+% tic
+
+for part = 1:number_parts
+
+%(re)init
 RSMs = cell(ss);
-part = 1;
-part_min = 1;
-part_max = p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
-for voxInd = indxVoxWithData'
-    %if past limit, save part
-    if voxInd > part_max
-        fprintf('Saving part %d (%d to %d)...\n', part, part_min, part_max);
-        save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts')
-        
-        part = part + 1;
-        part_min = part_min + p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
-        part_max = part_max + p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
-        RSMs = cell(ss); %re-init
-    end
-    
-    c=c+1;
-    pctDone = round(c/l*100*100)/100;
-    if floor(pctDone) > pctAchieved
-        pctAchieved = pctDone;
-        timeTaken = round(toc/60*100)/100;
-        timePerPctAvg = timeTaken/pctDone;
-        pctRemain = 100 - pctDone;
-        timeRemain = pctRemain * timePerPctAvg;
-        
-        fprintf('%g%% complete (%g minutes elapsed, ETA %g min)\n',pctDone,timeTaken,timeRemain)
-        
-%         fprintf('%g%% complete (%g minutes elapsed)\n',round(c/l*100*100)/100,round(toc/60*100)/100)
-    end
+
+part_min = 1 + ((part-1) * p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE);
+part_max = part * p.SEARCHLIGHT_NUMBER_VOXELS_PER_FILE;
+
+fprintf('-Starting part %d (voxels %d to %d)...\n', part, part_min, part_max);
+
+indxVoxWithData_part = indxVoxWithData((indxVoxWithData >= part_min) & (indxVoxWithData <= part_max));
+
+for voxInd = indxVoxWithData_part'
+%     c=c+1;
+%     pctDone = round(c/l*100*100)/100;
+%     if floor(pctDone) > pctAchieved
+%         pctAchieved = pctDone;
+%         timeTaken = round(toc/60*100)/100;
+%         timePerPctAvg = timeTaken/pctDone;
+%         pctRemain = 100 - pctDone;
+%         timeRemain = pctRemain * timePerPctAvg;
+%         
+%         fprintf('%g%% complete (%g minutes elapsed, ETA %g min)\n',pctDone,timeTaken,timeRemain)
+%         
+% %         fprintf('%g%% complete (%g minutes elapsed)\n',round(c/l*100*100)/100,round(toc/60*100)/100)
+%     end
     
     %get XYZ coord of center
     [x_center,y_center,z_center] = ind2sub(ss,voxInd);
@@ -164,10 +158,7 @@ for voxInd = indxVoxWithData'
             end
 
             if sum(isnan(rsm(:)))
-                if ~nanMadeItIn %show only once
-                    warning('nans should not make it into rsm') %%this is happening
-                    nanMadeItIn = 1;
-                end
+                warning('nans should not make it into rsm') %%this is happening
             else
                 RSMs{x_center,y_center,z_center} = rsm;
             end
@@ -209,9 +200,11 @@ for voxInd = indxVoxWithData'
     
 end
 
-%save last part
-fprintf('Saving part %d (%d to %d)...\n', part, part_min, part_max);
-save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts')
+%save part
+fprintf('-Saving part %d (voxels %d to %d)...\n', part, part_min, part_max);
+save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
+
+end
 
 fprintf('done.\n')
 end
