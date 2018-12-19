@@ -78,6 +78,78 @@ FILELIST_FORMAT_VTC = '[PAR]_[RUN]_3DMCTS_LTR_THPGLMF2c_MNI.vtc'; %replaces [PAR
 FILELIST_FORMAT_SDM = '[PAR]_[RUN]_PRT-and-3DMC_Video.sdm'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
 FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named the same as PAR_ID, else set false if all files are in a single directory
 
+%% Searchlight - Memory Available
+%
+%IMPORTANT: if you change this value then you must rerun the searchlight
+%from the start (SEARCHLIGHT_STEP06_createRSMs)
+%
+%Searchlight requires quite a bit of memory especially for creation of the
+%noise ceiling maps. To keep RAM requirements reasonable, searchlight data
+%is divided into multiple files.
+%
+%Both the number of participants and the number of predictors affects this:
+%When calculating the noise ceiling of a sphere, the sphere's RSM from each
+%participant must be held in memory. The size of these RSM matrices is
+%proportional to the number of predictors.
+%
+%The amount of memory (in gigabytes) needed to hold a file in memory is approximately:
+%number_voxels * ((10 + (number_voxels/5555)) + (8 * (number_predictors^2))) / (1024^3)
+%
+%NOTE:
+%The size of the mat file on the harddrive is less than the amount of RAM
+%needed to hold the contents in memory.
+%
+%NOTE2:
+%If you run out of RAM, the script probably won't crash but will instead
+%slow down so much that it would take years to finish (because it switches
+%to using harddrive as memory instead). In this event, you would need to
+%notice that the system is out of memory and close the script manually
+%(CTRL+C in the command window).
+%
+%NOTE3:
+%Setting this value too low will prevent out-of-memory issues, but will
+%also cause several scripts to take much longer. This is because loading
+%files has some overhead. There is a sweet spot where the files are small
+%enough to work with but not so small that they become too many.
+%
+%NOTE4:
+%Even if running on a sever with considerable memory, will may still need to
+%do this calculation. If a large value were entered so that data was not
+%divided into separate files, then the memory needed can be excessive. For
+%example, 20 subjects with 50 predictors in 2mm data would require >187 GB
+%of RAM!
+%
+%Step-by-step Example:
+%
+%
+%1. Close all programs except MATLAB.
+%
+%2. Check how much memory is available in Task Manager. I am at 7.3GB/16GB
+%so I have 8.7GB to work with, but I will round down to 8GB to be safe.
+%
+%3. Suppose the project has 10 subjects now, but might have as many as 25
+%at completion. I will use 25 subjects in the calculations.
+%
+%4. With 8GB available and as many as 25 subjects, each file must require
+%less than 0.32 GB of RAM.
+%
+%8 GB / 25 subjects = 0.32 GB of RAM per file max
+%
+%5. Calculate the number of voxels to store in each file by solving the
+%quadratic form of the equation above:
+%0 = (1/5555)voxels^2 + (10 + (8 * number_predictors^2))voxels - (memory_per_file_in_GB * 1024^3)
+%
+%number_predictors = 50;
+%memory_per_file_in_GB = 0.32;
+%voxels_per_file = max(roots([(1/5555) (10 + (8 * number_predictors^2)) (-memory_per_file_in_GB * 1024^3)]));
+%
+%6. This tells me that I should be able to store 17,169 voxels in each data
+%file without issue, but I might choose to store just 15,000 instead to be
+%on the safe side.
+%
+%
+SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
+
 %% options
 
 %searchlight radius (not including center voxel) in function voxels
