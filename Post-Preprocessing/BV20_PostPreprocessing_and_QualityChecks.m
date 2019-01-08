@@ -225,7 +225,8 @@ function ProcessParameters
     
     %temporal high pass filtering should not be applied on BOTH FMR and VTC
     if p.VTC.THP_FMR & p.VTC.THP_VTC
-        error2('Temporal high pass filtering should not be applied to both FMR and VTC! Check the values of VTC.THP_FMR and VTC.THP_VTC')
+        %error2('Temporal high pass filtering should not be applied to both FMR and VTC! Check the values of VTC.THP_FMR and VTC.THP_VTC')
+		fprintf2('WARNING: Temporal high pass filtering is enabled for both FMR and VTC. FMR with thp will be prioratized. If not found, thp will be performed on vtc.')
     end
     
     %check BV dir exists
