@@ -848,7 +848,7 @@ function CheckAndFinishVTCPreprocessing
             
             %try to narrow down to single best option
             needs_thp = false;
-            if p.VTC.THP_FMR
+            if skip_thp_vtc_check
                 %all files already have correct THP
             elseif p.VTC.THP_VTC
                 %if one option has VTC THP, select it - otherwise can apply THP
