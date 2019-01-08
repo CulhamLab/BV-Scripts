@@ -827,9 +827,10 @@ function CheckAndFinishVTCPreprocessing
             %if VTC.THP_FMR then select those with correct FMR THP, else select those with no FMR THP
 			skip_thp_vtc_check = false;
             if p.VTC.THP_FMR
-                filenames = filenames(cellfun(@(x) ~isempty(strfind(x, sprintf('THPGLMF%dc', p.VTC.THP_FMR))), filenames));
-				if ~isempty(filenames)
+                filenames_new = filenames(cellfun(@(x) ~isempty(strfind(x, sprintf('THPGLMF%dc', p.VTC.THP_FMR))), filenames));
+				if ~isempty(filenames_new)
 					%found a thp_fmr
+					filenames = filenames_new;
 					skip_thp_vtc_check = true;
 				end
             else
@@ -837,13 +838,15 @@ function CheckAndFinishVTCPreprocessing
             end
             
             %if VTC.THP_VTC then discard those with other VTC THP values, else select those with no VTC THP
-            if p.VTC.THP_VTC & ~skip_thp_vtc_check
-                matches = regexp(filenames, 'THPFFT[0-9]*c', 'match');
-                ind_bad_thp = cellfun(@(x) ~isempty(x) && ~strcmp(x, sprintf('THP%dc', p.VTC.THP_VTC)), matches);
-                filenames(ind_bad_thp) = [];
-            else
-                filenames = filenames(cellfun(@(x) isempty(strfind(x, 'THPFFT')), filenames));
-            end
+			if ~skip_thp_vtc_check
+				if p.VTC.THP_VTC
+					matches = regexp(filenames, 'THP[a-Z]*[0-9]*c', 'match');
+					ind_bad_thp = cellfun(@(x) ~isempty(x) && ~strcmp(x, sprintf('THP%dc', p.VTC.THP_VTC)), matches);
+					filenames(ind_bad_thp) = [];
+				else
+					filenames = filenames(cellfun(@(x) isempty(strfind(x, 'THP')), filenames));
+				end
+			end
             
             %at this point, all VTC are not spatially smoothed and either have no THP or have the desired THP
             
