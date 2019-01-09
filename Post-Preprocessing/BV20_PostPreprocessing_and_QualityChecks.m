@@ -968,8 +968,10 @@ function CheckVTC
 		return
     end
     
-    fprintf2( '\nChecked the TR and number of volumes in final VTCs...\n');
+    fprintf2( '\nChecking final VTCs...\n');
     
+	error_occured = false;
+	
     for par = 1:p.PAR.NUM
         fprintf2( 'Participant %d: %s\n', par, p.PAR.ID{par});
         
@@ -990,22 +992,24 @@ function CheckVTC
             fprintf2('*   VTC: %s\n', p.file_list(par).run(run).vtc_final);
             fp = [p.file_list(par).dir p.file_list(par).run(run).vtc_final];
             if ~exist(fp, 'file')
-                error2('Expected VTC does not exist: %s\n', fp)
+                fprintf2('*     ERROR: Expected VTC does not exist: %s\n', fp)
+				error_occured = true;
+				continue;
             end
             vtc = xff(fp);
             
             %check TR
             if vtc.TR ~= p.EXP.TR
                 TR = vtc.TR;
-                vtc.clear;
-                error2('Unexpected TR = %d in VTC = %s\n', TR, p.file_list(par).run(run).vtc_final)
+                fprintf2('*     ERROR: Unexpected TR = %d in VTC = %s\n', TR, p.file_list(par).run(run).vtc_final)
+				error_occured = true;
             end
             
 			%check resolution
 			if vtc.Resolution ~= p.EXP.RES
 				res = vtc.Resolution;
-                vtc.clear;
-                error2('Unexpected functional resolution = %d in VTC = %s\n', res, p.file_list(par).run(run).vtc_final)
+                fprintf2('*     ERROR: Unexpected functional resolution = %d in VTC = %s\n', res, p.file_list(par).run(run).vtc_final)
+				error_occured = true;
 			end
 			
             %check number of volumes
@@ -1015,7 +1019,8 @@ function CheckVTC
                 if p.EXP.VOL_VARIES
                     fprintf2( '*     WARNING: unexpected number of volumes = %d\n', p.file_list(par).run(run).num_vol);
                 else
-                    error2('Unexpected number of volumes = %d in VTC = %s\n', p.file_list(par).run(run).num_vol, p.file_list(par).run(run).vtc_final);
+                    fprintf2('*     ERROR: Unexpected number of volumes = %d in VTC = %s\n', p.file_list(par).run(run).num_vol, p.file_list(par).run(run).vtc_final);
+					error_occured = true;
                 end
             else
                 fprintf2( '*     No issues found.\n');
@@ -1023,6 +1028,10 @@ function CheckVTC
             
         end
     end
+	
+	if error_occured
+		error2('One or more issues was found in VTCs. See above for details.')
+	end
     
 end
 
