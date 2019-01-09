@@ -1001,6 +1001,13 @@ function CheckVTC
                 error2('Unexpected TR = %d in VTC = %s\n', TR, p.file_list(par).run(run).vtc_final)
             end
             
+			%check resolution
+			if vtc.Resolution ~= p.EXP.RES
+				res = vtc.Resolution;
+                vtc.clear;
+                error2('Unexpected functional resolution = %d in VTC = %s\n', res, p.file_list(par).run(run).vtc_final)
+			end
+			
             %check number of volumes
             p.file_list(par).run(run).num_vol = vtc.NrOfVolumes;
             vtc.clear;
