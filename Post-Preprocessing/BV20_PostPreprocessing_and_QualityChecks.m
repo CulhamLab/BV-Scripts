@@ -970,6 +970,8 @@ function CheckVTC
     
     fprintf2( '\nChecking final VTCs...\n');
     
+    bbox_fields = {'XStart' 'XEnd' 'YStart' 'YEnd' 'ZStart' 'ZEnd'};
+    first_load = true;
 	error_occured = false;
 	
     for par = 1:p.PAR.NUM
@@ -979,6 +981,9 @@ function CheckVTC
             fprintf2( '* EXCLUDED\n');
             continue
         end
+        
+        comparison_vols = [];
+        comparison_vols_run = [];
         
         for run = 1:p.EXP.RUN
             fprintf2( '* Run %d\n', run);
@@ -997,6 +1002,43 @@ function CheckVTC
 				continue;
             end
             vtc = xff(fp);
+            
+            %data location and size of first loaded vtc compared to all other vtc
+            valid_size = true;
+            if first_load
+                %data matrix location
+                for f = bbox_fields
+                    eval(sprintf('bbox.%s = vtc.%s;', f{1}, f{1}))
+                end
+                
+                %data matrix size
+                sz = size(vtc.VTCData);
+                data_size = sz(2:4);
+                
+                fprintf('First VTC loaded. Data size and bounding box will be compared to all other VTCs...\n Data Size: %s\n', num2str(data_size))
+                disp(bbox);
+                
+                first_load = false;
+            else
+                %data matrix location
+                for f = bbox_fields
+                    eval(sprintf('value_target = bbox.%s;', f{1}));
+                    eval(sprintf('value_this = vtc.%s;', f{1}));
+                    if value_target ~= value_this
+                        fprintf2('*     ERROR: %s (%d) does match first VTC loaded (%d)\n', f{1}, value_this, value_target)
+                        error_occured = true;
+                        valid_size = false; %prevent vol comparison because vol is in a different location
+                    end
+                end
+                
+                %data matrix size
+                sz = size(vtc.VTCData);
+                if any(sz(2:4) ~= data_size)
+                    fprintf2('*     ERROR: data size (%s) does not match first VTC loaded (%s)\n', num2str(sz(2:4)), num2str(data_size))
+                    error_occured = true;
+                    valid_size = false; %prevent vol comparison because vol is a different size
+                end
+            end
             
             %check TR
             if vtc.TR ~= p.EXP.TR
@@ -1022,8 +1064,33 @@ function CheckVTC
                     fprintf2('*     ERROR: Unexpected number of volumes = %d in VTC = %s\n', p.file_list(par).run(run).num_vol, p.file_list(par).run(run).vtc_final);
 					error_occured = true;
                 end
-            else
-                fprintf2( '*     No issues found.\n');
+            end
+            
+            %check if same as any previous vtc of same subject
+            if valid_size
+                comparison_vol = squeeze(vtc.VTCData(1,:,:,:));
+                for i = 1:size(comparison_vols,4)
+                    target = comparison_vols(:,:,:,i);
+                    
+                    dif = abs(comparison_vol - target);
+                
+                    %exclude voxels where there is no data (would show
+                    %large artifical differences)
+                    dif(~comparison_vol | ~target) = nan;
+                    
+                    %it's possible that vtcs from the same dicom set could
+                    %be seen as not 100% identical due to very tiny
+                    %rounding errors so a max difference of 0.01 is used
+                    %instead
+                    if nanmax(dif(:)) < 0.01
+                        %very likely to be from the same dicoms
+                        fprintf2('*     ERROR: data is very similar to run %d and may come from the same dicom set', comparison_vols_run(i));
+                        error_occured = true;
+                    end
+                end
+                
+                comparison_vols(:,:,:,end+1) = comparison_vol;
+                comparison_vols_run(end+1) = run;
             end
             
         end
