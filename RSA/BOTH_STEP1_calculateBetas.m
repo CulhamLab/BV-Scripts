@@ -27,21 +27,12 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
         
         fprintf('VTC: %s\nSDM: %s\nOut: %s\n', fp_vtc, fp_sdm, fp_out);
         
-        createBetasFromBV(fp_sdm, fp_vtc, fp_out, true, fig); %subfunction below
-
-%         %find vtc
-%         listVTC = dir(sprintf('%sSUB%02d_RUN%02d*.vtc',p.FILEPATH_TO_VTC_AND_SDM,sub,run));
-%         
-%         %find sdm
-%         listSDM = dir(sprintf('%sSUB%02d_RUN%02d*.sdm',p.FILEPATH_TO_VTC_AND_SDM,sub,run));
-%         
-%         if length(listVTC) ~= 1 | length(listSDM) ~= 1
-%             warning(sprintf('Wrong number vtc/sdm files for SUB%02d_RUN%02d.\n',sub,run))
-%         else
-%             vtcPath = [p.FILEPATH_TO_VTC_AND_SDM listVTC.name];
-%             sdmPath = [p.FILEPATH_TO_VTC_AND_SDM listSDM.name];
-%             createBetasFromBV(sdmPath,vtcPath,sprintf('%sSUB%02d_RUN%02d',outfol,sub,run)); %subfunction below
-%         end
+		if ~exist(fp_sdm,'file') | ~exist(fp_vtc, 'file')
+			warning('VTC and/or SDM is missing. Skipping run SUB%02d RUN%02d', sub, run);
+		else
+			createBetasFromBV(fp_sdm, fp_vtc, fp_out, true, fig); %subfunction below
+		end
+		
     end
 end
 fprintf('\n\nBeta calculations complete.\n')
