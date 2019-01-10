@@ -61,6 +61,10 @@ else
     list = list([list.isdir]);
     filenames = {list.name};
     
+    %remove folders that do no contain at least one FMR
+    has_fmr = cellfun(@(x) ~isempty(dir([PATH_TO_BV_DIRECTORY x filesep '*.fmr'])), filenames);
+    filenames = filenames(has_fmr);
+    
     par_nums = cellfun(@(x) str2num(x(2:end)), filenames);
     
     participant_IDs(par_nums) = filenames;
