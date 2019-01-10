@@ -970,6 +970,8 @@ function CheckVTC
     
     fprintf2( '\nChecking final VTCs...\n');
     
+    bbox_fields = {'XStart' 'XEnd' 'YStart' 'YEnd' 'ZStart' 'ZEnd'};
+    first_load = true;
 	error_occured = false;
 	
     for par = 1:p.PAR.NUM
@@ -997,6 +999,40 @@ function CheckVTC
 				continue;
             end
             vtc = xff(fp);
+            
+            %data location and size of first loaded vtc compared to all other vtc
+            if first_load
+                %data matrix location
+                for f = bbox_fields
+                    eval(sprintf('bbox.%s = vtc.%s;', f{1}, f{1}))
+                end
+                
+                %data matrix size
+                sz = size(vtc.VTCData);
+                data_size = sz(2:4);
+                
+                fprintf('First VTC loaded. Data size and bounding box will be compared to all other VTCs...\n Data Size: %s\n', num2str(data_size))
+                disp(bbox);
+                
+                first_load = false;
+            else
+                %data matrix location
+                for f = bbox_fields
+                    eval(sprintf('value_target = bbox.%s;', f{1}));
+                    eval(sprintf('value_this = vtc.%s;', f{1}));
+                    if value_target ~= value_this
+                        fprintf2('*     ERROR: %s (%d) does match first VTC loaded (%d)\n', f{1}, value_this, value_target)
+                        error_occured = true;
+                    end
+                end
+                
+                %data matrix size
+                sz = size(vtc.VTCData);
+                if any(sz(2:4) ~= data_size)
+                    fprintf2('*     ERROR: data size (%s) does not match first VTC loaded (%s)\n', num2str(sz(2:4)), num2str(data_size))
+                    error_occured = true;
+                end
+            end
             
             %check TR
             if vtc.TR ~= p.EXP.TR
