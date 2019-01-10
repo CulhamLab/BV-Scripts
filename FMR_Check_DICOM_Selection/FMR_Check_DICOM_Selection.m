@@ -1,6 +1,22 @@
+%Reads FMRs in a BV20 project folder to determine which dicoms were
+%selected in the creation of the FMR.
+%
+%Detects the following issues:
+%1. DICOMs with multiple participant codes present in a single participant (inconsistent_code)
+%2. DICOMs from the same series used for multiple runs in a single participant (duplicate_series)
+%3. DICOMs from a single participant code present in more than one participant (duplicate_code)
+%
+%Results are displayed in the command window and summarized in an excel
+%file.
+%
+%NOTE: Does not support session subfolders or multiple sessions.
+%
 function FMR_Check_DICOM_Selection
 
 %% Parameters
+
+%filepath to write excel output to
+OUTPUT_FILEPATH = 'FMR_Check_DICOM_Selection.xls';
 
 %path to the BV20 project directory
 PATH_TO_BV_DIRECTORY = 'C:\Users\kstubbs4\Documents\BrainVoyagerData\Carol_CHP_Redo';
@@ -26,8 +42,6 @@ PATH_TO_BV_DIRECTORY = 'C:\Users\kstubbs4\Documents\BrainVoyagerData\Carol_CHP_R
 %Participant 4 is left empty
 %PARTICIPANT_ID_IN_ORDER{4} = 'GH78';
 PARTICIPANT_ID_IN_ORDER = nan;
-
-OUTPUT_FILEPATH = 'FMR_Check_DICOM_Selection.xls';
 
 %% Prepare
 if PATH_TO_BV_DIRECTORY(end) ~= filesep
