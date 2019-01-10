@@ -982,7 +982,7 @@ function CheckVTC
             continue
         end
         
-        comparison_vols = [];
+        comparison_vols = zeros(0,0,0,0);
         comparison_vols_run = [];
         
         for run = 1:p.EXP.RUN
@@ -1056,7 +1056,6 @@ function CheckVTC
 			
             %check number of volumes
             p.file_list(par).run(run).num_vol = vtc.NrOfVolumes;
-            vtc.clear;
             if p.file_list(par).run(run).num_vol ~= p.EXP.VOL
                 if p.EXP.VOL_VARIES
                     fprintf2( '*     WARNING: unexpected number of volumes = %d\n', p.file_list(par).run(run).num_vol);
