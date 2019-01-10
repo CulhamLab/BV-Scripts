@@ -1064,8 +1064,6 @@ function CheckVTC
                     fprintf2('*     ERROR: Unexpected number of volumes = %d in VTC = %s\n', p.file_list(par).run(run).num_vol, p.file_list(par).run(run).vtc_final);
 					error_occured = true;
                 end
-            else
-                fprintf2( '*     No issues found.\n');
             end
             
             %check if same as any previous vtc of same subject
