@@ -1091,6 +1091,10 @@ function CheckVTC
                 comparison_vols(:,:,:,end+1) = comparison_vol;
                 comparison_vols_run(end+1) = run;
             end
+			
+			%clear vtc
+			vtc.clear;
+			clear vtc;
             
         end
     end
