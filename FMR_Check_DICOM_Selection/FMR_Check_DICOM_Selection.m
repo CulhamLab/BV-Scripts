@@ -189,5 +189,5 @@ xlswrite(OUTPUT_FILEPATH, xls);
 if (found_issue)
     error('One or more issues were found! See warning above.')
 else
-    disp Done.
+    disp('Done. No issues found.')
 end
