@@ -566,10 +566,16 @@ end
 
 function CheckBBR
     global p
+    
+    if p.FMR.BBR
+        fprintf2('\nBoundary-Based Registration (BBR) cost values will now be checked.\nLower values indicate better FMR-VMR alignment.\n')
+    else
+        fprintf2('\nBoundary-Based Registration (BBR) check is set FALSE. Skipping...\n')
+        return
+    end
+
     p.BBR.bbr_cost_end = nan(p.PAR.NUM, p.EXP.RUN);
-
-    fprintf2( '\nBoundary-Based Registration (BBR) cost values will now be checked.\nLower values indicate better FMR-VMR alignment.\n')
-
+    
     fol = [p.DIR.BV '_WorkflowReports_' filesep 'texts' filesep];
     if ~exist(fol, 'dir')
         fprintf2( 'WARNING: Skipping BBR checks because directory was not found: %s\n', fol)
