@@ -1,9 +1,6 @@
-% Your parameter file must be named "ALL_STEP0_PARAMETERS.m"
-
-
-
-
-
+%IMPORTANT: You must set the full path to your parameter script in ALL_STEP0_PARAMETERS.m
+%
+%
 %Step0: setting parameters
 %
 %The first step to using this pipeline is to specify the number of
@@ -72,7 +69,7 @@ VOI_FILE = nan;
 
 %% file list (for vtc/sdm)
 FILELIST_FILENAME = 'filelist.xls';
-FILELIST_PAR_ID = arrayfun(@(x) sprintf('P%d',x), 1 + (1:NUMBER_OF_PARTICIPANTS), 'UniformOutput', false); %must be strings
+FILELIST_PAR_ID = arrayfun(@(x) sprintf('P%d',x), 1:NUMBER_OF_PARTICIPANTS, 'UniformOutput', false); %must be strings
 FILELIST_RUN_ID = arrayfun(@(x) sprintf('Func-S1R%d',x), 1:NUMBER_OF_RUNS, 'UniformOutput', false); %must be strings
 FILELIST_FORMAT_VTC = '[PAR]_[RUN]_3DMCTS_LTR_THPGLMF2c_MNI.vtc'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
 FILELIST_FORMAT_SDM = '[PAR]_[RUN]_PRT-and-3DMC_Video.sdm'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
