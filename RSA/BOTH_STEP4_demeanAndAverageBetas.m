@@ -37,9 +37,6 @@ if p.REMOVE_CERTAIN_CONDITIONS & ~exist(betaFolCondRemoved,'dir')
     error('It appears that condition removal is set true in parameters but has not been run. (Could not find second beta folder).')
 end
 
-%extra vars
-numVox = 500000; %for pre-allocation, should be more than enough (if it isn't, the script will slow down but shouldn't break)
-
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
 clearvars -except betaFol betaFolCondRemoved saveFol numVox p par subIncludeSara
