@@ -142,6 +142,10 @@ end
 allBetas_sum = oddBetas_sum + evenBetas_sum;
 allBetas_count = oddBetas_count + evenBetas_count;
 
+%TODO
+%number of voxels that are always zero
+%number of voxels that zero in some but not all runs + note action taken (add new parameter - (A) always exclude, (B) always include, (C) include if #odd = #even)
+
 %display
 fprintf('-Calculating demeaned betas (for even runs, odd runs, and all runs) and then saving...\n')
 
