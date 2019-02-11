@@ -74,7 +74,6 @@ for run = 1:p.NUMBER_OF_RUNS
     loadPath = [folderToUse betaList.name];
     fprintf('-Loading betas for %s_%s: %s\n',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run},loadPath)
     
-    clear file
     file = load(loadPath);
     
     if ~doOnce
