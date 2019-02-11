@@ -41,7 +41,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
 clearvars -except betaFol betaFolCondRemoved saveFol numVox p par
 
-doOnce = 0;
+participant_setup_completed = false;
 
 for run = 1:p.NUMBER_OF_RUNS
     %pick removal file first
@@ -76,7 +76,7 @@ for run = 1:p.NUMBER_OF_RUNS
     
     file = load(loadPath);
     
-    if ~doOnce
+    if ~participant_setup_completed
         %individualize numVox (w/ data)
         numVox = size(file.betas,1);
         %get vox coord
@@ -90,7 +90,7 @@ for run = 1:p.NUMBER_OF_RUNS
         oddBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,ceil(p.NUMBER_OF_RUNS/2)); 
         evenBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,floor(p.NUMBER_OF_RUNS/2));
         %don't do this again
-        doOnce = 1;
+        participant_setup_completed = true;
     elseif size(file.betas,1) ~= numVox
 		error('Invalid number of voxels!')
     else
