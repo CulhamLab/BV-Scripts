@@ -39,15 +39,7 @@ end
 
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except betaFol betaFolCondRemoved saveFol numVox p par subIncludeSara
-
-%allBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
-%oddBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
-%evenBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
-
-%allBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_RUNS);
-%oddBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,ceil(p.NUMBER_OF_RUNS/2)); 
-%evenBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,floor(p.NUMBER_OF_RUNS/2));
+clearvars -except betaFol betaFolCondRemoved saveFol numVox p par
 
 doOnce = 0;
 
