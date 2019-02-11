@@ -92,7 +92,7 @@ for run = 1:p.NUMBER_OF_RUNS
         %don't do this again
         participant_setup_completed = true;
     elseif size(file.betas,1) ~= numVox
-		error('Invalid number of voxels!')
+		error('Invalid number of voxels! Number of voxels should be constant.')
     else
         %check vox coord
         if (size(vox,1) ~= size(file.vox,1)) | any(sum(vox - file.vox))
