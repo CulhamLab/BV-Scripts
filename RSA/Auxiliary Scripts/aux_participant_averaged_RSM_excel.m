@@ -2,7 +2,7 @@ function aux_participant_averaged_RSM_excel
 
 %% parameters
 USE_SPLIT_DATA = true;
-FISHER_TRANSFORM_RSM = true; %do not set true if data has not already been Fisher-transformed
+ADD_FISHER_TRANSFORM_RSM = true; %do not set true if data has not already been Fisher-transformed
 
 %% read main parameters
 return_path = pwd;
@@ -36,13 +36,13 @@ else
 end
 
 %add Fisher transform (optional)
-if FISHER_TRANSFORM_RSM
+if ADD_FISHER_TRANSFORM_RSM
     RSMs = atanh(RSMs);
 end
 
 %output file name
 filename_output = ['Participant-Averaged_RSM_' type_name];
-if FISHER_TRANSFORM_RSM
+if ADD_FISHER_TRANSFORM_RSM
     filename_output = [filename_output '_AddFisher'];
 end
 filename_output = [filename_output '.xls'];
@@ -63,7 +63,7 @@ xls{1,1} = 'Use Split Data:';
 xls{1,2} = USE_SPLIT_DATA;
 
 xls{2,1} = 'Add Fisher Transform:';
-xls{2,2} = FISHER_TRANSFORM_RSM;
+xls{2,2} = ADD_FISHER_TRANSFORM_RSM;
 
 xls{3,1} = [];
 
