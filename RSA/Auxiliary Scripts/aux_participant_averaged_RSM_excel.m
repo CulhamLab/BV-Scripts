@@ -2,7 +2,7 @@ function aux_participant_averaged_RSM_excel
 
 %% parameters
 USE_SPLIT_DATA = true;
-ADD_FISHER_TRANSFORM_RSM = true; %do not set true if data has not already been Fisher-transformed
+ADD_FISHER_TRANSFORM_RSM = false; %do not set true if data has not already been Fisher-transformed
 
 %% read main parameters
 return_path = pwd;
@@ -37,7 +37,11 @@ end
 
 %add Fisher transform (optional)
 if ADD_FISHER_TRANSFORM_RSM
+    will_be_pinfinite = single(RSMs)==1; %workaround for rounding issue
+    will_be_ninfinite = single(RSMs)==-1; %workaround for rounding issue
     RSMs = atanh(RSMs);
+    RSMs(will_be_pinfinite) = inf; %workaround for rounding issue
+    RSMs(will_be_ninfinite) = -inf; %workaround for rounding issue
 end
 
 %output file name
@@ -57,7 +61,7 @@ end
 number_voi = length(data.VOINames);
 number_cond = size(RSMs,1);
 
-xls = cell(0,number_cond);
+xls = cell(0,number_cond+1);
 
 xls{1,1} = 'Use Split Data:';
 xls{1,2} = USE_SPLIT_DATA;
@@ -71,11 +75,21 @@ for v = 1:number_voi
     fprintf('Running VOI %d of %d (%s)\n', v, number_voi, data.VOINames{v})
 
     xls{end+1,1} = data.VOINames{v};
+    xls(end+1,:) = [' ' p.CONDITIONS.DISPLAY_NAMES'];
     
     RSMs_voi = RSMs(:,:,:,v);
     RSMs_voi_parmean = nanmean(RSMs_voi,3);
     
-    xls = [xls; num2cell(RSMs_voi_parmean)];
+    values = num2cell(RSMs_voi_parmean);
+    
+    is_pinf = cellfun(@(x) x==inf, values);
+    is_ninf = cellfun(@(x) x==-inf, values);
+    values(is_pinf) = {'+inf'};
+    values(is_ninf) = {'-inf'};
+    
+    values = [p.CONDITIONS.DISPLAY_NAMES values];
+    
+    xls = [xls; values];
     
     xls{end+1,1} = [];
 end
