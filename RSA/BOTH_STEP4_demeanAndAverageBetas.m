@@ -79,71 +79,62 @@ for run = 1:p.NUMBER_OF_RUNS
     if ~participant_setup_completed
         %individualize numVox (w/ data)
         numVox = size(file.betas,1);
-        
         %get vox coord
         vox = file.vox;
         vtcRes = file.vtcRes;
-        
-        %reinit
-        oddBetas_sum = zeros(numVox, p.NUMBER_OF_CONDITIONS, 'double');
-        oddBetas_count = zeros(numVox, p.NUMBER_OF_CONDITIONS, 'uint8');
-        
-        evenBetas_sum = zeros(numVox, p.NUMBER_OF_CONDITIONS, 'double');
-        evenBetas_count = zeros(numVox, p.NUMBER_OF_CONDITIONS, 'uint8');
-        
-        %don't do this setup again for this participant
+        %reinit for this first run
+        allBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
+        oddBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
+        evenBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
+        allBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_RUNS);
+        oddBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,ceil(p.NUMBER_OF_RUNS/2)); 
+        evenBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,floor(p.NUMBER_OF_RUNS/2));
+        %don't do this again
         participant_setup_completed = true;
-        
     elseif size(file.betas,1) ~= numVox
 		error('Invalid number of voxels! Number of voxels should be constant.')
     else
         %check vox coord
         if (size(vox,1) ~= size(file.vox,1)) | any(sum(vox - file.vox))
             error('Inconsistent voxel coords!')
-        %check functional resolution
         elseif file.vtcRes ~= vtcRes
             error('Inconsistent resolution.') %shouldn't be possible to reach this
         end
 	end
     
-%     %set betas that are zero (condition not present in run) to nan *betas
-%     %won't be *exactly* zero by chance
-%     file.betas(file.betas==0) = nan;
+    %set betas that are zero (condition not present in run) to nan *betas
+    %won't be *exactly* zero by chance
+    file.betas(file.betas==0) = nan;
     
-    %odd or even run?
-    if length(p.RUN_ORDER)>1
-        %runs are NOT in chronological order
-        order_in_run = find(p.RUN_ORDER(par,:) == run);
-        if length(order_in_run) ~= 1
-            error('There is an error in p.RUN_ORDER!')
-        else
-            fprintf('--this run will be treated as %d chronologically (p.RUN_ORDER)\n', order_in_run);
-        end
-    else
-        order_in_run = run;
-    end
-    is_odd = mod(order_in_run, 2);
-
     %keep only requested predictor betas + set order
     ind_pred_use = cellfun(@(x) find(cellfun(@(y) strcmp(x,y),file.conditionNames)), p.CONDITIONS.PREDICTOR_NAMES);
     file.betas = file.betas(:,ind_pred_use);
     
-    %add betas
-    if is_odd
-        oddBetas_sum = oddBetas_sum + file.betas;
-        oddBetas_count = oddBetas_count + uint8(file.betas ~= 0);
-    else
-        evenBetas_sum = evenBetas_sum + file.betas;
-        evenBetas_count = evenBetas_count + uint8(file.betas ~= 0);
-    end
+    %place in giant mat
+    allBetas(:,:,run) = file.betas;
 end
-
-%combine all runs
-allBetas_sum = oddBetas_sum + evenBetas_sum;
-allBetas_count = oddBetas_count + evenBetas_count;
 
 %display
 fprintf('-Calculating demeaned betas (for even runs, odd runs, and all runs) and then saving...\n')
+
+%index odd/even runs
+ind_even = 2:2:p.NUMBER_OF_RUNS;
+ind_odd = 1:2:p.NUMBER_OF_RUNS;
+if length(p.RUN_ORDER)>1
+	warning('Using non-standard run order:')
+	ind = p.RUN_ORDER(par,:)
+	ind_even = unique(arrayfun(@(x) find(ind==x), ind_even))
+	ind_odd = unique(arrayfun(@(x) find(ind==x), ind_odd))
+    
+    if ((length(ind_even) + length(ind_odd)) ~= p.NUMBER_OF_RUNS) || (length(unique([ind_even ind_odd])) ~= p.NUMBER_OF_RUNS)
+        error('p.RUN_ORDER is probably not correct')
+    end
+else
+end
+
+%split even and odd runs
+evenBetas = allBetas(:,:,ind_even);
+oddBetas = allBetas(:,:,ind_odd);
 
 %all
 meanVector = nanmean(nanmean(allBetas,3),2);
