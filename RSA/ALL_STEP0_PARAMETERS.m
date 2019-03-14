@@ -1,7 +1,9 @@
 function [p] = ALL_STEP0_PARAMETERS
 
+FULL_PATH_TO_PARAMETER_SCRIPT = 'C:\Users\kstubbs4\Documents\GitHub\CC_fMRI_FoodImages\RSA\ALL_STEP0_PARAMETERS.m';
+
 %set the path to your parameter script (use ALL_STEP0_PARAMETERS_EXAMPLE.m as a template)
-FULL_PATH_TO_PARAMETER_SCRIPT = 'ALL_STEP0_PARAMETERS_EXAMPLE.m';
+% FULL_PATH_TO_PARAMETER_SCRIPT = 'ALL_STEP0_PARAMETERS_EXAMPLE.m';
 
 %if the script is in another directory (e.g., synced in a Dropbox folder or another repo),
 %then you must include the directory path
@@ -40,6 +42,14 @@ end
 try
 	p = eval('%s', filename);
 	p.FULL_PATH_TO_PARAMETER_SCRIPT = FULL_PATH_TO_PARAMETER_SCRIPT;
+    
+    %add directory to each voi path (unless already is path)
+    for v = 1:length(p.VOI_FILE)
+        voi_file = p.VOI_FILE{v};
+        if ~any(voi_file == filesep)
+            p.VOI_FILE{v} = [directory p.VOI_FILE{v}];
+        end
+    end
 catch err
 	cd(return_path);
 	rethrow(err);
