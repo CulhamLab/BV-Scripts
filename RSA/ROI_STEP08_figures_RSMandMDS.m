@@ -7,6 +7,7 @@ p = ALL_STEP0_PARAMETERS;
 readFol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '7. ROI Model Correlations' filesep];
 saveFol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '8. Figures' filesep];
 saveFol_condRSM = [saveFol 'COND RSM' filesep];
+saveFol_condRSM_nolabel = [saveFol 'COND RSM nolabels' filesep];
 saveFol_condMDS = [saveFol 'COND MDS' filesep];
 saveFol_roi = [saveFol 'ROI-to-ROI' filesep];
 
@@ -16,6 +17,9 @@ if ~exist(saveFol)
 end
 if ~exist(saveFol_condRSM)
     mkdir(saveFol_condRSM)
+end
+if ~exist(saveFol_condRSM_nolabel)
+    mkdir(saveFol_condRSM_nolabel)
 end
 if ~exist(saveFol_condMDS)
     mkdir(saveFol_condMDS)
@@ -65,22 +69,30 @@ for vid = 1:numVOI_type
     suptitle(t);
     colorbar;
 
-    saveas(fig,[saveFol_condRSM 'SPLIT RSM - ' t],'png')
+    SaveFigure(fig, [saveFol_condRSM 'SPLIT RSM - ' t]); 
+    
+    clf
+    imagesc(rsm);
+    caxis(p.RSM_COLOUR_RANGE_COND);
+    colormap(p.RSM_COLOURMAP);
+    axis square
+    axis off
+    SaveFigure(fig, [saveFol_condRSM_nolabel 'SPLIT RSM - ' t]); 
 end
 
 %% Condition RSM (nonsplit)
 for vid = 1:numVOI_type
-    clf
+    clf;
     %mean rsm across subs
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
-    imagesc(rsm)
-    caxis(p.RSM_COLOUR_RANGE_COND)
-    colormap(p.RSM_COLOURMAP)
-    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS)
+    imagesc(rsm);
+    caxis(p.RSM_COLOUR_RANGE_COND);
+    colormap(p.RSM_COLOURMAP);
+    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
 
     returnPath = pwd;
     try
-        cd('Required Methods')
+        cd('Required Methods');
         hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,CONDITIONS);
         cd ..
     catch e
@@ -88,22 +100,27 @@ for vid = 1:numVOI_type
         rethrow(e)
     end
     
-    axis square
+    axis square;
     t = voi_names{vid};
     t(t=='_') = ' ';
-    suptitle(t)
-    colorbar
+    suptitle(t);
+    colorbar;
 
-%     saveas(fig,[saveFol_condRSM 'NONSPLIT RSM - ' t],'png')
-    set(fig, 'PaperPosition', [0 0 5 5])
-    print(fig, [saveFol_condRSM 'NONSPLIT RSM - ' t], '-dpng', '-r1200' ); 
+    SaveFigure(fig, [saveFol_condRSM 'NONSPLIT RSM - ' t]); 
         
+    clf;
+    imagesc(rsm);
+    caxis(p.RSM_COLOUR_RANGE_COND);
+    colormap(p.RSM_COLOURMAP);
+    axis square;
+    axis off;
+    SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
 end
 
 %% Condition MDS (nonsplit)
 colours = jet(p.NUMBER_OF_CONDITIONS);
 for vid = 1:numVOI_type
-    clf
+    clf;
     
     %mean rsm across subs
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
@@ -129,27 +146,25 @@ for vid = 1:numVOI_type
     offset = range(MD2D(:,1))/40;
     
     %plot
-    hold on
+    hold on;
     for cond = 1:p.NUMBER_OF_CONDITIONS
         c = colours(cond,:);
         a(cond) = plot(MD2D(cond,1),MD2D(cond,2),'o','color',c);
         set(a(cond),'MarkerFaceColor',c);
         text(MD2D(cond,1)+offset,MD2D(cond,2),CONDITIONS{cond},'color',c);
     end
-    hold off
-    axis square
+    hold off;
+    axis square;
     v=axis;
     r = max([range(v(1:2)) range(v(3:4))])/10;
-    axis([min(v) max(v) min(v) max(v)] + [-r r -r r])
-    grid on
+    axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+    grid on;
 
     t = voi_names{vid};
     t(t=='_') = ' ';
-    suptitle(t)
+    suptitle(t);
     
-%     saveas(fig,[saveFol_condMDS 'NONSPLIT MDS - ' t],'png')
-    set(fig, 'PaperPosition', [0 0 5 5])
-    print(fig, [saveFol_condMDS 'NONSPLIT MDS - ' t], '-dpng', '-r1200' ); 
+    SaveFigure(fig, [saveFol_condMDS 'NONSPLIT MDS - ' t]); 
 	
 	all_MD2D(:,:,vid) = MD2D;
 end
@@ -176,29 +191,27 @@ end
 rdm = squareform(rdm);
 MD2D = mdscale(rdm,2,'criterion','sstress');
 
-clf
+clf;
 hold on
 for vid = 1:numVOI_type
     c = colours(vid,:);
     t = plot(MD2D(vid,1),MD2D(vid,2),'o','color',c);
     set(t,'MarkerFaceColor',c);
     t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c);
-    set(t,'FontSize',10)
+    set(t,'FontSize',10);
 end
 hold off
 
-axis square
+axis square;
 v=axis;
 r = max([range(v(1:2)) range(v(3:4))])/10;
-axis([min(v) max(v) min(v) max(v)] + [-r r -r r])
-grid on
+axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+grid on;
 
 t = 'VOI-VOI MDS (split)';
-suptitle(t)
+suptitle(t);
 
-% saveas(fig,[saveFol_roi 'ROI MDS'],'png')
-set(fig, 'PaperPosition', [0 0 5 5])
-print(fig, [saveFol_roi 'ROI MDS'], '-dpng', '-r1200' ); 
+SaveFigure(fig, [saveFol_roi 'ROI MDS']); 
 
 %% VOI-VOI RSM
 imagesc(rsm)
@@ -206,16 +219,13 @@ caxis(p.RSM_COLOUR_RANGE_ROI)
 colormap(p.RSM_COLOURMAP)
 colorbar
 
-axis square
+axis square;
 
-t = 'VOI-VOI RSM (split)';
-suptitle(t)
-
-set(gca,'XAxisLocation', 'top','yticklabel',voi_names_nounder,'ytick',1:numVOI_type)
+set(gca,'XAxisLocation', 'top','yticklabel',voi_names_nounder,'ytick',1:numVOI_type);
 
 returnPath = pwd;
 try
-    cd('Required Methods')
+    cd('Required Methods');
     hText = xticklabel_rotate(1:numVOI_type,40,voi_names_nounder);
     cd ..
 catch e
@@ -223,9 +233,23 @@ catch e
     rethrow(e)
 end
 
-% saveas(fig,[saveFol_roi t],'png')
-set(fig, 'PaperPosition', [0 0 5 5])
-print(fig, [saveFol_roi t], '-dpng', '-r1200' ); 
+t = 'VOI-VOI RSM (split)';
+suptitle(t);
+
+SaveFigure(fig, [saveFol_roi t]); 
+
+clf;
+imagesc(rsm);
+caxis(p.RSM_COLOUR_RANGE_ROI);
+colormap(p.RSM_COLOURMAP);
+axis square;
+axis off;
+SaveFigure(fig, [saveFol_roi t '_nolabel']); 
 
 %% close figure
 close all
+
+function SaveFigure(fig, filepath)
+set(fig, 'PaperPosition', [0 0 15 15]);
+% print(fig, filepath, '-dpng', '-r1200' ); 
+saveas(fig,filepath,'png');
