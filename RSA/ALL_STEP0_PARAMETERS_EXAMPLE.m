@@ -151,6 +151,18 @@ SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
 
 %% options
 
+%When some runs are missing, runs are renamed to consecutive numbers to split more evenly.
+%This may be desirable if several odd or even runs are missing.
+%
+%Example:
+%
+%for 8 runs, 2 4 and 6 are missing or otherwise excluded (leaving 1 3 5 7 8)
+%
+%if RENUMBER_RUNS is false, the split will compare runs 1/3/5/7 to just run 8
+%
+%if RENUMBER_RUNS is true, the split will compare runs 1/5/8 to 3/7
+RENUMBER_RUNS = false;
+
 %searchlight radius (not including center voxel) in function voxels
 %For example, radius 2 equates to diameters of 5 function voxels.
 SEARCHLIGHT_RADIUS = 3;

@@ -17,20 +17,28 @@ fprintf('If you see the warning "Matrix is singular to working precision", then 
 %for each subject, find all runs and calc betas
 fig = figure('Position', get(0,'ScreenSize'));
 for par = 1:p.NUMBER_OF_PARTICIPANTS
+    runs_available_counter = 0;
     for run = 1:p.NUMBER_OF_RUNS
         fprintf('\nCalculating betas for PAR %d/%d RUN %d/%d\n',par,p.NUMBER_OF_PARTICIPANTS,run,p.NUMBER_OF_RUNS)
         
         ind = cellfun(@(x,y) isnumeric(x) && isnumeric(y) && (x==par) && (y==run), filelist(:,1), filelist(:,2));
         fp_vtc = filelist{ind,3};
         fp_sdm = filelist{ind,4};
-        fp_out = sprintf('%s%s_%s', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
-        
-        fprintf('VTC: %s\nSDM: %s\nOut: %s\n', fp_vtc, fp_sdm, fp_out);
         
 		if ~exist(fp_sdm,'file') | ~exist(fp_vtc, 'file')
-			warning('VTC and/or SDM is missing. Skipping run SUB%02d RUN%02d', sub, run);
-		else
-			createBetasFromBV(fp_sdm, fp_vtc, fp_out, true, fig); %subfunction below
+			warning('VTC and/or SDM is missing. Skipping run SUB%02d RUN%02d', par, run);
+        else
+            if p.RENUMBER_RUNS
+                runs_available_counter = runs_available_counter + 1;
+                fp_out = sprintf('%s%s_%s', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{runs_available_counter});
+                if runs_available_counter ~= run
+                    warning('Runs are missing and RENUMBER_RUNS is set true so runs will be renumbered to consecutive values.');
+                end
+            else
+                fp_out = sprintf('%s%s_%s', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
+            end
+            fprintf('VTC: %s\nSDM: %s\nOut: %s\n', fp_vtc, fp_sdm, fp_out);
+            createBetasFromBV(fp_sdm, fp_vtc, fp_out, true, fig); %subfunction below
 		end
 		
     end
