@@ -86,6 +86,7 @@ for split = 1:2
         
         %colour axis
         caxis([-1 +1.05]);
+        colorbar
         
         %set colours
         colormap(cmap);
