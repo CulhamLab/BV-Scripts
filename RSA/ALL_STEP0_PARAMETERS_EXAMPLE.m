@@ -217,7 +217,7 @@ USE_PARALLEL_POOLS = true;
 SEARCHLIGHT_USE_SPLIT  = true;
 
 %mask for vmp
-p.MSK_FILE = nan;
+MSK_FILE = nan;
 
 %% Fisher Transformation Options
 %Apply Fisher to the subject-average RSM prior to condition-condition
