@@ -51,6 +51,19 @@ try
             p.VOI_FILE{v} = [directory p.VOI_FILE{v}];
         end
     end
+    
+    %add directory to any filepath starting with .
+    all_fields = fields(p);
+    filepath_fields = all_fields(cellfun(@(x) any(strfind(x,'FILEPATH_')),all_fields));
+    for field = filepath_fields'
+        field = field{1};
+        value = getfield(p, field);
+        if value(1) == '.'
+            value = [directory value];
+            p = setfield(p, field, value);
+        end
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
