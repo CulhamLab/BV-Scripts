@@ -231,7 +231,7 @@ RSM_COLOUR_RANGE_COND = [-1 +1];
 RSM_COLOUR_RANGE_ROI = [-1 +1];
 
 %colourmap used in RSM
-RSM_COLOURMAP = parula(64); %original Kriegeskorte colour scheme is called jet
+RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
 
 %% bounding box for entire brain (affects how data is stored)
 %-You can use "aux_readVTC_displayBoundingBox.m" to read the box from a VTC
