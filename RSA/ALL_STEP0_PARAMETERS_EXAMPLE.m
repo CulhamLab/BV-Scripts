@@ -217,7 +217,7 @@ USE_PARALLEL_POOLS = true;
 SEARCHLIGHT_USE_SPLIT  = true;
 
 %mask for vmp
-p.MSK_FILE = nan;
+MSK_FILE = nan;
 
 %% Fisher Transformation Options
 %Apply Fisher to the subject-average RSM prior to condition-condition
@@ -231,7 +231,7 @@ RSM_COLOUR_RANGE_COND = [-1 +1];
 RSM_COLOUR_RANGE_ROI = [-1 +1];
 
 %colourmap used in RSM
-RSM_COLOURMAP = jet(64);
+RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
 
 %% bounding box for entire brain (affects how data is stored)
 %-You can use "aux_readVTC_displayBoundingBox.m" to read the box from a VTC
