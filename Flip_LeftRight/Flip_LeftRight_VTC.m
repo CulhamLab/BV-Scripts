@@ -3,6 +3,7 @@ function Flip_LeftRight_VMR
 %% Parameters
 SUFFIX = '_flipLR';
 STOP_IF_OUTPUT_ALREADY_EXISTS = true;
+FLIP_CONVENTION_TOO = true;
 
 %% Select file
 [filenames,directory,filter] = uigetfile('*.vtc', 'Select VTC(s) to Flip', 'MultiSelect', 'on');
@@ -21,6 +22,13 @@ end
 %% Handle single file
 if ~iscell(filenames)
     filenames = {filenames};
+end
+
+%% Convention
+if FLIP_CONVENTION_TOO
+    fprintf('Convention will be flipped as well\n');
+else
+    fprintf('Convention will NOT be flipped\n');
 end
 
 %% Process files
@@ -45,7 +53,9 @@ for fid = 1:number_files
     vtc = xff([directory fn]);
     
     %flip
-    vtc.Convention = mod(vtc.Convention, 2) + 1;
+    if FLIP_CONVENTION_TOO
+        vtc.Convention = mod(vtc.Convention, 2) + 1;
+    end
     vtc.VTCData = vtc.VTCData(:, :, :, end:-1:1);
     
     %save
