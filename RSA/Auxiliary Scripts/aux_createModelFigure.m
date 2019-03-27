@@ -25,7 +25,8 @@ fig = figure('Position', get(0,'ScreenSize'));
 
 %colormap
 % cmap = [COLOUR_EXCLUDED; COLOUR_LOW; COLOUR_HIGH];
-cmap = jet(100);
+% cmap = jet(100);
+cmap = p.RSM_COLOURMAP;
 cmap(end+1,:) = [0 0 0];
 
 % % %load condition names
