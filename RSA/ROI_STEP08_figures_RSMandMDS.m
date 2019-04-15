@@ -40,6 +40,12 @@ numVOI_type = length(voi_names);
 %remove underscore from condition names
 CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformOutput',false);
 
+if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER'))
+    rsm_order = p.RSM_PREDICTOR_ORDER;
+else
+    rsm_order = 1:length(CONDITIONS);
+end
+
 %remove underscore from voi names
 voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 
@@ -48,15 +54,20 @@ for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
     rsm = mean(rsms_split(:,:,:,vid),3);
-    imagesc(rsm);
+    
+    %reorder
+    rsm_reorder = rsm(rsm_order,rsm_order);
+    condition_reorder = CONDITIONS(rsm_order);
+    
+    imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);
     colormap(p.RSM_COLOURMAP);
-    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
+    set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
     
     returnPath = pwd;
     try
         cd('Required Methods')
-        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,CONDITIONS);
+        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,condition_reorder);
         cd ..
     catch e
         cd(returnPath)
@@ -68,13 +79,14 @@ for vid = 1:numVOI_type
     t(t=='_') = ' ';
     suptitle(t);
     colorbar;
+    caxis(p.RSM_COLOUR_RANGE_COND);
 
     SaveFigure(fig, [saveFol_condRSM 'SPLIT RSM - ' t]); 
     
     clf
-    imagesc(rsm);
-    caxis(p.RSM_COLOUR_RANGE_COND);
+    imagesc(rsm_reorder);
     colormap(p.RSM_COLOURMAP);
+    caxis(p.RSM_COLOUR_RANGE_COND);
     axis square
     axis off
     SaveFigure(fig, [saveFol_condRSM_nolabel 'SPLIT RSM - ' t]); 
@@ -85,15 +97,20 @@ for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
-    imagesc(rsm);
+    
+    %reorder
+    rsm_reorder = rsm(rsm_order,rsm_order);
+    condition_reorder = CONDITIONS(rsm_order);
+    
+    imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);
     colormap(p.RSM_COLOURMAP);
-    set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
+    set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
 
     returnPath = pwd;
     try
         cd('Required Methods');
-        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,CONDITIONS);
+        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,condition_reorder);
         cd ..
     catch e
         cd(returnPath)
@@ -105,17 +122,19 @@ for vid = 1:numVOI_type
     t(t=='_') = ' ';
     suptitle(t);
     colorbar;
+    caxis(p.RSM_COLOUR_RANGE_COND);
 
     SaveFigure(fig, [saveFol_condRSM 'NONSPLIT RSM - ' t]); 
         
     clf;
-    imagesc(rsm);
-    caxis(p.RSM_COLOUR_RANGE_COND);
+    imagesc(rsm_reorder);
     colormap(p.RSM_COLOURMAP);
+    caxis(p.RSM_COLOUR_RANGE_COND);
     axis square;
     axis off;
     SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
 end
+error
 
 %% Condition MDS (nonsplit)
 colours = jet(p.NUMBER_OF_CONDITIONS);
@@ -215,9 +234,9 @@ SaveFigure(fig, [saveFol_roi 'ROI MDS']);
 
 %% VOI-VOI RSM
 imagesc(rsm)
-caxis(p.RSM_COLOUR_RANGE_ROI)
 colormap(p.RSM_COLOURMAP)
 colorbar
+caxis(p.RSM_COLOUR_RANGE_ROI)
 
 axis square;
 
