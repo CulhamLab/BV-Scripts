@@ -49,7 +49,6 @@ for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = mean(rsms_split(:,:,:,vid),3);
     imagesc(rsm);
-    caxis(p.RSM_COLOUR_RANGE_COND);
     colormap(p.RSM_COLOURMAP);
     set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
     
@@ -68,6 +67,7 @@ for vid = 1:numVOI_type
     t(t=='_') = ' ';
     suptitle(t);
     colorbar;
+    caxis(p.RSM_COLOUR_RANGE_COND);
 
     SaveFigure(fig, [saveFol_condRSM 'SPLIT RSM - ' t]); 
     
@@ -86,7 +86,6 @@ for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
     imagesc(rsm);
-    caxis(p.RSM_COLOUR_RANGE_COND);
     colormap(p.RSM_COLOURMAP);
     set(gca,'XAxisLocation', 'top','yticklabel',CONDITIONS,'ytick',1:p.NUMBER_OF_CONDITIONS);
 
@@ -105,6 +104,7 @@ for vid = 1:numVOI_type
     t(t=='_') = ' ';
     suptitle(t);
     colorbar;
+    caxis(p.RSM_COLOUR_RANGE_COND);
 
     SaveFigure(fig, [saveFol_condRSM 'NONSPLIT RSM - ' t]); 
         
@@ -215,9 +215,9 @@ SaveFigure(fig, [saveFol_roi 'ROI MDS']);
 
 %% VOI-VOI RSM
 imagesc(rsm)
-caxis(p.RSM_COLOUR_RANGE_ROI)
 colormap(p.RSM_COLOURMAP)
 colorbar
+caxis(p.RSM_COLOUR_RANGE_ROI)
 
 axis square;
 
