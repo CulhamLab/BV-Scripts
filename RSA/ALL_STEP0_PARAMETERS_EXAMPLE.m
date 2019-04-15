@@ -242,6 +242,11 @@ DO_FISHER_CONDITION_MDS = true;
 RSM_COLOUR_RANGE_COND = [-1 +1];
 RSM_COLOUR_RANGE_ROI = [-1 +1];
 
+%rsm reorder
+%leave nan to use the order set below
+%or create array of indices in order - e.g., RSM_PREDICTOR_ORDER = [1 3 2];
+RSM_PREDICTOR_ORDER = nan;
+
 %colourmap used in RSM
 RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
 
