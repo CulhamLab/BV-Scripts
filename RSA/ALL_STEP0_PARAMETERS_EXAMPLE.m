@@ -9,7 +9,7 @@
 %Note that this pipeline requires NeuroElf v1.0 or newer (successor to BVQX)
 %see http://neuroelf.net/
 %
-%The input VTCs must be in TAL space
+%The input VTCs must be in TAL or MNI space
 %
 %
 %
