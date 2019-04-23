@@ -45,10 +45,12 @@ try
 	p.FULL_PATH_TO_PARAMETER_SCRIPT = FULL_PATH_TO_PARAMETER_SCRIPT;
     
     %add directory to each voi path (unless already is path)
-    for v = 1:length(p.VOI_FILE)
-        voi_file = p.VOI_FILE{v};
-        if ~any(voi_file == filesep)
-            p.VOI_FILE{v} = [directory p.VOI_FILE{v}];
+    if length(p.VOI_FILE)>1 || ~isnan(p.VOI_FILE)
+        for v = 1:length(p.VOI_FILE)
+            voi_file = p.VOI_FILE{v};
+            if ~any(voi_file == filesep)
+                p.VOI_FILE{v} = [directory p.VOI_FILE{v}];
+            end
         end
     end
     
