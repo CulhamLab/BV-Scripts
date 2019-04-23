@@ -44,8 +44,13 @@ try
 	p = eval('%s', filename);
 	p.FULL_PATH_TO_PARAMETER_SCRIPT = FULL_PATH_TO_PARAMETER_SCRIPT;
     
+    %make sure p.VOI_FILE is cell
+    if ~iscell(p.VOI_FILE)
+        p.VOI_FILE = {p.VOI_FILE};
+    end
+    
     %add directory to each voi path (unless already is path)
-    if length(p.VOI_FILE)>1 || ~isnan(p.VOI_FILE)
+    if length(p.VOI_FILE)>1 | ~isnan(p.VOI_FILE{1})
         for v = 1:length(p.VOI_FILE)
             voi_file = p.VOI_FILE{v};
             if ~any(voi_file == filesep)
