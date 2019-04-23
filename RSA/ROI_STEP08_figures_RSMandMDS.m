@@ -134,7 +134,6 @@ for vid = 1:numVOI_type
     axis off;
     SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
 end
-error
 
 %% Condition MDS (nonsplit)
 colours = jet(p.NUMBER_OF_CONDITIONS);
