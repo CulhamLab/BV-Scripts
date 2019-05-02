@@ -51,11 +51,26 @@ for split = 1:2
     for m = 1:length(p.MODELS.names)
         %get model
         clear model
-        switch split
-            case 1
-                model = p.MODELS.matrices{m};
-            case 2
-                model = p.MODELS.matricesNonsplit{m};
+        
+        %start with non split
+        model = p.MODELS.matrices{m};
+        
+        %reorder model
+        if isfield(p, 'RSM_PREDICTOR_ORDER') & ~isnan(p.RSM_PREDICTOR_ORDER)
+            model = model(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+            conditionNames_use = conditionNames(p.RSM_PREDICTOR_ORDER);
+        else
+            conditionNames_use = conditionNames;
+        end
+        
+        %redo split
+        if split == 2
+            sz = size(model,1);
+            for i = 1:sz
+                for j = i:sz
+                    model(i,j) = nan;
+                end
+            end
         end
         
 %         u = unique(model(~isnan(model)));
@@ -79,7 +94,7 @@ for split = 1:2
         imagesc(model);
         
         %add condition names
-        set(gca,'ytick',1:length(conditionNames),'yticklabel',conditionNames,'xtick',[])
+        set(gca,'ytick',1:length(conditionNames_use),'yticklabel',conditionNames_use,'xtick',[])
         
         %set square
         axis square
