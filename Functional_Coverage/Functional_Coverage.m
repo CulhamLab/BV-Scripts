@@ -55,8 +55,10 @@ for sub = 1:num_sub
         list = dir([folder fn]);
         if ~length(list)
             warning('VTC not found! Skipping!')
+			continue
         elseif length(list)>1
             warning('More than 1 VTC found for search criteria! Skipping!')
+			continue
         else
             fprintf('      VTC: %s\n', list.name);
             
