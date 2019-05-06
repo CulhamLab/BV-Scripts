@@ -35,7 +35,7 @@ fields_to_copy = {'XStart'
                   'Resolution'};
               
 vmp = xff('vmp');
-vmp_initialized = false
+vmp_initialized = false;
 
 fprintf('Folder: %s\n', folder)
 
