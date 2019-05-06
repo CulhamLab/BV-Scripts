@@ -11,6 +11,8 @@ run_ids = arrayfun(@(x) sprintf('RUN%02d', x), 1:2, 'UniformOutput', false);
 
 %[SUB] and [RUN] are automatically filled with IDs above
 vtc_filename_format = '[SUB]_[RUN]_*.vtc';
+%data is in participant subdirectories
+SUBDIR = true;
 
 %filepath for output
 fp_output_vmp = 'Functional_Coverage.vmp';
@@ -45,6 +47,12 @@ for sub = 1:num_sub
         any_vol_missing_sub = false(sz);
     end
     
+    if SUBDIR
+        sub_folder = [folder sub_id filesep];
+    else
+        sub_folder = folder;
+    end
+    
     for run = 1:num_run
         run_id = run_ids{run};
         fprintf('  Run %d of %d: %s\n', run, num_run, run_id);
@@ -52,7 +60,7 @@ for sub = 1:num_sub
         fn = strrep(strrep(vtc_filename_format, '[SUB]', sub_id), '[RUN]', run_id);
         fprintf('    Search: %s\n', fn);
         
-        list = dir([folder fn]);
+        list = dir([sub_folder fn]);
         if ~length(list)
             warning('VTC not found! Skipping!')
 			continue
@@ -62,7 +70,7 @@ for sub = 1:num_sub
         else
             fprintf('      VTC: %s\n', list.name);
             
-            fp = [folder list.name];
+            fp = [sub_folder list.name];
             vtc = xff(fp);
             
             if ~vmp_initialized
