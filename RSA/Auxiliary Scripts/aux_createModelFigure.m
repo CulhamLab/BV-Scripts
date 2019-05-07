@@ -94,7 +94,7 @@ for split = 1:2
         imagesc(model);
         
         %add condition names
-        set(gca,'ytick',1:length(conditionNames_use),'yticklabel',conditionNames_use,'xtick',[])
+        set(gca,'ytick',1:length(conditionNames_use),'yticklabel',strrep(conditionNames_use,'_','-'),'xtick',[])
         
         %set square
         axis square
@@ -115,7 +115,7 @@ for split = 1:2
         end
         
     end
-    suptitle([splitNames{split} ': Green=high, Red=low, Black=exclude'])
+    suptitle([splitNames{split} ': excluded cells are set black'])
     %saveas(fig,['Models_' splitNames{split} '.png'],'png')
     print('-dpng','-r500',['Models_' splitNames{split} '.png'])
 end
