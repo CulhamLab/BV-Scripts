@@ -72,6 +72,9 @@ try
         end
     end
     
+    %add directory to filelist
+    p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
+    
 catch err
 	cd(return_path);
 	rethrow(err);
