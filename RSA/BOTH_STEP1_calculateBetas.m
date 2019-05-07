@@ -38,7 +38,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
                 fp_out = sprintf('%s%s_%s', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
             end
             fprintf('VTC: %s\nSDM: %s\nOut: %s\n', fp_vtc, fp_sdm, fp_out);
-            createBetasFromBV(fp_sdm, fp_vtc, fp_out, true, fig); %subfunction below
+            createBetasFromBV(fp_sdm, fp_vtc, strrep(fp_out, '*', ''), true, fig); %subfunction below
 		end
 		
     end
@@ -341,24 +341,38 @@ end
 xls = {'Participant' 'Run' 'VTC' 'SDM'};
 for par = 1:p.NUMBER_OF_PARTICIPANTS
     if p.FILELIST_SUBFOLDERS
-        dir = [p.FILEPATH_TO_VTC_AND_SDM p.FILELIST_PAR_ID{par} filesep];
+        directory = [p.FILEPATH_TO_VTC_AND_SDM p.FILELIST_PAR_ID{par} filesep];
     else
-        dir = p.FILEPATH_TO_VTC_AND_SDM;
+        directory = p.FILEPATH_TO_VTC_AND_SDM;
     end
     
     for run = 1:p.NUMBER_OF_RUNS
         fn_vtc = strrep(strrep(p.FILELIST_FORMAT_VTC,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
         fn_sdm = strrep(strrep(p.FILELIST_FORMAT_SDM,'[PAR]',p.FILELIST_PAR_ID{par}),'[RUN]',p.FILELIST_RUN_ID{run});
         
-        fp_vtc = [dir fn_vtc];
-        fp_sdm = [dir fn_sdm];
+        fp_vtc = [directory fn_vtc];
+        list_vtc = dir(fp_vtc);
+        number_vtc_found = length(list_vtc);
+        
+        fp_sdm = [directory fn_sdm];
+        list_sdm = dir(fp_sdm);
+        number_sdm_found = length(list_vtc);
         
         %check if files exist
-        if ~exist(fp_vtc,'file')
+        if number_vtc_found < 1
             warning(sprintf('Cannot Find VTC: %s\n',fp_vtc));
+        elseif number_vtc_found > 1
+            warning(sprintf('Found Too Many Files for VTC: %s\n',fp_vtc));
+        else
+            fp_vtc = [directory list_vtc.name];
         end
-        if ~exist(fp_sdm,'file')
+        
+        if number_sdm_found < 1
             warning(sprintf('Cannot Find SDM: %s\n',fp_sdm));
+        elseif number_sdm_found > 1
+            warning(sprintf('Found Too Many Files for SDM: %s\n',fp_sdm));
+        else
+            fp_sdm = [directory list_sdm.name];
         end
         
         xls(end+1,:) = {par run fp_vtc fp_sdm};

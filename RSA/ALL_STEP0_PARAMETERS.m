@@ -43,6 +43,7 @@ end
 try
 	p = eval('%s', filename);
 	p.FULL_PATH_TO_PARAMETER_SCRIPT = FULL_PATH_TO_PARAMETER_SCRIPT;
+    p.FULL_PATH_TO_PARAMETER_SCRIPT_DIR = directory;
     
     %make sure p.VOI_FILE is cell
     if ~iscell(p.VOI_FILE)
@@ -70,6 +71,9 @@ try
             p = setfield(p, field, value);
         end
     end
+    
+    %add directory to filelist
+    p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
     
 catch err
 	cd(return_path);
