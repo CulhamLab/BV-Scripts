@@ -94,7 +94,7 @@ for split = 1:2
         imagesc(model);
         
         %add condition names
-        set(gca,'ytick',1:length(conditionNames_use),'yticklabel',conditionNames_use,'xtick',[])
+        set(gca,'ytick',1:length(conditionNames_use),'yticklabel',strrep(conditionNames_use,'_','-'),'xtick',[])
         
         %set square
         axis square
