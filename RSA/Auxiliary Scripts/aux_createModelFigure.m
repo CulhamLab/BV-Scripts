@@ -115,7 +115,7 @@ for split = 1:2
         end
         
     end
-    suptitle([splitNames{split} ': Green=high, Red=low, Black=exclude'])
+    suptitle([splitNames{split} ': excluded cells are set black'])
     %saveas(fig,['Models_' splitNames{split} '.png'],'png')
     print('-dpng','-r500',['Models_' splitNames{split} '.png'])
 end
