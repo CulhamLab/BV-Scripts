@@ -92,12 +92,19 @@ end
 %% test models
 num_models_run = length(models_to_do);
 if ~num_models_run
-    fprintf('All models have already been run ...\n');
+    fprintf('All models have already been run or there are no models ...\n');
     vtcRes = prior.vtcRes;
-else
-    fprintf('Loading RSMs ...\n');
+end
+
+for mn = 1:length(models_to_do)
+    m = models_to_do(mn);
+    model_name = p.MODELS.names{m};
+    fprintf('Starting model %d: %s (%d of %d to run) ',m,model_name,mn,num_models_run)
+    
+    %load part 1
     step4 = load([inputFol sprintf('step4_RSMs_%s_PART01',p.FILELIST_PAR_ID{par})]);
     
+    %init if needed
     if ~exist('resultMat','var')
         resultMat = nan([step4.ss_ref p.MODELS.mNum]);
     end
@@ -107,11 +114,6 @@ else
     if ~exist('vtcRes','var')
         vtcRes = step4.vtcRes;
     end
-end
-
-for mn = 1:length(models_to_do)
-    m = models_to_do(mn);
-    fprintf('Starting model %d (%d of %d to run) ',m,mn,num_models_run)
     
     %work in model-specific 3D
     resultMat_this = nan(ss_ref);
