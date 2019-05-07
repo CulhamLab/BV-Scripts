@@ -33,7 +33,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
         list_findme = dir(sprintf('%s%s_%s.mat',fol,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}));
         if ~length(list_findme)
             warning(sprintf('%s_%s was missing and has been filled with NaNs.\n',p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}))
-            copyfile(fillerPath,sprintf('%s%s_%s_filler.mat',fol,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}))
+            copyfile(fillerPath,strrep(sprintf('%s%s_%s_filler.mat',fol,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}), '*', ''))
         end
     end
     
