@@ -40,7 +40,7 @@ numVOI_type = length(voi_names);
 %remove underscore from condition names
 CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformOutput',false);
 
-if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER'))
+if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER')) && ~isnan(p.RSM_PREDICTOR_ORDER)
     rsm_order = p.RSM_PREDICTOR_ORDER;
 else
     rsm_order = 1:length(CONDITIONS);
