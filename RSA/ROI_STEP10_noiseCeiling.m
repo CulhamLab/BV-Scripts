@@ -23,6 +23,22 @@ load([readFolB 'VOI_corrs'])
 % ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 ran = [-0.4 +1];
 
+%model-specific noise ceiling?
+do_model_specifc_ceiling = false; %default to false
+submatrix_model_inds = find(cellfun(@(x) any(isnan(x(:))), p.MODELS.matrices));
+if ~isempty(submatrix_model_inds)
+    if ~isfield(p, 'INDIVIDUAL_MODEL_NOISE_CEILING')
+        warning('The parameters file is outdated and does not contain INDIVIDUAL_MODEL_NOISE_CEILING. One or more models uses a subset of RSM cells but current settings will compare all models to a standard noise ceiling based on all cells. Please consider adding this field to your parameters.')
+    elseif ~islogical(p.INDIVIDUAL_MODEL_NOISE_CEILING)
+        error('The parameter INDIVIDUAL_MODEL_NOISE_CEILING must be true or false')
+    elseif ~p.INDIVIDUAL_MODEL_NOISE_CEILING
+        warning('One or more models uses a subset of RSM cells but current settings (INDIVIDUAL_MODEL_NOISE_CEILING is false) will compare all models to a standard noise ceiling based on all cells.');
+    else
+        %enable
+        do_model_specifc_ceiling = true;
+    end
+end
+
 %required methods
 try
 cd 'Required Methods'
@@ -40,10 +56,23 @@ for voi = 1:length(voi_names)
     s = std(model_corrs,1) / sqrt(size(model_corrs,1));
     eb = 1.96 * s;
     
+    if do_model_specifc_ceiling
+        model_specific_upper(:,voi) = nan(1, num_model);
+        model_specific_lower(:,voi) = nan(1, num_model);
+        for m = submatrix_model_inds
+            [model_specific_upper(m,voi), model_specific_lower(m,voi)] = compute_rsm_noise_ceiling(RSMs, ~isnan(p.MODELS.matrices{m}));
+        end
+    end
+    
     v = [0 num_model+1 ran];
     clf
     hold on
     rectangle('Position', [v(1), lower, v(2), upper-lower], 'FaceColor', [127 127 127]/255)
+    if do_model_specifc_ceiling
+        for m = submatrix_model_inds
+            rectangle('Position', [m-0.5, model_specific_lower(m,voi), 1, model_specific_upper(m,voi)-model_specific_lower(m,voi)], 'FaceColor', [200 200 200]/255)
+        end
+    end
     bar(model_corrs_avg)
     errorbar(1:length(model_corrs_avg), model_corrs_avg, eb, 'k.')
     hold off
@@ -130,6 +159,22 @@ xticklabel_rotate([], 30, [], 'Fontsize', 10);
 grid on
 
 saveas(fig, [saveFolUse 'Summary.png'], 'png')
+
+%add model-specific noise ceilings
+if do_model_specifc_ceiling
+    row = row + 1;
+    for m = submatrix_model_inds
+        row = row + 1;
+        xls{row,1} = p.MODELS.names{m};
+        xls{row,2} = 'model-specific noise ceiling upper';
+        xls(row,3:(2+num_voi)) = num2cell(model_specific_upper(m,:));
+        
+        row = row + 1;
+        xls{row,1} = p.MODELS.names{m};
+        xls{row,2} = 'model-specific noise ceiling lower';
+        xls(row,3:(2+num_voi)) = num2cell(model_specific_lower(m,:));
+    end
+end
 
 xls_fp = [saveFolUse 'Summary.xlsx'];
 if exist(xls_fp,'file')
