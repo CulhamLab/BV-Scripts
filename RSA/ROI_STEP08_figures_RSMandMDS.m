@@ -142,14 +142,14 @@ for vid = 1:numVOI_type
     
     %mean rsm across subs
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
-
-    %apply fisher (if desired)
-    if p.DO_FISHER_CONDITION_MDS
-        rsm = atanh(rsm);
-    end
     
     %convert to rdm
     rdm = (rsm-1) *-0.5; %multiplying by 0.5 doesn't affect mds but fits data 0-1 (unless Fisher is applied)
+    
+    %apply fisher (if desired)
+    if p.DO_FISHER_CONDITION_MDS
+        rdm = atanh(rdm);
+    end
     
     %set diag to true zero
     for i = 1:p.NUMBER_OF_CONDITIONS

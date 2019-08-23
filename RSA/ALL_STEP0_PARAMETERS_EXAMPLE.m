@@ -231,6 +231,11 @@ SEARCHLIGHT_USE_SPLIT  = true;
 %mask for vmp
 MSK_FILE = nan;
 
+%Models that do not use the entire matrix should not be compared to a noise
+%ceiling computed from the entire matrix. Setting this true will compute a
+%separate noise ceiling for any models that use a subset.
+INDIVIDUAL_MODEL_NOISE_CEILING = true;
+
 %% Fisher Transformation Options
 %Apply Fisher to the subject-average RSM prior to condition-condition
 %MDS calculation (not VOI-VOI MDS)
