@@ -150,8 +150,9 @@ catch err
     rethrow(err)
 end
 
-%RSMs is C-by-C-by-P for C-many conditions and P-many participants, expected range -1 to +1
-function [upper,lower] = compute_rsm_noise_ceiling(RSMs)
+%RSMs is Cond-by-Cond-by-Particpants, expected range -1 to +1
+%(optional) selection is Cond-by-Cond logical where true indicates cells to include and false indicates cells to exclude
+function [upper,lower] = compute_rsm_noise_ceiling(RSMs, selection)
 %checks and prep
 if ndims(RSMs) ~= 3
     error('Requires 3D matrix.')
@@ -170,6 +171,18 @@ end
 
 %0. reshape from n-by-n matrix to n^2-by-1 array
 RSMs_array = cell2mat(arrayfun(@(x) reshape(RSMs(:,:,x), n, 1), 1:dim3, 'UniformOutput', false));
+
+%apply selection
+if exist('selection', 'var')
+    if any(size(selection) ~= [dim1 dim2])
+        error('Selection matrix must be #Cond-by#Cond')
+    elseif ~islogical(selection)
+        error('Selection matrix must be logical')
+    end
+    
+    selection_index = find(selection(:));
+    RSMs_array = RSMs_array(selection_index, :);
+end
 
 %1. convert to RDM
 RDMs = 1 - RSMs_array;
