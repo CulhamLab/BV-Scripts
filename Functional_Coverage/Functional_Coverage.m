@@ -44,7 +44,7 @@ for sub = 1:num_sub
     fprintf('Sub %d of %d: %s\n', sub, num_sub, sub_id);
     
     if vmp_initialized
-        any_vol_missing_sub = false(sz);
+        any_vol_missing_sub = false(sz_target);
     end
     
     if SUBDIR
@@ -81,12 +81,14 @@ for sub = 1:num_sub
                     eval(sprintf('vmp.%s = vtc.%s;', field, field))
                 end
 
-                sz = size(vtc.VTCData);
-                any_vol_missing_sub = false(sz);
+                sz_target = size(vtc.VTCData);
+                num_vol_target = sz_target(1);
+                sz_target = sz_target(2:4);
+                any_vol_missing_sub = false(sz_target);
 
                 vmp.Map(1).Name = 'total volumes missing';
                 vmp.Map(1).LowerThreshold = 0;
-                vmp.Map(1).VMPData = single(zeros(sz(2:4)));
+                vmp.Map(1).VMPData = single(zeros(sz_target));
 
                 vmp.Map(2) = vmp.Map(1);
                 vmp.Map(2).Name = 'total runs with any volume missing';
@@ -95,7 +97,11 @@ for sub = 1:num_sub
                 vmp.Map(3).Name = 'total subs with any volume missing in any run';
             end
             
-            if any(sz ~= size(vtc.VTCData))
+            sz = size(vtc.VTCData);
+            if num_vol_target ~= sz(1)
+                warning('Number of volumes is inconsistent (found %d, expected %d)', sz(1), num_vol_target) 
+            end
+            if any(sz_target ~= sz(2:4))
                 error('VTC dimensions are not consistent!')
             end
             
@@ -125,3 +131,5 @@ for map = 1:num_maps
 end
 vmp.SaveAs(fp_output_vmp);
 vmp.ClearObject;
+
+disp Complete!
