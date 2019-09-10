@@ -1,3 +1,4 @@
+%This script adds one or more single-volume PONIs to selected SDM(s)
 function AddVolumePONIsToSDM
 
 %% Parameters
