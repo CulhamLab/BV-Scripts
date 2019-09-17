@@ -218,7 +218,7 @@ for i = 1:num_image
     image = images{i};
     sz = size(image);
     
-    luminance = sqrt(sum(  ( single(image/255) .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
+    luminance = sqrt(sum(  ( single(image)/255 .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
     luminance(~pixels_use) = nan;
        
     subplot(num_row, num_col, i)
