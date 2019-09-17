@@ -21,6 +21,17 @@ FILEPATH_OUTPUT_LUMINANCE_MODEL_MAT = 'luminance_model.mat';
 FILEPATH_OUTPUT_LUMINANCE_MODEL_FIGURE_COLLAPSED = 'luminance_model_collapsed.png';
 FILEPATH_OUTPUT_LUMINANCE_MODEL_MAT_COLLAPSED = 'luminance_model_collapsed.mat';
 
+FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE = 'mean_luminance_all_model.png';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT = 'mean_luminance_all_model.mat';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE_COLLAPSED = 'mean_luminance_all_collapsed.png';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT_COLLAPSED = 'mean_luminance_all_collapsed.mat';
+
+FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE = 'mean_luminance_foreground_model.png';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT = 'mean_luminance_foreground_model.mat';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE_COLLAPSED = 'mean_luminance_foreground_collapsed.png';
+FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT_COLLAPSED = 'mean_luminance_foreground_collapsed.mat';
+
+
 APPROX_LUMINANCE_VALUES = reshape([0.299 0.587 0.114], [1 1 3]); %must be 1x1x3
 MAX_LUMINANCE = sqrt(sum( APPROX_LUMINANCE_VALUES .^ 2 ));
 
@@ -320,6 +331,172 @@ if any(image_is_collapse)
     fprintf('\nSaving collapsed luminance model...\n')
     fprintf('Filepath: %s\n', FILEPATH_OUTPUT_LUMINANCE_MODEL_MAT_COLLAPSED);
     save(FILEPATH_OUTPUT_LUMINANCE_MODEL_MAT_COLLAPSED, 'luminance_model_collapsed');
+    
+end
+
+close(fig)
+
+%% mean luminance models
+
+%Calculate approx luminance
+fprintf('\nCalculate approx mean luminances...\n')
+mean_luminance_all = nan(num_image, 1);
+mean_luminance_foreground = nan(num_image, 1);
+for i = 1:num_image
+    %calculate approx pixel luminance
+    image = images{i};
+    sz = size(image);
+    luminance = sqrt(sum(  ( single(image)/255 .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
+    
+    %mean of all pixels
+    mean_luminance_all(i) = mean(luminance(:));
+    
+    %mean of all foreground pixels
+    luminance(background(:,:,i)) = nan;
+    mean_luminance_foreground(i) = nanmean(luminance(:));
+end
+
+%create models
+fprintf('\nCalculate mean luminance models...\n')
+mean_luminance_all_model = squareform(pdist(mean_luminance_all));
+mean_luminance_all_model = (mean_luminance_all_model / max(mean_luminance_all_model(:)) * -2) + 1;
+
+mean_luminance_foreground_model = squareform(pdist(mean_luminance_foreground));
+mean_luminance_foreground_model = (mean_luminance_foreground_model / max(mean_luminance_foreground_model(:)) * -2) + 1;
+
+fprintf('\nSaving mean luminance (all) model...\n')
+fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT);
+save(FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT, 'mean_luminance_all_model');
+
+fprintf('\nSaving mean luminance (foreground) model...\n')
+fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT);
+save(FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT, 'mean_luminance_foreground_model');
+
+%start of figures
+fig = figure('Position', [1 1 1200 1000]);
+
+%mean luminance model (all) figure
+fprintf('\nCreate mean luminance model (all) figure...\n')
+    clf
+    imagesc(mean_luminance_all_model)
+    axis image
+    colormap jet
+    colorbar
+    caxis([-1 +1])
+    fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES(image_pred_value), 'UniformOutput', false);
+    set(gca, 'ytick', 1:num_image, 'yticklabel', fig_labels)
+    set(gca, 'FontSize', FONT_SIZE);
+    set(gca,'xaxisLocation','top')
+    xticklabel_rotate(1:num_image, 90, fig_labels);
+fprintf('\nSaving mean luminance model (all) figure...\n')
+fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE);
+imwrite(frame2im(getframe(fig)), FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE);
+
+%mean luminance model (foreground) figure
+fprintf('\nCreate mean luminance model (foreground) figure...\n')
+    clf
+    imagesc(mean_luminance_foreground_model)
+    axis image
+    colormap jet
+    colorbar
+    caxis([-1 +1])
+    fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES(image_pred_value), 'UniformOutput', false);
+    set(gca, 'ytick', 1:num_image, 'yticklabel', fig_labels)
+    set(gca, 'FontSize', FONT_SIZE);
+    set(gca,'xaxisLocation','top')
+    xticklabel_rotate(1:num_image, 90, fig_labels);
+fprintf('\nSaving mean luminance model (foreground) figure...\n')
+fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE);
+imwrite(frame2im(getframe(fig)), FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE);
+
+%collapse
+if any(image_is_collapse)
+    fprintf('\nCollapsing images...\n')
+    
+    mean_luminance_all_model_nodiag = mean_luminance_all_model;
+    mean_luminance_all_model_nodiag([1:num_image] + [0:num_image:(num_image * (num_image-1))]) = nan;
+    
+    mean_luminance_all_model_collapsed = nan(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    
+    mean_luminance_foreground_model_nodiag = mean_luminance_foreground_model;
+    mean_luminance_foreground_model_nodiag([1:num_image] + [0:num_image:(num_image * (num_image-1))]) = nan;
+    
+    mean_luminance_foreground_model_collapsed = nan(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    
+    for p1 = 1:p.NUMBER_OF_CONDITIONS
+        ind_p1 = find(image_pred_value == p1);
+        
+        for p2 = (p1):p.NUMBER_OF_CONDITIONS
+            ind_p2 = find(image_pred_value == p2);
+            
+            values = mean_luminance_all_model_nodiag(ind_p1, ind_p2);
+            value = nanmean(values(:));
+            
+            %if all values are nan then it was same images, set +1
+            if isnan(value)
+                value = +1; 
+            end
+            
+            mean_luminance_all_model_collapsed(p1, p2) = value;
+            mean_luminance_all_model_collapsed(p2, p1) = value;
+            
+            
+            
+            values = mean_luminance_foreground_model_nodiag(ind_p1, ind_p2);
+            value = nanmean(values(:));
+            
+            %if all values are nan then it was same images, set +1
+            if isnan(value)
+                value = +1; 
+            end
+            
+            mean_luminance_foreground_model_collapsed(p1, p2) = value;
+            mean_luminance_foreground_model_collapsed(p2, p1) = value;
+        end
+    end
+    
+    %save models
+    fprintf('\nSaving collapsed mean luminance (all) model...\n')
+    fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT_COLLAPSED);
+    save(FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_MAT_COLLAPSED, 'mean_luminance_all_model_collapsed');
+    
+    fprintf('\nSaving collapsed mean luminance (foreground) model...\n')
+    fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT_COLLAPSED);
+    save(FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT_COLLAPSED, 'mean_luminance_foreground_model_collapsed');
+    
+    %figures
+    
+    fprintf('\nCreate collapsed mean luminance model (all) figure...\n')
+        clf
+        imagesc(mean_luminance_all_model_collapsed)
+        axis image
+        colormap jet
+        colorbar
+        caxis([-1 +1])
+        fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES, 'UniformOutput', false);
+        set(gca, 'ytick', 1:p.NUMBER_OF_CONDITIONS, 'yticklabel', fig_labels)
+        set(gca, 'FontSize', FONT_SIZE);
+        set(gca,'xaxisLocation','top')
+        xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS, 90, fig_labels);
+    fprintf('\nSaving collapsed mean luminance model (all) figure...\n')
+    fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE_COLLAPSED);
+    imwrite(frame2im(getframe(fig)), FILEPATH_OUTPUT_MEAN_LUMINANCE_ALL_FIGURE_COLLAPSED);
+    
+    fprintf('\nCreate collapsed mean luminance model (foreground) figure...\n')
+        clf
+        imagesc(mean_luminance_foreground_model_collapsed)
+        axis image
+        colormap jet
+        colorbar
+        caxis([-1 +1])
+        fig_labels = cellfun(@(x) strrep(x,'_',' '), p.CONDITIONS.DISPLAY_NAMES, 'UniformOutput', false);
+        set(gca, 'ytick', 1:p.NUMBER_OF_CONDITIONS, 'yticklabel', fig_labels)
+        set(gca, 'FontSize', FONT_SIZE);
+        set(gca,'xaxisLocation','top')
+        xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS, 90, fig_labels);
+    fprintf('\nSaving collapsed mean luminance model (foreground) figure...\n')
+    fprintf('Filepath: %s\n', FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE_COLLAPSED);
+    imwrite(frame2im(getframe(fig)), FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_FIGURE_COLLAPSED);
     
 end
 
