@@ -75,6 +75,13 @@ try
     %add directory to filelist
     p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
     
+    %check new fields
+    fs = fields(p);
+    if ~any(strcmp(fs, 'RENUMBER_RUNS'))
+        warning('Parameter file does not contain the new field "p.RENUMBER_RUNS". This field will be defaulted to false.')
+        p.RENUMBER_RUNS = false;
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
