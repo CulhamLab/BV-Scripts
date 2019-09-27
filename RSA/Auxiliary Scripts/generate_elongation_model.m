@@ -59,10 +59,10 @@ for i = 1:num_image
         valid_rows = any(img,2);
         first = find(valid_rows,1,'first');
         last = find(valid_rows,1,'last');
-        length = last - first + 1;
+        len = last - first + 1;
         
-        if (length > longest)
-            longest = length;
+        if (len > longest)
+            longest = len;
             longest_angle = a;
         end
     end
