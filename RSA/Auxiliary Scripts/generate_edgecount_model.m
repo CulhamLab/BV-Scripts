@@ -87,14 +87,14 @@ fprintf('\nCreating edge count model figure...\n')
     set(gca,'xaxisLocation','top')
     xticklabel_rotate(1:num_image, 90, fig_labels);
 fprintf('Saving edge count model figure...\n')
-fp = [DIR_SAVE FILENAME_SAVE FILETYPE_IMAGE];
+fp = [DIR_SAVE EDGE_METHOD '_' FILENAME_SAVE FILETYPE_IMAGE];
 fprintf('Filepath: %s\n', fp);
 imwrite(frame2im(getframe(fig)), fp);
 close(fig)
 
 %% Save Model
 fprintf('\nSaving edge count model...\n')
-fp = [DIR_SAVE FILENAME_SAVE '.mat'];
+fp = [DIR_SAVE EDGE_METHOD '_' FILENAME_SAVE '.mat'];
 fprintf('Filepath: %s\n', fp);
 save(fp, 'edge_count_model');
 
@@ -144,14 +144,14 @@ if any(image_is_collapse)
         set(gca,'xaxisLocation','top')
         xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS, 90, fig_labels);
     fprintf('Saving collapsed edge count model figure...\n')
-    fp = [DIR_SAVE FILENAME_SAVE '_collapsed' FILETYPE_IMAGE];
+    fp = [DIR_SAVE EDGE_METHOD '_' FILENAME_SAVE '_collapsed' FILETYPE_IMAGE];
     fprintf('Filepath: %s\n', fp);
     imwrite(frame2im(getframe(fig)), fp);
     close(fig)
     
 %% Save Collapsed Model
     fprintf('\nSaving collapsed edge count model...\n')
-    fp = [DIR_SAVE FILENAME_SAVE '_collapsed' '.mat'];
+    fp = [DIR_SAVE EDGE_METHOD '_' FILENAME_SAVE '_collapsed' '.mat'];
     fprintf('Filepath: %s\n', fp);
     save(fp, 'edge_count_model_collapsed');
     
