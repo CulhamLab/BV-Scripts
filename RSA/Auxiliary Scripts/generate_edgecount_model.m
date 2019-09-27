@@ -60,10 +60,10 @@ if MAKE_EDGE_IMAGES
     close(fig)
 end
 
-%% Compute EdgeCount Values
+%% EdgeCount Values
 edge_counts = cellfun(@(x) sum(x(:)), images_edges);
 
-%% Compute EdgeCount Difference Match
+%% Difference Match
 edge_count_diff_matrix = squareform(pdist(edge_counts'));
 
 %% Simmilarity Model
