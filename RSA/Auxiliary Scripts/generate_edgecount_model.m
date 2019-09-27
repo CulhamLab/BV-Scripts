@@ -9,9 +9,6 @@ FILETYPE_IMAGE = '.png';
 MAKE_EDGE_IMAGES = true;
 DIR_EDGE_IMAGES = ['.' filesep 'EdgeImages' filesep];
 
-%figure background colour
-FIGURE_COLOUR_BACKGROUND = [255 255 255];
-
 %edge method (sobel, prewitt, roberts, log, zerocross, canny, or approxcanny)
 EDGE_METHOD = 'prewitt';
 
