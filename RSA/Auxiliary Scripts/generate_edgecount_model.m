@@ -9,9 +9,6 @@ FILETYPE_IMAGE = '.png';
 MAKE_EDGE_IMAGES = true;
 DIR_EDGE_IMAGES = ['.' filesep 'EdgeImages' filesep];
 
-%figure background colour
-FIGURE_COLOUR_BACKGROUND = [255 255 255];
-
 %edge method (sobel, prewitt, roberts, log, zerocross, canny, or approxcanny)
 EDGE_METHOD = 'prewitt';
 
@@ -63,10 +60,10 @@ if MAKE_EDGE_IMAGES
     close(fig)
 end
 
-%% Compute EdgeCount Values
+%% EdgeCount Values
 edge_counts = cellfun(@(x) sum(x(:)), images_edges);
 
-%% Compute EdgeCount Difference Match
+%% Difference Match
 edge_count_diff_matrix = squareform(pdist(edge_counts'));
 
 %% Simmilarity Model
