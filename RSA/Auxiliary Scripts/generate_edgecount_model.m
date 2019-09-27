@@ -7,7 +7,7 @@ DIR_SAVE = pwd;
 FILENAME_SAVE = 'edge_count_model';
 FILETYPE_IMAGE = '.png';
 
-MAKE_EDGE_IMAGES = false;
+MAKE_EDGE_IMAGES = true;
 DIR_EDGE_IMAGES = ['.' filesep 'EdgeImages' filesep];
 
 %figure background colour
