@@ -1,5 +1,4 @@
-% function generate_edgecount_model
-clear all
+function generate_edgecount_model
 
 %% Parameters
 
