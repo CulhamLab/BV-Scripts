@@ -21,6 +21,17 @@ FIGURE_SIZE = 2000;
 %figure background colour
 FIGURE_COLOUR_BACKGROUND = [255 255 255];
 
+%select subset of conditions
+%-cell array of predictor names
+%-or leave empty [] to use all conditions
+CONDITION_SUBSET = [];
+% % CONDITION_SUBSET = [arrayfun(@(x) sprintf('Food_1H_%d', x), 1:6, 'UniformOutput', false) ...
+% %         arrayfun(@(x) sprintf('Food_2H_%d', x), 1:6, 'UniformOutput', false) ...
+% %         arrayfun(@(x) sprintf('Food_Fork_%d', x), 1:3, 'UniformOutput', false) ...
+% %         arrayfun(@(x) sprintf('Food_Chopstick_%d', x), 1:3, 'UniformOutput', false) ...
+% %         arrayfun(@(x) sprintf('Food_Spoon_%d', x), 1:3, 'UniformOutput', false) ...
+% %         arrayfun(@(x) sprintf('Food_Knife_%d', x), 1:3, 'UniformOutput', false)];
+
 %% prepare images
 
 %load
@@ -56,7 +67,7 @@ end
 %% load mds data
 
 %load mds data
-fprintf('\nLoading MDS data...\n')
+fprintf('\nLoading data for MDS...\n')
 try
     %remember where to come back to
     return_path = pwd;
@@ -67,13 +78,26 @@ try
     %get params
     p = ALL_STEP0_PARAMETERS;
     
-    %load coords
-    fp_data = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '8. Figures' filesep 'COND MDS' filesep 'mds_data.mat'];
-    fprintf('MDS Data Filepath: MAIN_FOLDER_PATH%s%s\n', filesep, fp_data);
-    if ~exist(fp_data,'file')
-        error('MDS data file not found! (%s)', fp_data)
+    %calc new MDS?
+    custom_mds = ~isempty(CONDITION_SUBSET);
+    if ~custom_mds
+        %use all conditions - load existing MDS
+        fp_data = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '8. Figures' filesep 'COND MDS' filesep 'mds_data.mat'];
+        fprintf('MDS Data Filepath: MAIN_FOLDER_PATH%s%s\n', filesep, fp_data);
+        if ~exist(fp_data,'file')
+            error('MDS data file not found! (%s)', fp_data)
+        else
+            load(fp_data);
+        end
     else
-        load(fp_data);
+        %condition subset - calculate new MDS
+        fp_data = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep 'VOI_RSMs.mat'];
+        fprintf('VOI RSM Data Filepath: MAIN_FOLDER_PATH%s%s\n', filesep, fp_data);
+        if ~exist(fp_data,'file')
+            error('VOI RSM data file not found! (%s)', fp_data)
+        else
+            load(fp_data);
+        end
     end
     
     %return to aux folder
@@ -82,14 +106,53 @@ catch err
     warning('Could not load MDS data!')
     rethrow(err)
 end
+
+%% Handle Condition Subset
+if custom_mds
+    voi_names = data.VOINames;
+    num_voi = length(voi_names);
+    num_pred = length(CONDITION_SUBSET);
+    
+    fprintf('Generating condition subset data...\n');
+    try
+        ind_pred = cellfun(@(x) find(strcmp(p.CONDITIONS.PREDICTOR_NAMES, x)), CONDITION_SUBSET);
+    catch
+        error('Error matching CONDITION_SUBSET to p.CONDITIONS.PREDICTOR_NAMES. Each value should find exactly one match.');
+    end
+    rsms_nonsplit = data.RSM_nonsplit(ind_pred, ind_pred, :, :);
+        
+    fprintf('Calculating custom MDS for condition subset...\n');
+    for vid = 1:num_voi
+        %mean rsm across subs
+        rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+        
+        %convert to rdm
+        rdm = (rsm-1) *-0.5; %multiplying by 0.5 doesn't affect mds but fits data 0-1 (unless Fisher is applied)
+        
+        %apply fisher (if desired)
+        if p.DO_FISHER_CONDITION_MDS
+            rdm = atanh(rdm);
+        end
+        
+        %set diag to true zero (prevent rounding issues)
+        for i = 1:p.NUMBER_OF_CONDITIONS
+            rdm(i,i) = 0;
+        end
+        
+        %mds 2D
+        rdm = squareform(rdm);
+        all_MD2D(:,:,vid) = mdscale(rdm,2,'criterion','sstress');
+    end
+else
+    num_pred = p.NUMBER_OF_CONDITIONS;
+    ind_pred = 1:num_pred;
+    num_voi = length(voi_names);
+end
     
 %% create figures
 
 fprintf('\nCreating figures...\n');
-
-num_pred = p.NUMBER_OF_CONDITIONS;
 fig = figure('Position',get(0,'screensize'));
-num_voi = length(voi_names);
 fprintf('Create voi image mds in %s\n', OUTPUT_PATH);
 for v = 1:num_voi
     voi_name = voi_names{v};
@@ -112,13 +175,13 @@ for v = 1:num_voi
         x = MD2D(i, 1);
         y = MD2D(i, 2);
 		
-		ind_img = find(image_pred_value == i, 1, 'first');
+		ind_img = find(image_pred_value == ind_pred(i), 1, 'first');
 		
-		fprintf('  %s => %s\n', p.CONDITIONS.DISPLAY_NAMES{i}, image_names{ind_img});
+		fprintf('  %s => %s\n', p.CONDITIONS.DISPLAY_NAMES{ind_pred(i)}, image_names{ind_img});
 
         img = images{ind_img};
         sz = size(img);
-        ind = find(repmat(foreground{i}, [1 1 3]));
+        ind = find(repmat(foreground{ind_pred(i)}, [1 1 3]));
         [x_foreground, y_foreground, z_foreground] = ind2sub(sz, ind);
         x_foreground = round(x_foreground - (sz(1)/2) + x);
         y_foregorund = round(y_foreground - (sz(2)/2) + y);
