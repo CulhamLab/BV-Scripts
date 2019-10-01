@@ -13,9 +13,23 @@ vmp.Resolution = voi.OriginalVMRResolutionX;
 %vmp.NativeResolutionFile = 0;
 vmp.FileVersion = 5;
 
-map_empty = zeros(length(vmp.XStart:vmp.XEnd),length(vmp.YStart:vmp.YEnd),length(vmp.ZStart:vmp.ZEnd));
+vmp.XStart = 0;
+vmp.XEnd = 256;
+
+vmp.YStart = 0;
+vmp.YEnd = 256;
+
+vmp.ZStart = 0;
+vmp.ZEnd = 256;
+
+% map_empty = zeros(length(vmp.XStart:vmp.XEnd),length(vmp.YStart:vmp.YEnd),length(vmp.ZStart:vmp.ZEnd));
+map_empty = zeros(256, 256, 256);
 
 for v = 1:voi.NrOfVOIs
+    if v>1
+        vmp.Map(v) = vmp.Map(v-1);
+    end
+    
     name = voi.VOI(v).Name;
     voxels = voi.VOI(v).Voxels;
     
