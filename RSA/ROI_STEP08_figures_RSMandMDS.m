@@ -248,6 +248,7 @@ end
 
 %% VOI-VOI RSM
 if do_voi_rsm
+clf
 imagesc(rsm)
 colormap(p.RSM_COLOURMAP)
 colorbar
