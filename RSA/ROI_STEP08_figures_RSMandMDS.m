@@ -49,7 +49,15 @@ end
 %remove underscore from voi names
 voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 
+%toggles for debugging
+do_cond_rsm_split = true;
+do_cond_rsm_nonsplit = true;
+do_cond_mds_nonsplit = true;
+do_voi_mds = true;
+do_voi_rsm = true;
+
 %% Condition RSM (split)
+if do_cond_rsm_split
 for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
@@ -91,8 +99,10 @@ for vid = 1:numVOI_type
     axis off
     SaveFigure(fig, [saveFol_condRSM_nolabel 'SPLIT RSM - ' t]); 
 end
+end
 
 %% Condition RSM (nonsplit)
+if do_cond_rsm_nonsplit
 for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
@@ -134,8 +144,10 @@ for vid = 1:numVOI_type
     axis off;
     SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
 end
+end
 
 %% Condition MDS (nonsplit)
+if do_cond_mds_nonsplit
 colours = jet(p.NUMBER_OF_CONDITIONS);
 for vid = 1:numVOI_type
     clf;
@@ -187,8 +199,10 @@ for vid = 1:numVOI_type
 	all_MD2D(:,:,vid) = MD2D;
 end
 save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS')
+end
     
 %% VOI-VOI MDS
+if do_voi_mds
 colours = jet(numVOI_type);
 %init
 rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
@@ -230,8 +244,10 @@ t = 'VOI-VOI MDS (split)';
 suptitle(t);
 
 SaveFigure(fig, [saveFol_roi 'ROI MDS']); 
+end
 
 %% VOI-VOI RSM
+if do_voi_rsm
 imagesc(rsm)
 colormap(p.RSM_COLOURMAP)
 colorbar
@@ -263,6 +279,7 @@ colormap(p.RSM_COLOURMAP);
 axis square;
 axis off;
 SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+end
 
 %% close figure
 close all
