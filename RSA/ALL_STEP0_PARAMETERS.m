@@ -82,6 +82,19 @@ try
         p.RENUMBER_RUNS = false;
     end
     
+    if ~any(strcmp(fs, 'RSM_PREDICTOR_ORDER'))
+        warning('Parameter file does not contain the new field "p.RSM_PREDICTOR_ORDER". This field will be defaulted to [1:p.NUMBER_OF_CONDITIONS]')
+        p.RSM_PREDICTOR_ORDER = 1:p.NUMBER_OF_CONDITIONS;
+    elseif length(p.RSM_PREDICTOR_ORDER)==1
+        %left as nan (or an invalid array of 1), defaults to 1:p.NUMBER_OF_CONDITIONS
+        p.RSM_PREDICTOR_ORDER = 1:p.NUMBER_OF_CONDITIONS;
+    end
+    
+    if ~any(strcmp(fs, 'VOI_USE_SPLIT'))
+        warning('Parameter file does not contain the new field "p.VOI_USE_SPLIT". This field will be defaulted to true.')
+        p.VOI_USE_SPLIT = true;
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
