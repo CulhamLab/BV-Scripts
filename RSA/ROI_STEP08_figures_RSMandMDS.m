@@ -10,6 +10,7 @@ saveFol_condRSM = [saveFol 'COND RSM' filesep];
 saveFol_condRSM_nolabel = [saveFol 'COND RSM nolabels' filesep];
 saveFol_condMDS = [saveFol 'COND MDS' filesep];
 saveFol_roi = [saveFol 'ROI-to-ROI' filesep];
+saveFol_models = [saveFol 'Models' filesep];
 
 %create folders
 if ~exist(saveFol)
@@ -27,6 +28,9 @@ end
 if ~exist(saveFol_roi)
     mkdir(saveFol_roi)
 end
+if ~exist(saveFol_models)
+    mkdir(saveFol_models)
+end
 
 %load ROI RSMs
 load([readFol 'VOI_corrs'])
@@ -43,16 +47,21 @@ CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformO
 %remove underscore from voi names
 voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 
+%reorder condition labels
+condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
+
 %toggles for debugging
-do_cond_rsm_split = true;
-do_cond_rsm_nonsplit = true;
-do_cond_mds_nonsplit = true;
-do_voi_mds_split = true;
-do_voi_mds_nonsplit = true;
-do_voi_rsm_split = true;
-do_voi_rsm_nonsplit = true;
-do_voi_model_split = true;
-do_voi_model_nonsplit = true;
+do_cond_rsm_split = false;
+do_cond_rsm_nonsplit = false;
+do_cond_mds_nonsplit = false;
+do_voi_mds_split = false;
+do_voi_mds_nonsplit = false;
+do_voi_rsm_split = false;
+do_voi_rsm_nonsplit = false;
+do_voi_model_split = false;
+do_voi_model_nonsplit = false;
+do_model_figures_split = false;
+do_model_figures_nonsplit = true;
 
 %% Condition RSM (split)
 if do_cond_rsm_split
@@ -63,7 +72,6 @@ for vid = 1:numVOI_type
     
     %reorder
     rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
-    condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
     
     imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);
@@ -108,7 +116,6 @@ for vid = 1:numVOI_type
     
     %reorder
     rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
-    condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
     
     imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);
@@ -643,6 +650,80 @@ if do_voi_model_nonsplit
     
 end
 
+%% Model Figures (split)
+if do_model_figures_split
+    number_models = length(p.MODELS.names);
+    
+    for m = 1:number_models
+        model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+        
+        clf
+        PlotModel(model , p.RSM_COLOURMAP)
+        colorbar
+        
+        set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
+        
+        returnPath = pwd;
+        try
+            cd('Required Methods');
+            hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
+            cd ..
+        catch e
+            cd(returnPath)
+            rethrow(e)
+        end
+        
+        t = ['SPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+        suptitle(t);
+        
+        SaveFigure(fig, [saveFol_models t]);
+        
+        clf
+        PlotModel(model , p.RSM_COLOURMAP)
+        axis off;
+        SaveFigure(fig, [saveFol_models t '_nolabel']); 
+    end
+    
+end
+
+%% Model Figures (nonsplit)
+if do_model_figures_nonsplit
+    number_models = length(p.MODELS.names);
+    
+    for m = 1:number_models
+        model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+        for i = 1:p.NUMBER_OF_CONDITIONS
+            model(i,1:i) = nan;
+        end
+        
+        clf
+        PlotModel(model , p.RSM_COLOURMAP)
+        colorbar
+        
+        set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
+        
+        returnPath = pwd;
+        try
+            cd('Required Methods');
+            hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
+            cd ..
+        catch e
+            cd(returnPath)
+            rethrow(e)
+        end
+        
+        t = ['NONSPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+        suptitle(t);
+        
+        SaveFigure(fig, [saveFol_models t]);
+        
+        clf
+        PlotModel(model , p.RSM_COLOURMAP)
+        axis off;
+        SaveFigure(fig, [saveFol_models t '_nolabel']); 
+    end
+end
+
 %% close figure
 close all
 
@@ -650,3 +731,10 @@ function SaveFigure(fig, filepath)
 set(fig, 'PaperPosition', [0 0 15 15]);
 % print(fig, filepath, '-dpng', '-r1200' ); 
 saveas(fig,filepath,'png');
+
+function PlotModel(model,cmap)
+cmap = [0 0 0; cmap];
+imagesc(model)
+caxis([nanmin(model(:))-(2/size(cmap,1)) nanmax(model(:))])
+colormap(cmap);
+axis square;
