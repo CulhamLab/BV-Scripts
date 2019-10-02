@@ -81,7 +81,7 @@ for vid = 1:numVOI_type
     returnPath = pwd;
     try
         cd('Required Methods')
-        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,condition_reorder);
+        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
         cd ..
     catch e
         cd(returnPath)
@@ -125,7 +125,7 @@ for vid = 1:numVOI_type
     returnPath = pwd;
     try
         cd('Required Methods');
-        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,40,condition_reorder);
+        hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
         cd ..
     catch e
         cd(returnPath)
@@ -323,7 +323,7 @@ set(gca,'XAxisLocation', 'top','yticklabel',voi_names_nounder,'ytick',1:numVOI_t
 returnPath = pwd;
 try
     cd('Required Methods');
-    hText = xticklabel_rotate(1:numVOI_type,40,voi_names_nounder);
+    hText = xticklabel_rotate(1:numVOI_type,90,voi_names_nounder);
     cd ..
 catch e
     cd(returnPath)
@@ -371,7 +371,7 @@ set(gca,'XAxisLocation', 'top','yticklabel',voi_names_nounder,'ytick',1:numVOI_t
 returnPath = pwd;
 try
     cd('Required Methods');
-    hText = xticklabel_rotate(1:numVOI_type,40,voi_names_nounder);
+    hText = xticklabel_rotate(1:numVOI_type,90,voi_names_nounder);
     cd ..
 catch e
     cd(returnPath)
@@ -468,7 +468,7 @@ if do_voi_model_split
     returnPath = pwd;
     try
         cd('Required Methods');
-        hText = xticklabel_rotate(1:matrix_size,40,labels);
+        hText = xticklabel_rotate(1:matrix_size,90,labels);
         cd ..
     catch e
         cd(returnPath)
@@ -594,7 +594,7 @@ if do_voi_model_nonsplit
     returnPath = pwd;
     try
         cd('Required Methods');
-        hText = xticklabel_rotate(1:matrix_size,40,labels);
+        hText = xticklabel_rotate(1:matrix_size,90,labels);
         cd ..
     catch e
         cd(returnPath)
