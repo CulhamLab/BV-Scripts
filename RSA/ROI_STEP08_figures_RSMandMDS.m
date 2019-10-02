@@ -54,9 +54,12 @@ voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',fal
 do_cond_rsm_split = true;
 do_cond_rsm_nonsplit = true;
 do_cond_mds_nonsplit = true;
-do_voi_mds = true;
-do_voi_rsm = true;
-do_voi_model = true;
+do_voi_mds_split = true;
+do_voi_mds_nonsplit = true;
+do_voi_rsm_split = true;
+do_voi_rsm_nonsplit = true;
+do_voi_model_split = true;
+do_voi_model_nonsplit = true;
 
 %% Condition RSM (split)
 if do_cond_rsm_split
@@ -204,7 +207,7 @@ save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS')
 end
     
 %% VOI-VOI MDS
-if do_voi_mds
+if do_voi_mds_split
 colours = jet(numVOI_type);
 %init
 rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
@@ -245,11 +248,68 @@ grid on;
 t = 'VOI-VOI MDS (split)';
 suptitle(t);
 
-SaveFigure(fig, [saveFol_roi 'ROI MDS']); 
+SaveFigure(fig, [saveFol_roi t]); 
+end
+
+%% VOI-VOI MDS (nonsplit)
+if do_voi_mds_nonsplit
+colours = jet(numVOI_type);
+%init
+rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+
+for vid = 1:numVOI_type
+    %mean rsm across subs
+    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm_array = rsm(:);
+    rsms(:,vid) = rsm_array;
+end
+
+rsm = corr(rsms,'Type','Spearman');
+rdm = (rsm-1) *-1;
+%set diag to true zero
+for i = 1:size(rdm,1)
+    rdm(i,i) = 0;
+end
+rdm = squareform(rdm);
+MD2D = mdscale(rdm,2,'criterion','sstress');
+
+clf;
+hold on
+for vid = 1:numVOI_type
+    c = colours(vid,:);
+    t = plot(MD2D(vid,1),MD2D(vid,2),'o','color',c);
+    set(t,'MarkerFaceColor',c);
+    t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c);
+    set(t,'FontSize',10);
+end
+hold off
+
+axis square;
+v=axis;
+r = max([range(v(1:2)) range(v(3:4))])/10;
+axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+grid on;
+
+t = 'VOI-VOI MDS (nonsplit)';
+suptitle(t);
+
+SaveFigure(fig, [saveFol_roi t]); 
 end
 
 %% VOI-VOI RSM
-if do_voi_rsm
+if do_voi_rsm_split
+%init
+rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+
+for vid = 1:numVOI_type
+    %mean rsm across subs
+    rsm = mean(rsms_split(:,:,:,vid),3);
+    rsm_array = rsm(:);
+    rsms(:,vid) = rsm_array;
+end
+
+rsm = corr(rsms,'Type','Spearman');
+    
 clf
 imagesc(rsm)
 colormap(p.RSM_COLOURMAP)
@@ -284,6 +344,54 @@ axis off;
 SaveFigure(fig, [saveFol_roi t '_nolabel']); 
 end
 
+%% VOI-VOI RSM (nonsplit)
+if do_voi_rsm_split
+%init
+rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+
+for vid = 1:numVOI_type
+    %mean rsm across subs
+    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm_array = rsm(:);
+    rsms(:,vid) = rsm_array;
+end
+
+rsm = corr(rsms,'Type','Spearman');
+    
+clf
+imagesc(rsm)
+colormap(p.RSM_COLOURMAP)
+colorbar
+caxis(p.RSM_COLOUR_RANGE_ROI)
+
+axis square;
+
+set(gca,'XAxisLocation', 'top','yticklabel',voi_names_nounder,'ytick',1:numVOI_type);
+
+returnPath = pwd;
+try
+    cd('Required Methods');
+    hText = xticklabel_rotate(1:numVOI_type,40,voi_names_nounder);
+    cd ..
+catch e
+    cd(returnPath)
+    rethrow(e)
+end
+
+t = 'VOI-VOI RSM (nonsplit)';
+suptitle(t);
+
+SaveFigure(fig, [saveFol_roi t]); 
+
+clf;
+imagesc(rsm);
+caxis(p.RSM_COLOUR_RANGE_ROI);
+colormap(p.RSM_COLOURMAP);
+axis square;
+axis off;
+SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+end
+
 %% VOI+Model
 %
 %Invalid model pairs show as black in RSM and are treated as 0 in the MDS (not similar or dissimiliar)
@@ -292,7 +400,7 @@ end
 %Models with overlap but no variation in those cells (i.e., all one value in each) are invalid
 %
 
-if do_voi_model
+if do_voi_model_split
     number_models = length(p.MODELS.matrices);
     matrix_size = numVOI_type + number_models;
     labels = [voi_names_nounder strrep(p.MODELS.names, '_', ' ')];
@@ -412,7 +520,133 @@ if do_voi_model
     t = 'VOI-VOI-and-Models MDS (split)';
     suptitle(t);
 
-    SaveFigure(fig, [saveFol_roi 'ROI-MODEL MDS']); 
+    SaveFigure(fig, [saveFol_roi t]); 
+    
+end
+
+%% VOI+Model nonsplit
+
+if do_voi_model_nonsplit
+    number_models = length(p.MODELS.matrices);
+    matrix_size = numVOI_type + number_models;
+    labels = [voi_names_nounder strrep(p.MODELS.names, '_', ' ')];
+    
+    rsm_voi_model = nan(matrix_size,matrix_size);
+    rsm_voi_model_with_nan = nan(matrix_size,matrix_size);
+    
+    rsms = nan(p.NUMBER_OF_CONDITIONS^2,matrix_size);
+    is_data = false(matrix_size,1);
+
+    for vid = 1:numVOI_type
+        %mean rsm across subs
+        rsm = mean(rsms_nonsplit(:,:,:,vid),3); %use split data
+        rsm_array = rsm(:);
+        rsms(:,vid) = rsm_array;
+        is_data(vid) = true;
+    end
+    
+    for mid = 1:number_models
+        model = p.MODELS.matrices{mid};
+        model_array = model(:);
+        rsms(:,numVOI_type+mid) = model_array;
+    end
+    
+    for row = 1:matrix_size
+        rsm_voi_model(row, row) = 1;
+        rsm_voi_model_with_nan(row, row) = 1;
+        
+        row_val = rsms(:,row);
+        row_val_ind = ~isnan(row_val);
+        
+        for col = (row+1):matrix_size
+            col_val = rsms(:,col);
+            col_val_ind = ~isnan(col_val);
+            
+            ind = row_val_ind & col_val_ind;
+            any_mismatch = any(row_val_ind ~= col_val_ind);
+            
+            if any_mismatch && ~is_data(col) && ~is_data(row)
+                rsm_voi_model(row,col) = 0;
+                rsm_voi_model_with_nan(row,col) = nan;
+            else
+                c = corr(row_val(ind), col_val(ind), 'Type', 'Spearman');
+                rsm_voi_model(row,col) = c;
+                rsm_voi_model_with_nan(row,col) = c;
+            end
+            
+            rsm_voi_model(col,row) = rsm_voi_model(row,col);
+            rsm_voi_model_with_nan(col,row) = rsm_voi_model_with_nan(row,col);
+        end
+    end
+    
+    
+    %% RSM
+    clf
+    imagesc(rsm_voi_model_with_nan)
+    colormap([0 0 0; p.RSM_COLOURMAP])
+    colorbar
+    caxis([-1.01 +1])
+
+    axis square;
+
+    set(gca,'XAxisLocation', 'top','yticklabel',labels,'ytick',1:matrix_size);
+
+    returnPath = pwd;
+    try
+        cd('Required Methods');
+        hText = xticklabel_rotate(1:matrix_size,40,labels);
+        cd ..
+    catch e
+        cd(returnPath)
+        rethrow(e)
+    end
+
+    t = 'VOI-VOI-and-Models RSM (nonsplit)';
+    suptitle(t);
+
+    SaveFigure(fig, [saveFol_roi t]); 
+
+    clf;
+    imagesc(rsm_voi_model_with_nan);
+    caxis([-1.01 +1])
+    colormap([0 0 0; p.RSM_COLOURMAP])
+    axis square;
+    axis off;
+    SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+    
+    
+    %% MDS
+    colours = jet(matrix_size);
+    
+    rdm = (rsm_voi_model-1) *-1;
+    %set diag to true zero
+    for i = 1:size(rdm,1)
+        rdm(i,i) = 0;
+    end
+    rdm = squareform(rdm);
+    MD2D = mdscale(rdm,2,'criterion','sstress');
+
+    clf;
+    hold on
+    for i = 1:matrix_size
+        c = colours(i,:);
+        t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
+        set(t,'MarkerFaceColor',c);
+        t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
+        set(t,'FontSize',10);
+    end
+    hold off
+
+    axis square;
+    v=axis;
+    r = max([range(v(1:2)) range(v(3:4))])/10;
+    axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+    grid on;
+
+    t = 'VOI-VOI-and-Models MDS (nonsplit)';
+    suptitle(t);
+
+    SaveFigure(fig, [saveFol_roi t]); 
     
 end
 
