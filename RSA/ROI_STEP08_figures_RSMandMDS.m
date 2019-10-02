@@ -40,13 +40,6 @@ numVOI_type = length(voi_names);
 %remove underscore from condition names
 CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformOutput',false);
 
-if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER')) && length(p.RSM_PREDICTOR_ORDER)>1
-    rsm_order = p.RSM_PREDICTOR_ORDER;
-else
-    warning('RSM_PREDICTOR_ORDER parameter not found. Defaulting to base order.')
-    rsm_order = 1:length(CONDITIONS);
-end
-
 %remove underscore from voi names
 voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',false);
 
@@ -69,8 +62,8 @@ for vid = 1:numVOI_type
     rsm = mean(rsms_split(:,:,:,vid),3);
     
     %reorder
-    rsm_reorder = rsm(rsm_order,rsm_order);
-    condition_reorder = CONDITIONS(rsm_order);
+    rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
+    condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
     
     imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);
@@ -114,8 +107,8 @@ for vid = 1:numVOI_type
     rsm = mean(rsms_nonsplit(:,:,:,vid),3);
     
     %reorder
-    rsm_reorder = rsm(rsm_order,rsm_order);
-    condition_reorder = CONDITIONS(rsm_order);
+    rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
+    condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
     
     imagesc(rsm_reorder);
     caxis(p.RSM_COLOUR_RANGE_COND);

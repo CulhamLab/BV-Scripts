@@ -228,6 +228,9 @@ USE_PARALLEL_POOLS = true;
 %Option to use split or default to nonsplit data in searchlight RSM
 SEARCHLIGHT_USE_SPLIT  = true;
 
+%Option to use split or default to nonsplit in VOI (steps 9 and 10)
+VOI_USE_SPLIT = true;
+
 %mask for vmp
 MSK_FILE = nan;
 
