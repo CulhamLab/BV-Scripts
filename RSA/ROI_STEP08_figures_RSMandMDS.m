@@ -393,12 +393,7 @@ SaveFigure(fig, [saveFol_roi t '_nolabel']);
 end
 
 %% VOI+Model
-%
-%Invalid model pairs show as black in RSM and are treated as 0 in the MDS (not similar or dissimiliar)
-%
-%Models with no overlap are invalid
-%Models with overlap but no variation in those cells (i.e., all one value in each) are invalid
-%
+%Model pairs based on different cells show as black in RSM and are treated as 0 in the MDS (not similar or dissimiliar)
 
 if do_voi_model_split
     number_models = length(p.MODELS.matrices);
@@ -525,6 +520,7 @@ if do_voi_model_split
 end
 
 %% VOI+Model nonsplit
+%Model pairs based on different cells show as black in RSM and are treated as 0 in the MDS (not similar or dissimiliar)
 
 if do_voi_model_nonsplit
     number_models = length(p.MODELS.matrices);
