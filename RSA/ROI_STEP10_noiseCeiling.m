@@ -1,4 +1,4 @@
-function ROI_STEP9_figure_barGraph
+function ROI_STEP10_noiseCeiling
 
 %params
 p = ALL_STEP0_PARAMETERS;
@@ -17,6 +17,24 @@ end
 load([readFolA 'VOI_RSMs'])
 load([readFolB 'VOI_corrs'])
 
+%split?
+if p.VOI_USE_SPLIT
+    split_type = 'split';
+    corrs_use = corrs_split;
+    rsms_use = rsms_split;
+    models_use = p.MODELS.matrices;
+    selection_for_base_ceiling = ones(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+else
+    split_type = 'nonsplit';
+    corrs_use = corrs_nonsplit;
+    rsms_use = rsms_nonsplit;
+    models_use = p.MODELS.matricesNonsplit;
+    selection_for_base_ceiling = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    for i = 1:p.NUMBER_OF_CONDITIONS
+        selection_for_base_ceiling(i,(i+1):end) = true;
+    end
+end
+
 %range
 % temp = mean(corrs_split,1);
 % ran = [min(temp(:)) max(temp(:))];
@@ -25,7 +43,7 @@ ran = [-0.4 +1];
 
 %model-specific noise ceiling?
 do_model_specifc_ceiling = false; %default to false
-submatrix_model_inds = find(cellfun(@(x) any(isnan(x(:))), p.MODELS.matrices));
+submatrix_model_inds = find(cellfun(@(x) any(isnan(x(selection_for_base_ceiling))), models_use));
 if ~isempty(submatrix_model_inds)
     if ~isfield(p, 'INDIVIDUAL_MODEL_NOISE_CEILING')
         warning('The parameters file is outdated and does not contain INDIVIDUAL_MODEL_NOISE_CEILING. One or more models uses a subset of RSM cells but current settings will compare all models to a standard noise ceiling based on all cells. Please consider adding this field to your parameters.')
@@ -45,12 +63,12 @@ cd 'Required Methods'
 
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
-num_model = size(corrs_split, 2);
+num_model = size(corrs_use, 2);
 for voi = 1:length(voi_names)
-    RSMs = rsms_split(:,:,:,voi);
+    RSMs = rsms_use(:,:,:,voi);
     
-    [upper,lower] = compute_rsm_noise_ceiling(RSMs);
-    model_corrs = corrs_split(:,:,voi);
+    [upper,lower] = compute_rsm_noise_ceiling(RSMs, selection_for_base_ceiling);
+    model_corrs = corrs_use(:,:,voi);
     model_corrs_avg = mean(model_corrs, 1);
     
     s = std(model_corrs,1) / sqrt(size(model_corrs,1));
@@ -60,7 +78,7 @@ for voi = 1:length(voi_names)
         model_specific_upper(:,voi) = nan(1, num_model);
         model_specific_lower(:,voi) = nan(1, num_model);
         for m = submatrix_model_inds
-            [model_specific_upper(m,voi), model_specific_lower(m,voi)] = compute_rsm_noise_ceiling(RSMs, ~isnan(p.MODELS.matrices{m}));
+            [model_specific_upper(m,voi), model_specific_lower(m,voi)] = compute_rsm_noise_ceiling(RSMs, ~isnan(models_use{m}));
         end
     end
     
@@ -80,7 +98,8 @@ for voi = 1:length(voi_names)
     set(gca, 'XTick', 1:num_model, 'XTickLabel', strrep(p.MODELS.names,'_',' '));
     xticklabel_rotate([], 30, [], 'Fontsize', 10);
     ylabel('Mean Correlation (r-value)')
-    title(strrep(voi_names{voi},'_',' '))
+    t = [strrep(voi_names{voi},'_',' ') ' (' split_type ')'];
+    title(t);
     
     if saveFol(1) == '.' %is a relative path
         saveFolUse = ['..' filesep saveFol];
@@ -88,7 +107,7 @@ for voi = 1:length(voi_names)
         saveFolUse = saveFol;
     end
     
-    saveas(fig, [saveFolUse strrep(voi_names{voi},' ','_') '.png'], 'png')
+    saveas(fig, [saveFolUse t '.png'], 'png')
     
     model_corrs_avg_all(voi,:) = model_corrs_avg;
     errorbars_all(voi,:) = eb;
@@ -158,7 +177,7 @@ set(gca, 'XTick', 1:length(voi_names), 'XTickLabel', strrep(voi_names,'_',' '));
 xticklabel_rotate([], 30, [], 'Fontsize', 10);
 grid on
 
-saveas(fig, [saveFolUse 'Summary.png'], 'png')
+saveas(fig, [saveFolUse 'Summary_' split_type '.png'], 'png')
 
 %add model-specific noise ceilings
 if do_model_specifc_ceiling
@@ -176,7 +195,7 @@ if do_model_specifc_ceiling
     end
 end
 
-xls_fp = [saveFolUse 'Summary.xlsx'];
+xls_fp = [saveFolUse 'Summary_' split_type '.xlsx'];
 if exist(xls_fp,'file')
 	delete(xls_fp)
 end
