@@ -40,9 +40,10 @@ numVOI_type = length(voi_names);
 %remove underscore from condition names
 CONDITIONS = cellfun(@(x) strrep(x,'_',' '),p.CONDITIONS.DISPLAY_NAMES,'UniformOutput',false);
 
-if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER')) && ~isnan(p.RSM_PREDICTOR_ORDER)
+if any(strcmp(fields(p),'RSM_PREDICTOR_ORDER')) && length(p.RSM_PREDICTOR_ORDER)>1
     rsm_order = p.RSM_PREDICTOR_ORDER;
 else
+    warning('RSM_PREDICTOR_ORDER parameter not found. Defaulting to base order.')
     rsm_order = 1:length(CONDITIONS);
 end
 
@@ -300,12 +301,14 @@ if do_voi_model
     rsm_voi_model_with_nan = nan(matrix_size,matrix_size);
     
     rsms = nan(p.NUMBER_OF_CONDITIONS^2,matrix_size);
+    is_data = false(matrix_size,1);
 
     for vid = 1:numVOI_type
         %mean rsm across subs
         rsm = mean(rsms_split(:,:,:,vid),3); %use split data
         rsm_array = rsm(:);
         rsms(:,vid) = rsm_array;
+        is_data(vid) = true;
     end
     
     for mid = 1:number_models
@@ -323,22 +326,18 @@ if do_voi_model
         
         for col = (row+1):matrix_size
             col_val = rsms(:,col);
-            row_val_ind = ~isnan(col_val);
+            col_val_ind = ~isnan(col_val);
             
-            ind = row_val_ind & row_val_ind;
+            ind = row_val_ind & col_val_ind;
+            any_mismatch = any(row_val_ind ~= col_val_ind);
             
-            if any(ind)
-                c = corr(row_val(ind), col_val(ind), 'Type', 'Spearman');
-                if isnan(c)
-                    rsm_voi_model(row,col) = 0;
-                    rsm_voi_model_with_nan(row,col) = nan;
-                else
-                    rsm_voi_model(row,col) = c;
-                    rsm_voi_model_with_nan(row,col) = c;
-                end
-            else
+            if any_mismatch && ~is_data(col) && ~is_data(row)
                 rsm_voi_model(row,col) = 0;
                 rsm_voi_model_with_nan(row,col) = nan;
+            else
+                c = corr(row_val(ind), col_val(ind), 'Type', 'Spearman');
+                rsm_voi_model(row,col) = c;
+                rsm_voi_model_with_nan(row,col) = c;
             end
             
             rsm_voi_model(col,row) = rsm_voi_model(row,col);
