@@ -17,8 +17,17 @@ end
 load([readFolA 'VOI_RSMs'])
 load([readFolB 'VOI_corrs'])
 
+%split?
+if p.VOI_USE_SPLIT
+    split_type = 'split';
+    data_use = corrs_split;
+else
+    split_type = 'nonsplit';
+    data_use = corrs_nonsplit;
+end
+
 %range
-temp = mean(corrs_split,1);
+temp = mean(data_use,1);
 ran = [min(temp(:)) max(temp(:))];
 ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 
@@ -47,17 +56,17 @@ for voi = 1:length(voi_names)
     name = voi_names{voi};
     name(name=='_') = ' ';
     subplot(r,c,voi)
-    corrs = mean(corrs_split(:,:,voi),1);
+    corrs = mean(data_use(:,:,voi),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
-        set(b(i), 'FaceColor', cs(i,:)) 
+        set(b(i), 'FaceColor', cs(i,:));
     end
     hold off
-    set(gca,'xtick',[])
+    set(gca,'xtick',[]);
     v=axis;
-    axis([v(1:2) ran])
-    title(name)
+    axis([v(1:2) ran]);
+    title(name);
 end
 
 %legend
@@ -75,17 +84,17 @@ else
     voi = ((r-2) * c) + round(c/2);
     s = subplot(r,c,voi);
     axis off
-    legend(s,b(1:h),l)
+    legend(s,b(1:h),l);
     
     l = l_all(h+1:end);
     voi = ((r-2) * c) + round(c/2) + 1;
     s = subplot(r,c,voi);
     axis off
-    legend(s,b(h+1:end),l)
+    legend(s,b(h+1:end),l);
 end
 
-t = 'Mean Model Correlation For Each VOI';
-suptitle(t)
+t = ['Mean Model Correlation For Each VOI (' split_type ')'];
+suptitle(t);
 
 saveas(fig,[saveFol t],'png')
 
@@ -115,16 +124,16 @@ for m = 1:length(p.MODELS.names)
     name = p.MODELS.names{m};
     name(name=='_') = ' ';
     subplot(r,c,m)
-    corrs = mean(corrs_split(:,m,:),1);
+    corrs = mean(data_use(:,m,:),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
         set(b(i), 'FaceColor', cs(i,:)) 
     end
     hold off
-    set(gca,'xtick',[])
+    set(gca,'xtick',[]);
     v=axis;
-    axis([v(1:2) ran])
+    axis([v(1:2) ran]);
     title(name)
 end
 
@@ -152,8 +161,8 @@ else
     legend(s,b(h+1:end),l)
 end
 
-t = 'Mean Model Correlation For Each Model';
-suptitle(t)
+t = ['Mean Model Correlation For Each Model (' split_type ')'];
+suptitle(t);
 
 saveas(fig,[saveFol t],'png')
 
