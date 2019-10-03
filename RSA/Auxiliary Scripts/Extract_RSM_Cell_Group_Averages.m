@@ -7,7 +7,7 @@ p = Get_Main_Params;
 USE_SPLIT_DATA = true;
 ALLOW_EXCEL_OVERWRITE = true;
 FILEPATH_EXCEL_OUTPUT = 'Extract_RSM_Group_Averages_[SPLITTYPE].xlsx'; %replaces [SPLITTYPE] with SPLIT or NONSPLIT
-FILEPATH_FIGURE = 'Extract_RSM_Group_Averages_[SPLITTYPE].png';
+FILEPATH_FIGURE = 'Extract_RSM_Group_Averages_[SPLITTYPE]_[GROUP].png';
 
 %% EDIT HERE - Define Groups
 %cycles though each row/col pair and uses the cell if either:
@@ -42,6 +42,8 @@ g = 0; %leave this first
 
 
 
+
+% insert groups here
 
 
 
@@ -170,25 +172,31 @@ for voi = 1:number_vois
             end
             
             if ~created_figure
-                fig = figure('Position', [1 1 1500 1000]);
+                fig = figure('Position', [1 1 1000 1000]);
                 
-                ncol = ceil(sqrt(number_groups));
-                if (ncol*(ncol-1)) < number_groups
-                    nrow = ncol;
-                else
-                    nrow = ncol-1;
-                end
-                
+                condition_labels = strrep(p.CONDITIONS.DISPLAY_NAMES(p.RSM_PREDICTOR_ORDER),'_',' ');
                 for gid = 1:number_groups
-                    subplot(nrow, ncol, gid);
-                    imagesc(selections(:,:,gid));
+                    clf
+                    imagesc(selections(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER,gid));
                     axis square;
-                    colormap([0 0 0; 0 1 0])
-                    title(strrep(group(gid).name,'_',' '));
+                    colormap([0.8 0.8 0.8; 0 0.7 0])
+                    
+                    hold on
+                    for i = 1:p.NUMBER_OF_CONDITIONS
+                        plot([i i]+0.5, [0 p.NUMBER_OF_CONDITIONS]+0.5, '-', 'Color', [0.5 0.5 0.5], 'LineWidth', 1)
+                        plot([0 p.NUMBER_OF_CONDITIONS]+0.5, [i i]+0.5, '-', 'Color', [0.5 0.5 0.5], 'LineWidth', 1)
+                    end
+                    hold off
+                    
+                    suptitle([strrep(group(gid).name,'_',' ') ' (' type ')']);
+                    set(gca,'XAxisLocation','top','xtick',1:p.NUMBER_OF_CONDITIONS,'xticklabel',cell(1,p.NUMBER_OF_CONDITIONS),'ytick',1:p.NUMBER_OF_CONDITIONS,'yticklabel',condition_labels);
+                    hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_labels);
+                    
+                    fp = strrep(FILEPATH_FIGURE, '[GROUP]', group(gid).name);
+                    fprintf('Saving selection #%d to: %s\n', gid, fp);
+                    saveas(fig, fp);
                 end
                 
-                fprintf('Saving selections to: %s\n', FILEPATH_FIGURE);
-                saveas(fig, FILEPATH_FIGURE);
                 close(fig)
                 created_figure = true;
             end
