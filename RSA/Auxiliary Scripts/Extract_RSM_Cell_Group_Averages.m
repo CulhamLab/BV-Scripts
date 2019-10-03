@@ -34,6 +34,10 @@ g = 0; %leave this first
 % % group(g).name = 'Food1H-Body1H';
 % % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
 % %                       cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
+% % g=g+1;
+% % group(g).name = 'Food1H-andor-Body1H'; %Food1H-Food1H or Body1H-Body1H or Food1H-Body1H
+% % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
+% %                       cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
 
 
 
