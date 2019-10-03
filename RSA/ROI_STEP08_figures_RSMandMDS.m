@@ -51,16 +51,16 @@ voi_names_nounder = cellfun(@(x) strrep(x,'_',' '),voi_names,'UniformOutput',fal
 condition_reorder = CONDITIONS(p.RSM_PREDICTOR_ORDER);
 
 %toggles for debugging
-do_cond_rsm_split = false;
-do_cond_rsm_nonsplit = false;
-do_cond_mds_nonsplit = false;
-do_voi_mds_split = false;
-do_voi_mds_nonsplit = false;
-do_voi_rsm_split = false;
-do_voi_rsm_nonsplit = false;
-do_voi_model_split = false;
-do_voi_model_nonsplit = false;
-do_model_figures_split = false;
+do_cond_rsm_split = true;
+do_cond_rsm_nonsplit = true;
+do_cond_mds_nonsplit = true;
+do_voi_mds_split = true;
+do_voi_mds_nonsplit = true;
+do_voi_rsm_split = true;
+do_voi_rsm_nonsplit = true;
+do_voi_model_split = true;
+do_voi_model_nonsplit = true;
+do_model_figures_split = true;
 do_model_figures_nonsplit = true;
 
 %% Condition RSM (split)
