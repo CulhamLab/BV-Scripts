@@ -42,6 +42,7 @@ g = 0; %leave this first
 
 
 
+
 % insert groups here
 
 
@@ -178,8 +179,15 @@ for voi = 1:number_vois
                     clf
                     imagesc(selections(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER,gid));
                     axis square;
-                    colormap([0.8 0.8 0.8; 0 1 0])
-                    grid on
+                    colormap([0.8 0.8 0.8; 0 0.7 0])
+                    
+                    hold on
+                    for i = 1:p.NUMBER_OF_CONDITIONS
+                        plot([i i]+0.5, [0 p.NUMBER_OF_CONDITIONS]+0.5, '-', 'Color', [0.5 0.5 0.5], 'LineWidth', 1)
+                        plot([0 p.NUMBER_OF_CONDITIONS]+0.5, [i i]+0.5, '-', 'Color', [0.5 0.5 0.5], 'LineWidth', 1)
+                    end
+                    hold off
+                    
                     suptitle([strrep(group(gid).name,'_',' ') ' (' type ')']);
                     set(gca,'XAxisLocation','top','xtick',1:p.NUMBER_OF_CONDITIONS,'xticklabel',cell(1,p.NUMBER_OF_CONDITIONS),'ytick',1:p.NUMBER_OF_CONDITIONS,'yticklabel',condition_labels);
                     hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_labels);
