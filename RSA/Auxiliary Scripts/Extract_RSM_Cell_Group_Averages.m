@@ -7,6 +7,7 @@ p = Get_Main_Params;
 USE_SPLIT_DATA = true;
 ALLOW_EXCEL_OVERWRITE = true;
 FILEPATH_EXCEL_OUTPUT = 'Extract_RSM_Group_Averages_[SPLITTYPE].xlsx'; %replaces [SPLITTYPE] with SPLIT or NONSPLIT
+FILEPATH_FIGURE = 'Extract_RSM_Group_Averages_[SPLITTYPE].png';
 
 %% EDIT HERE - Define Groups
 %cycles though each row/col pair and uses the cell if either:
@@ -38,6 +39,7 @@ g = 0; %leave this first
 % % group(g).name = 'Food1H-andor-Body1H'; %Food1H-Food1H or Body1H-Body1H or Food1H-Body1H
 % % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
 % %                       cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
+
 
 
 
@@ -90,6 +92,7 @@ else
     type = 'NONSPLIT';
 end
 FILEPATH_EXCEL_OUTPUT = strrep(FILEPATH_EXCEL_OUTPUT, '[SPLITTYPE]', type);
+FILEPATH_FIGURE = strrep(FILEPATH_FIGURE, '[SPLITTYPE]', type);
 
 %% overwrite?
 if exist(FILEPATH_EXCEL_OUTPUT, 'file')
@@ -129,6 +132,7 @@ xls = cell(0);
 fprintf('Calculating group averages per participant...\n');
 number_vois = length(data.VOINames);
 row = 0;
+created_figure = false;
 for voi = 1:number_vois
     row = row + 1;
     xls{row,1} = data.VOINames{voi};
@@ -147,6 +151,7 @@ for voi = 1:number_vois
         
         if ~any(isnan(rsm(:)))
             rsm(~rsm_ind_use) = nan;
+            selections = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS, number_groups);
             
             for gid = 1:number_groups
                 values = [];
@@ -155,12 +160,37 @@ for voi = 1:number_vois
                     for c2 = 1:p.NUMBER_OF_CONDITIONS
                         if ~isnan(rsm(c1,c2)) && ( (group(gid).selection(1,c1) && group(gid).selection(2,c2)) || (group(gid).selection(2,c1) && group(gid).selection(1,c2)) )
                             values(end+1) = rsm(c1,c2);
+                            selections(c1,c2,gid) = true;
                         end
                     end
                 end
                 
                 xls{row, 1+gid} = mean(values);
 
+            end
+            
+            if ~created_figure
+                fig = figure('Position', [1 1 1500 1000]);
+                
+                ncol = ceil(sqrt(number_groups));
+                if (ncol*(ncol-1)) < number_groups
+                    nrow = ncol;
+                else
+                    nrow = ncol-1;
+                end
+                
+                for gid = 1:number_groups
+                    subplot(nrow, ncol, gid);
+                    imagesc(selections(:,:,gid));
+                    axis square;
+                    colormap([0 0 0; 0 1 0])
+                    title(strrep(group(gid).name,'_',' '));
+                end
+                
+                fprintf('Saving selections to: %s\n', FILEPATH_FIGURE);
+                saveas(fig, FILEPATH_FIGURE);
+                close(fig)
+                created_figure = true;
             end
         end
         row = row + 1;
