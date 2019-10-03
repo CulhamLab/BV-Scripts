@@ -13,6 +13,9 @@ FILEPATH_FIGURE = 'Extract_RSM_Group_Averages_[SPLITTYPE]_[GROUP].png';
 %cycles though each row/col pair and uses the cell if either:
 %   selection(1,row) && selection(2,col)
 %   selection(2,row) && selection(1,col)
+%
+%exclude is an optional field that excludes cells from one or more other groups
+%when used, exclude is a cell array of group names: {'name1' 'name2'}
 
 g = 0; %leave this first
 
@@ -31,14 +34,22 @@ g = 0; %leave this first
 % % group(g).name = 'Food2H-Food2H';
 % % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_2H_')), p.CONDITIONS.PREDICTOR_NAMES);
 % %                       cellfun(@(x) any(strfind(x, 'Food_2H_')), p.CONDITIONS.PREDICTOR_NAMES)];
+% % 
 % % g=g+1;
 % % group(g).name = 'Food1H-Body1H';
 % % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
 % %                       cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
 % % g=g+1;
 % % group(g).name = 'Food1H-andor-Body1H'; %Food1H-Food1H or Body1H-Body1H or Food1H-Body1H
-% % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
-% %                       cellfun(@(x) any(strfind(x, 'Food_1H_')), p.CONDITIONS.PREDICTOR_NAMES) | cellfun(@(x) any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
+% % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_1H_')) | any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES);
+% %                       cellfun(@(x) any(strfind(x, 'Food_1H_')) | any(strfind(x, 'Body_1H_')), p.CONDITIONS.PREDICTOR_NAMES)];
+% % 
+% % g=g+1;
+% % group(g).name = 'Food_without_1H-1H';
+% % group(g).selection = [cellfun(@(x) any(strfind(x, 'Food_')), p.CONDITIONS.PREDICTOR_NAMES);
+% %                       cellfun(@(x) any(strfind(x, 'Food_')), p.CONDITIONS.PREDICTOR_NAMES)];
+% % group(g).exclude = {'Food1H-Food1H'};
+
 
 
 
@@ -59,6 +70,8 @@ if ~exist('group', 'var')
     error('Group structure array must be defined')
 end
 
+has_exclude = isfield(group, 'exclude');
+
 number_groups = length(group);
 
 if ~number_groups
@@ -71,15 +84,49 @@ for gid = 1:number_groups
     end
     
     if size(group(gid).selection,1) ~=2
-        error('Selection criteria does not have 2 rows in #%d', gid);
+        error('Selection criteria does not have 2 rows in #%d (%s)', gid, group(gid).name);
     end
     
     if size(group(gid).selection,2) ~= p.NUMBER_OF_CONDITIONS
-        error('Selection criteria length does not match number of predictors in #%d', gid);
+        error('Selection criteria length does not match number of predictors in #%d (%s)', gid, group(gid).name);
     end
     
     if ~any(group(gid).selection)
-        error('Selection criteria is a valid shape but does not contain in true values in #%d', gid);
+        error('Selection criteria is a valid shape but does not contain in true values in #%d (%s)', gid, group(gid).name);
+    end
+    
+    group(gid).do_exclude = false;
+    if has_exclude && ~isempty(group(gid).exclude)
+        %handle structure of exclude field
+        if ~iscell(group(gid).exclude)
+            if ~ischar(group(gid).exclude)
+                %convert string to cell array of length one
+                group(gid).exclude = {group(gid).exclude};
+            else
+                error('The exclude field in #%d (%s) is not a cell array. Example of cell array: {''model_name1'' ''model_name2''}', gid, group(gid).name)
+            end
+        end
+        
+        %find exclude groups + store their selections to use as exclusion criteria
+        group(gid).exclude_count = length(group(gid).exclude);
+        for e = 1:group(gid).exclude_count
+            ind = find(strcmp({group.name},group(gid).exclude{e}));
+            if ind==gid
+                error('#%d (%s) attempted to exclude itself', gid, group(gid).name);
+            elseif isempty(ind)
+                error('No matches found for exclude "%s" in #%d (%s)', group(gid).exclude{e}, gid, group(gid).name);
+            elseif length(ind) > 1
+                error('Too many (>1) matches found for exclude "%s" in #%d (%s)', group(gid).exclude{e}, gid, group(gid).name);
+            else
+                group(gid).exclude_selection{e} = group(ind).selection;
+            end
+        end
+        
+        %enable group exclude
+        group(gid).do_exclude = true;
+    else
+        %disable group exclude
+        group(gid).do_exclude = false;
     end
 end
 
@@ -160,13 +207,37 @@ for voi = 1:number_vois
                 
                 for c1 = 1:p.NUMBER_OF_CONDITIONS
                     for c2 = 1:p.NUMBER_OF_CONDITIONS
-                        if ~isnan(rsm(c1,c2)) && ( (group(gid).selection(1,c1) && group(gid).selection(2,c2)) || (group(gid).selection(2,c1) && group(gid).selection(1,c2)) )
-                            values(end+1) = rsm(c1,c2);
-                            selections(c1,c2,gid) = true;
+                        if ~isnan(rsm(c1,c2))
+                            if IsValidSelection(c1, c2, group(gid).selection)
+                                if group(gid).do_exclude
+                                    exclusion_criteria_met = false;
+
+                                    for e = 1:group(gid).exclude_count
+                                        if IsValidSelection(c1, c2, group(gid).exclude_selection{e})
+                                            exclusion_criteria_met = true;
+                                            break;
+                                        end
+                                    end
+
+                                    if exclusion_criteria_met
+                                        continue;
+                                    end
+                                end
+
+                                values(end+1) = rsm(c1,c2);
+                                selections(c1,c2,gid) = true;
+                            end
+                        else
+                            %missing value
+                            warning('Participant %d, group #%d (%s) is missing data in cell (%d,%d)', pid, gid, group(gid).name, c1, c2);
                         end
                     end
                 end
                 
+                if isempty(values)
+                    error('Group #%d (%s) contains no cells!', gid, group(gid).name);
+                end
+                    
                 xls{row, 1+gid} = mean(values);
 
             end
@@ -231,3 +302,6 @@ catch err
     cd(return_path);
     rethrow(err);
 end
+
+function [valid] = IsValidSelection(c1, c2, selection)
+valid = (selection(1,c1) && selection(2,c2)) || (selection(2,c1) && selection(1,c2));
