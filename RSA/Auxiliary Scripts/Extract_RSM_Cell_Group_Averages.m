@@ -159,7 +159,7 @@ for voi = 1:number_vois
                     end
                 end
                 
-                xls{row, 1+gid} = length(values);
+                xls{row, 1+gid} = mean(values);
 
             end
         end
