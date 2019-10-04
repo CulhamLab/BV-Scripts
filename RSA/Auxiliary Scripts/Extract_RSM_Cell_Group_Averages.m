@@ -182,6 +182,7 @@ fprintf('Calculating group averages per participant...\n');
 number_vois = length(data.VOINames);
 row = 0;
 created_figure = false;
+missing = [];
 for voi = 1:number_vois
     row = row + 1;
     xls{row,1} = data.VOINames{voi};
@@ -203,7 +204,10 @@ for voi = 1:number_vois
             selections = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS, number_groups);
             
             for gid = 1:number_groups
-                values = [];
+%                 values = [];
+                selection = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+                
+                fprintf('Processing VOI %d of %d (%s), Particiapnt %d of %d, Group %d of %d (%s)...\n', voi, number_vois, data.VOINames{voi}, pid, p.NUMBER_OF_PARTICIPANTS, gid, number_groups, group(gid).name);
                 
                 for c1 = 1:p.NUMBER_OF_CONDITIONS
                     for c2 = 1:p.NUMBER_OF_CONDITIONS
@@ -224,22 +228,22 @@ for voi = 1:number_vois
                                     end
                                 end
 
-                                values(end+1) = rsm(c1,c2);
-                                selections(c1,c2,gid) = true;
+%                                 values(end+1) = rsm(c1,c2);
+                                selection(c1,c2) = true;
                             end
-                        else
-                            %missing value
-                            warning('Participant %d, group #%d (%s) is missing data in cell (%d,%d)', pid, gid, group(gid).name, c1, c2);
                         end
                     end
                 end
                 
+                values = rsm(selection);
+                
                 if isempty(values)
                     error('Group #%d (%s) contains no cells!', gid, group(gid).name);
                 end
-                    
+                
                 xls{row, 1+gid} = mean(values);
-
+                
+                selections(:,:,gid) = selection;
             end
             
             if ~created_figure
@@ -271,10 +275,23 @@ for voi = 1:number_vois
                 close(fig)
                 created_figure = true;
             end
+        else
+            missing(end+1,:) = [voi pid];
+            warning('Data is missing (nan) in one or more cells of VOI %d (%s) Participant %d! Excluded from averaging.', voi, data.VOINames{voi}, pid);
         end
         row = row + 1;
         
     end
+end
+
+%report missing
+number_missing = size(missing,1);
+if number_missing > 0
+    fprintf('\nData was missing from the following %d. These sets were excluded from the averaging.\n', number_missing);
+    for i = 1:number_missing
+        fprintf('VOI %d (%s), Participant %d.\n', missing(i,1), data.VOINames{missing(i,1)}, missing(i,2));
+    end
+    fprintf('\n');
 end
 
 %% Save
