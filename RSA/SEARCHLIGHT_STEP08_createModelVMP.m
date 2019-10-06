@@ -1,4 +1,4 @@
-function SEARCHLIGHT_STEP4_createModelVMP
+function SEARCHLIGHT_STEP08_createModelVMP
 
 %params
 [p] = ALL_STEP0_PARAMETERS;
@@ -10,12 +10,33 @@ if ~exist(saveFol,'dir')
     mkdir(saveFol);
 end
 
+%prefix
+prefix = 'step7';
+if isempty(dir([inputFol prefix '*']))
+    prefix = 'step5';
+end
+
+%suffix
+if p.SEARCHLIGHT_USE_SPLIT
+    suffix = '_SPLIT';
+else
+    suffix = '_NONSPLIT';
+end
+suffix_save = suffix;
+if ~exist([inputFol sprintf('%s_modelCorrelations_%s%s.mat',prefix,p.FILELIST_PAR_ID{1},suffix)], 'file')
+    suffix = '';
+    if ~exist([inputFol sprintf('%s_modelCorrelations_%s%s.mat',prefix,p.FILELIST_PAR_ID{1},suffix)], 'file')
+        error('Cannot locate first file')
+    end
+end
+
 %gather all maps
 disp('Gathing r-maps...')
 for par = 1:p.NUMBER_OF_PARTICIPANTS
-clearvars -except par inputFol saveFol p maps
+clearvars -except par inputFol saveFol p maps suffix prefix suffix_save
 
-load([inputFol sprintf('step5_modelCorrelations_%s',p.FILELIST_PAR_ID{par})])
+%load
+load([inputFol sprintf('%s_modelCorrelations_%s%s.mat',prefix,p.FILELIST_PAR_ID{par},suffix)]);
 
 for m = 1:models.mNum
     %vmp map
@@ -36,7 +57,7 @@ end
 end
 
 %create vmp for each model
-clearvars -except sub inputFol saveFol p maps models vtcRes
+clearvars -except sub inputFol saveFol p maps models vtcRes suffix_save
 disp('Saving to VMPs...')
 for m = 1:models.mNum
     %prepare vmp struct
@@ -90,6 +111,6 @@ for m = 1:models.mNum
     vmp.NrOfMaps = p.NUMBER_OF_PARTICIPANTS;
     
     %save
-    vmp.SaveAs([saveFol vmpName '.vmp']);
+    vmp.SaveAs([saveFol vmpName suffix_save '.vmp']);
 end
 disp Done.
