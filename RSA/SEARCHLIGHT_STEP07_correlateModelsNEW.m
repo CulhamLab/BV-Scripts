@@ -42,12 +42,27 @@ if ~exist(fp_p1, 'file')
     end
 end
 
+%% load part 1 for info
+fprintf('-Loading participant 1, part 1 and initializing...\n');
+step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, 1, suffix));
+ss_ref = step6.ss_ref;
+vtcRes = step6.vtcRes;
+number_parts = step6.number_parts;
+
+convert_sf_rdms = false;
+if ~step6.usedSplit
+    ind_first = find(~cellfun(@isempty, step6.RSMs), 1, 'first');
+    if size(step6.RSMs{ind_first},1) == 1
+        convert_sf_rdms = true;
+    end
+end
+
 %% try
 try %if anything goes wrong, close the parallel workers
 tic
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('\nRunning participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol useParfor ss_ref suffix prefix suffix_save
+clearvars -except par p inputFol saveFol useParfor ss_ref vtcRes suffix prefix suffix_save convert_sf_rdms number_parts
 
 %% prep models
 %place in vectors
@@ -64,14 +79,15 @@ for m = 1:p.MODELS.mNum
 end
 % save('ModelDat','modelVecs','modelVecs_indxGood','models')
 
+%% init result matrix
+resultMat = nan([ss_ref p.MODELS.mNum]);
+
 %% get prior model correlations (optional)
 
 fp_save = [saveFol sprintf('step7_modelCorrelations_%s%s.mat',p.FILELIST_PAR_ID{par},suffix_save)];
 if p.SEACHLIGHT_MODEL_APPEND && exist(fp_save,'file')
     %load
     prior = load(fp_save);
-    ss = size(prior.resultMat);
-    resultMat = nan([ss(1:3) p.MODELS.mNum]);
 
     %check which models need to be run
     models_to_do = [];
@@ -100,32 +116,31 @@ end
 
 %% test models
 
-%load part 1 for info
-fprintf('-Loading part 1 and initializing...\n');
-step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, 1, suffix));
-ss_ref = step6.ss_ref;
-vtcRes = step6.vtcRes;
-resultMat = nan([ss_ref p.MODELS.mNum]);
-convert_sf_rdms = false;
-if ~step6.usedSplit
-    ind_first = find(~cellfun(@isempty, step6.RSMs), 1, 'first');
-    if size(step6.RSMs{ind_first},1) == 1
-        convert_sf_rdms = true;
-    end
-end
-
 %process each part
-for part = 1:step6.number_parts
-    fprintf('-Processing part %d of %d...\n', part, step6.number_parts);
+for part = 1:number_parts
+    fprintf('-Processing part %d of %d...\n', part, number_parts);
     
     %load
-    if part > 1
-        step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, part, suffix));
-    end
+    step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, part, suffix));
 
     %check size
     if any(step6.ss_ref ~= ss_ref)
         error('Size is not constant (ss_ref)!')
+    end
+	
+	%check vtcRes
+    if any(step6.vtcRes ~= vtcRes)
+        error('VTC resolution is not constant (vtcRes)!')
+    end
+	
+	%check usedSplit
+	if (step6.usedSplit ~= p.SEARCHLIGHT_USE_SPLIT)
+		error('Split is not constant (usedSplit)!')
+    end
+    
+    %cheic number_parts
+    if (step6.number_parts ~= number_parts)
+        error('Number of parts is not constant (number_parts)!')
     end
     
     %convert squareform rdms back to RSMs (may stored this way in nonsplit mode to save time/space)
