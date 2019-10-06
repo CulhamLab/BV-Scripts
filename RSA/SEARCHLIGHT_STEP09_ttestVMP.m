@@ -6,8 +6,15 @@ function SEARCHLIGHT_STEP5_ttest
 %paths
 vmpFol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SEARCHLIGHT_DATA filesep '8-9. VMPs' filesep];
 
+%suffix
+if p.SEARCHLIGHT_USE_SPLIT
+    suffix = '_SPLIT';
+else
+    suffix = '_NONSPLIT';
+end
+
 %list vmp
-list = dir([vmpFol '*rvalues.vmp']);
+list = dir([vmpFol '*rvalues' suffix '.vmp']);
 
 %create pmap vmp from this vmp
 vmp = xff([vmpFol list(1).name]);
@@ -61,10 +68,10 @@ end
 
 %complete ttest one-minus-p map
 vmp.NrOfMaps = length(list);
-vmp.SaveAs([vmpFol 'TTEST_PMAP.vmp']);
+vmp.SaveAs([vmpFol 'TTEST_PMAP' suffix '.vmp']);
 
 %complete ttest t-map
 tvmp.NrOfMaps = length(list);
-tvmp.SaveAs([vmpFol 'TTEST_TMAP.vmp']);
+tvmp.SaveAs([vmpFol 'TTEST_TMAP' suffix '.vmp']);
 
 disp Done.

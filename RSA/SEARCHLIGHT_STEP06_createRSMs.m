@@ -20,9 +20,21 @@ end
 
 set_ss_ref = false;
 
+%warn if p.USE_SLOW_RSM_CALCULATION
+if p.USE_SLOW_RSM_CALCULATION
+    warning('USE_SLOW_RSM_CALCULATION is enabled')
+end
+
+%save file suffix
+if p.SEARCHLIGHT_USE_SPLIT
+    suffix = 'SPLIT';
+else
+    suffix = 'NONSPLIT';
+end
+
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol ss_ref set_ss_ref number_parts
+clearvars -except par p inputFol saveFol ss_ref set_ss_ref number_parts suffix
 load([inputFol sprintf('step3_organize3D_%s.mat',p.FILELIST_PAR_ID{par})])
 
 %init cell matrix
@@ -57,6 +69,11 @@ for z = -p.SEARCHLIGHT_RADIUS:p.SEARCHLIGHT_RADIUS
 end
 end
 end
+
+%min/max for checks
+number_cube_voxels = size(cubeList, 1);
+cube_min = ones(number_cube_voxels, 3);
+cube_max = repmat(ss, [number_cube_voxels 1]);
 
 %is split used?
 usedSplit = p.SEARCHLIGHT_USE_SPLIT;
@@ -100,48 +117,80 @@ for voxInd = indxVoxWithData_part'
     %create list of XYZ of all vox in the mini-roi
     coordList = cubeList + repmat([x_center y_center z_center],size(cubeList,1),1);
     
-    %collect betas from all valid voxels on the list
-    numIncluded = 0;
-    evens = [];
-    odds = [];
-    alls = [];
-    for i = 1:length(coordList)
-        x = coordList(i,1);
-        y = coordList(i,2);
-        z = coordList(i,3);
+% %     %collect betas from all valid voxels on the list
+% %     numIncluded = 0;
+% %     evens = [];
+% %     odds = [];
+% %     alls = [];
+% %     
+% %     for i = 1:length(coordList)
+% %         x = coordList(i,1);
+% %         y = coordList(i,2);
+% %         z = coordList(i,3);
+% %         
+% %         if min(coordList(i,:))>0 %no coord is 0 or less
+% %             if x<=ss(1) & y<=ss(2) & z<=ss(3) %doesn't exceed beta matrix size
+% %                 if sum(~isnan(squeeze(betas_3D_all(x,y,z,:)))) %doesn't contain data (there are a few of these)
+% %                     numIncluded = numIncluded + 1;
+% %                     if p.SEARCHLIGHT_USE_SPLIT
+% %                         evens = [evens; squeeze(betas_3D_even(x,y,z,:))'];
+% %                         odds = [odds; squeeze(betas_3D_odd(x,y,z,:))'];
+% %                     else
+% %                         %nonsplit
+% %                         alls = [alls; squeeze(betas_3D_all(x,y,z,:))'];
+% %                     end
+% %                 end
+% %             end
+% %         end
+% %         
+% %     end
+
+    % new method for gathering data
+    ind_voxel_valid = ~any((coordList < cube_min) | (coordList > cube_max), 2);
+    coordList_valid = coordList(ind_voxel_valid, :);
+    
+    if p.SEARCHLIGHT_USE_SPLIT
+        evens = cell2mat(arrayfun(@(x,y,z) squeeze(betas_3D_even(x,y,z,:)), coordList_valid(:,1), coordList_valid(:,2), coordList_valid(:,3), 'UniformOutput', false)')';
+        odds = cell2mat(arrayfun(@(x,y,z) squeeze(betas_3D_odd(x,y,z,:)), coordList_valid(:,1), coordList_valid(:,2), coordList_valid(:,3), 'UniformOutput', false)')';
+
+% don't remove nan yet in case USE_SLOW_RSM_CALCULATION
+%         ind_no_data = any(isnan(evens') | isnan(odds'));
+%         if ~isempty(ind_no_data)
+%             evens(ind_no_data,:) = [];
+%             odds(ind_no_data,:) = [];
+%         end
         
-        if min(coordList(i,:))>0 %no coord is 0 or less
-            if x<=ss(1) & y<=ss(2) & z<=ss(3) %doesn't exceed beta matrix size
-                if sum(~isnan(squeeze(betas_3D_all(x,y,z,:)))) %doesn't contain data (there are a few of these)
-                    numIncluded = numIncluded + 1;
-                    if p.SEARCHLIGHT_USE_SPLIT
-                        evens = [evens; squeeze(betas_3D_even(x,y,z,:))'];
-                        odds = [odds; squeeze(betas_3D_odd(x,y,z,:))'];
-                    else
-                        %nonsplit
-                        alls = [alls; squeeze(betas_3D_all(x,y,z,:))'];
-                    end
-                end
-            end
-        end
+        numIncluded = size(evens,1);
+    else
+        alls = cell2mat(arrayfun(@(x,y,z) squeeze(betas_3D_all(x,y,z,:)), coordList_valid(:,1), coordList_valid(:,2), coordList_valid(:,3), 'UniformOutput', false)')';
+
+% don't remove nan yet in case USE_SLOW_RSM_CALCULATION
+%         ind_no_data = any(isnan(alls'));
+%         if ~isempty(ind_no_data)
+%             alls(ind_no_data,:) = [];
+%         end
         
+        numIncluded = size(alls,1);
     end
     
+    %calculate RSM
     if ~p.USE_SLOW_RSM_CALCULATION
         %NORMAL METHOD:
         %if a nan made it in, remove it (this can happen at the edge)
         if numIncluded>1
             if p.SEARCHLIGHT_USE_SPLIT
-                badRows = find(isnan(mean(odds' + evens')));
-                if length(badRows)
+                badRows = find(any(isnan(odds + evens),2));
+%                 badRows = find(isnan(mean(odds' + evens')));
+                if ~isempty(badRows)
                     numIncluded = numIncluded - length(badRows);
                     evens(badRows,:) = [];
                     odds(badRows,:) = [];
                 end
             else
                 %nonsplit
-                badRows = find(isnan(alls'));
-                if length(badRows)
+                badRows = find(any(isnan(alls),2));
+%                 badRows = find(isnan(alls'));
+                if ~isempty(badRows)
                     numIncluded = numIncluded - length(badRows);
                     alls(badRows,:) = [];
                 end
@@ -160,7 +209,13 @@ for voxInd = indxVoxWithData_part'
             if sum(isnan(rsm(:)))
                 warning('nans should not make it into rsm') %%this is happening
             else
-                RSMs{x_center,y_center,z_center} = rsm;
+                if p.SEARCHLIGHT_USE_SPLIT
+                    RSMs{x_center,y_center,z_center} = rsm;
+                else
+                    rdm = 1 - rsm;
+                    rdm(1:(p.NUMBER_OF_CONDITIONS+1):(p.NUMBER_OF_CONDITIONS^2)) = 0; %adjust diag for rounding errors
+                    RSMs{x_center,y_center,z_center} = squareform(rdm);
+                end
             end
         end
     
@@ -194,7 +249,13 @@ for voxInd = indxVoxWithData_part'
         end
         
         if sum(~isnan(rsm(:))) %so long as there is 1+ non-nan
-            RSMs{x_center,y_center,z_center} = rsm;
+            if p.SEARCHLIGHT_USE_SPLIT
+                RSMs{x_center,y_center,z_center} = rsm;
+            else
+                rdm = 1 - rsm;
+                rdm(1:(p.NUMBER_OF_CONDITIONS+1):(p.NUMBER_OF_CONDITIONS^2)) = 0; %adjust diag for rounding errors
+                RSMs{x_center,y_center,z_center} = squareform(rdm);
+            end
         end
     end
     
@@ -202,7 +263,7 @@ end
 
 %save part
 fprintf('-Saving part %d (voxels %d to %d)...\n', part, part_min, part_max);
-save([saveFol sprintf('step4_RSMs_%s_PART%02d',p.FILELIST_PAR_ID{par},part)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
+save([saveFol sprintf('step6_RSMs_%s_PART%02d_%s',p.FILELIST_PAR_ID{par},part,suffix)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
 
 end
 
