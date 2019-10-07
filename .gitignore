@@ -3,3 +3,6 @@
 ~*.xls*
 filelist.xls
 *.vtc
+*.png
+*.xlsx
+*.jpg
