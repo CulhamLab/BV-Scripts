@@ -259,8 +259,16 @@ RSM_PREDICTOR_ORDER = nan;
 RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
 
 %Custom VOI Summary Figures (part of ROI_STEP10_noiseCeiling)
-%marker types can be left empty [] to draw no marker
-%line types can be left empty [] to draw no line
+%
+%optional custom summary figure(s), can select any set of VOIs/Models in the order
+%to display and customize most colours/styles/etc.
+%
+%marker and line types may be left empty [] to draw no marker or line
+%line types include: - (solid), -- (dashed), : (dotted), -. (dashdot)  
+%marker types include: +, o, *, ., x, ^, v, <, >, 'square' or 's', 'diamond' or 'd' 'pentagram' or 'p', 'hexagram' or 'h'
+%
+%colours are [r g b] with each value 0-1
+%
 
 CUSTOM_VOI_SUMMARY_FIGURES = []; %leave empty to diable
 
