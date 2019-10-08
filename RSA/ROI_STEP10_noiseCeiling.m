@@ -226,13 +226,23 @@ for c = 1:number_custom
     end
     
     %select voi
-    ind_voi = cellfun(@(x) find(strcmp(voi_names,x)), p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES);
+    try
+        ind_voi = cellfun(@(x) find(strcmp(voi_names,x)), p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES);
+    catch err
+        warning('A VOI name in CUSTOM_VOI_SUMMARY_FIGURES might not have been found')
+        rethrow(err)
+    end
     number_voi = length(ind_voi);
     noise_ceiling_upper = upper_all(ind_voi);
     noise_ceiling_lower = lower_all(ind_voi);
     
     %select model
-    ind_model = cellfun(@(x) find(strcmp(p.MODELS.names,x)), {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME});
+    try
+        ind_model = cellfun(@(x) find(strcmp(p.MODELS.names,x)), {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME});
+    catch err
+        warning('A model name in CUSTOM_VOI_SUMMARY_FIGURES might not have been found')
+        rethrow(err)
+    end
     number_model = length(ind_model);
     model_corrs_selected = model_corrs_avg_all(ind_voi, ind_model);
     error_bars_selected = errorbars_all(ind_voi, ind_model);
