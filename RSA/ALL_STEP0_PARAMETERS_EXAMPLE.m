@@ -258,6 +258,12 @@ RSM_PREDICTOR_ORDER = nan;
 %colourmap used in RSM
 RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
 
+%create noise ceiling bar plots during ROI_STEP10_noiseCeiling
+CREATE_FIGURE_NOISE_CEILING = true;
+
+%create summary line plot during ROI_STEP10_noiseCeiling
+CREATE_FIGURE_SUMMARY = true;
+
 %Custom VOI Summary Figures (part of ROI_STEP10_noiseCeiling)
 %
 %optional custom summary figure(s), can select any set of VOIs/Models in the order
