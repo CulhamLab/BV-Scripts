@@ -48,7 +48,7 @@ for pid = 1:p.NUMBER_OF_PARTICIPANTS
     for vid = 1:number_voi
         fprintf('Plotting participant %d of %d, voi %d of %d...\n', pid, p.NUMBER_OF_PARTICIPANTS, vid, number_voi);
         PlotRSM( fig , p , FONTSIZE, data.RSM_split(:,:,pid,vid) , sprintf('SPLIT - %s - P%02d', data.VOINames{vid}, pid), sprintf('%sSPLIT_%s_P%02d.png', DIR_OUT, data.VOINames{vid}, pid) );
-        PlotRSM( fig , p , FONTSIZE, data.RSM_nonsplit(:,:,pid,vid) , sprintf('SPLIT - %s - P%02d', data.VOINames{vid}, pid), sprintf('%sNONSPLIT_%s_P%02d.png', DIR_OUT, data.VOINames{vid}, pid) );
+        PlotRSM( fig , p , FONTSIZE, data.RSM_nonsplit(:,:,pid,vid) , sprintf('NONSPLIT - %s - P%02d', data.VOINames{vid}, pid), sprintf('%sNONSPLIT_%s_P%02d.png', DIR_OUT, data.VOINames{vid}, pid) );
     end
 end
 close(fig);
