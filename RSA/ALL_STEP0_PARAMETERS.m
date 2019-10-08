@@ -100,6 +100,16 @@ try
         p.CUSTOM_VOI_SUMMARY_FIGURES = [];
     end
     
+    if ~any(strcmp(fs, 'CREATE_FIGURE_NOISE_CEILING'))
+        warning('Parameter file does not contain the new field "p.CREATE_FIGURE_NOISE_CEILING". This field will be defaulted to true.')
+        p.CREATE_FIGURE_NOISE_CEILING = true;
+    end
+    
+    if ~any(strcmp(fs, 'CREATE_FIGURE_SUMMARY'))
+        warning('Parameter file does not contain the new field "p.CREATE_FIGURE_SUMMARY". This field will be defaulted to true.')
+        p.CREATE_FIGURE_SUMMARY = true;
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
