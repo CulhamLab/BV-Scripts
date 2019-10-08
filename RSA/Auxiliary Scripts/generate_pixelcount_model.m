@@ -66,11 +66,11 @@ if any(image_is_collapse)
     fprintf('\nCollapsing images...\n')
     
     %zero the diag
-    edge_count_model_nodiag = pixel_count_model;
-    edge_count_model_nodiag([1:num_image] + [0:num_image:(num_image * (num_image-1))]) = nan;
+    pixel_count_model_nodiag = pixel_count_model;
+    pixel_count_model_nodiag([1:num_image] + [0:num_image:(num_image * (num_image-1))]) = nan;
     
     %init
-    edge_count_model_collapsed = nan(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    pixel_count_model_collapsed = nan(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
     
     %populate
     for p1 = 1:p.NUMBER_OF_CONDITIONS
@@ -79,7 +79,7 @@ if any(image_is_collapse)
         for p2 = (p1):p.NUMBER_OF_CONDITIONS
             ind_p2 = find(image_pred_value == p2);
             
-            values = edge_count_model_nodiag(ind_p1, ind_p2);
+            values = pixel_count_model_nodiag(ind_p1, ind_p2);
             value = nanmean(values(:));
             
             %if all values are nan then it was same images, set +1
@@ -87,8 +87,8 @@ if any(image_is_collapse)
                 value = +1; 
             end
             
-            edge_count_model_collapsed(p1, p2) = value;
-            edge_count_model_collapsed(p2, p1) = value;
+            pixel_count_model_collapsed(p1, p2) = value;
+            pixel_count_model_collapsed(p2, p1) = value;
         end
     end
     
@@ -96,7 +96,7 @@ if any(image_is_collapse)
     fig = figure('Position', [1 1 1200 1000]);
     fprintf('\nCreating collapsed pixel count model figure...\n')
         clf
-        imagesc(edge_count_model_collapsed)
+        imagesc(pixel_count_model_collapsed)
         axis image
         colormap jet
         colorbar
@@ -116,7 +116,7 @@ if any(image_is_collapse)
     fprintf('\nSaving collapsed pixel count model...\n')
     fp = [DIR_SAVE FILENAME_SAVE '_collapsed' '.mat'];
     fprintf('Filepath: %s\n', fp);
-    save(fp, 'edge_count_model_collapsed');
+    save(fp, 'pixel_count_model_collapsed');
     
 end
 
