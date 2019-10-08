@@ -35,6 +35,13 @@ else
     end
 end
 
+%save directory
+if saveFol(1) == '.' %is a relative path
+    saveFolUse = ['..' filesep saveFol];
+else
+    saveFolUse = saveFol;
+end
+
 %range
 % temp = mean(corrs_split,1);
 % ran = [min(temp(:)) max(temp(:))];
@@ -82,32 +89,28 @@ for voi = 1:length(voi_names)
         end
     end
     
-    v = [0 num_model+1 ran];
-    clf
-    hold on
-    rectangle('Position', [v(1), lower, v(2), upper-lower], 'FaceColor', [127 127 127]/255)
-    if do_model_specifc_ceiling
-        for m = submatrix_model_inds
-            rectangle('Position', [m-0.5, model_specific_lower(m,voi), 1, model_specific_upper(m,voi)-model_specific_lower(m,voi)], 'FaceColor', [200 200 200]/255)
+    if p.CREATE_FIGURE_NOISE_CEILING
+        v = [0 num_model+1 ran];
+        clf
+        hold on
+        rectangle('Position', [v(1), lower, v(2), upper-lower], 'FaceColor', [127 127 127]/255)
+        if do_model_specifc_ceiling
+            for m = submatrix_model_inds
+                rectangle('Position', [m-0.5, model_specific_lower(m,voi), 1, model_specific_upper(m,voi)-model_specific_lower(m,voi)], 'FaceColor', [200 200 200]/255)
+            end
         end
+        bar(model_corrs_avg)
+        errorbar(1:length(model_corrs_avg), model_corrs_avg, eb, 'k.')
+        hold off
+        axis(v);
+        set(gca, 'XTick', 1:num_model, 'XTickLabel', strrep(p.MODELS.names,'_',' '));
+        xticklabel_rotate([], 30, [], 'Fontsize', 10);
+        ylabel('Mean Correlation (r-value)')
+        t = [strrep(voi_names{voi},'_',' ') ' (' split_type ')'];
+        title(t);
+        
+        saveas(fig, [saveFolUse t '.png'], 'png')
     end
-    bar(model_corrs_avg)
-    errorbar(1:length(model_corrs_avg), model_corrs_avg, eb, 'k.')
-    hold off
-    axis(v);
-    set(gca, 'XTick', 1:num_model, 'XTickLabel', strrep(p.MODELS.names,'_',' '));
-    xticklabel_rotate([], 30, [], 'Fontsize', 10);
-    ylabel('Mean Correlation (r-value)')
-    t = [strrep(voi_names{voi},'_',' ') ' (' split_type ')'];
-    title(t);
-    
-    if saveFol(1) == '.' %is a relative path
-        saveFolUse = ['..' filesep saveFol];
-    else
-        saveFolUse = saveFol;
-    end
-    
-    saveas(fig, [saveFolUse t '.png'], 'png')
     
     model_corrs_avg_all(voi,:) = model_corrs_avg;
     errorbars_all(voi,:) = eb;
@@ -116,68 +119,79 @@ for voi = 1:length(voi_names)
 end
 
 %% new figure
-clf
+if p.CREATE_FIGURE_SUMMARY
+    clf
+    
+    c=0;
+    hold on
+
+    c=c+1;
+    pl(c) = plot(upper_all, '.--', 'Color', [0 0 0]);
+    leg{c} = 'Noise (upper)';
+
+    c=c+1;
+    pl(c) = plot(lower_all, '.:', 'Color', [0 0 0]);
+    leg{c} = 'Noise (lower)';
+
+    colours = jet(num_model);
+    for m = 1:num_model
+        c=c+1;
+        rvals = model_corrs_avg_all(:,m);
+        pl(c) = plot(rvals, '.-', 'Color', colours(m,:));
+        leg{c} = strrep(p.MODELS.names{m},'_',' ');
+
+        ebs = errorbars_all(:,m);
+        errorbar(1:length(voi_names), rvals, ebs, 'Color', colours(m,:))
+    end
+
+    x = [1 length(voi_names)] + [-0.1 +0.1];
+    plot(x, [0 0], 'k')
+
+    hold off
+
+    legend(pl, leg, 'Location', 'EastOutside');
+
+    v = axis;
+    axis([x v(3:4)]);
+    ylabel('r-value')
+    set(gca, 'XTick', 1:length(voi_names), 'XTickLabel', strrep(voi_names,'_',' '));
+    xticklabel_rotate([], 30, [], 'Fontsize', 10);
+    grid on
+
+    saveas(fig, [saveFolUse 'Summary_' split_type '.png'], 'png')
+end
+
+%% excel
 
 xls = cell(0);
 xls(3:(2+length(voi_names))) = voi_names;
 row = 1;
 num_voi = length(upper_all);
 
-c=0;
-hold on
-
-c=c+1;
-pl(c) = plot(upper_all, '.--', 'Color', [0 0 0]);
-leg{c} = 'Noise (upper)';
 row = row + 1;
 xls{row,1} = 'Noise Ceiling';
 xls{row,2} = 'Upper';
 xls(row,3:(2+num_voi)) = num2cell(upper_all);
 
-c=c+1;
-pl(c) = plot(lower_all, '.:', 'Color', [0 0 0]);
-leg{c} = 'Noise (lower)';
 row = row + 1;
 xls{row,1} = 'Noise Ceiling';
 xls{row,2} = 'Lower';
 xls(row,3:(2+num_voi)) = num2cell(lower_all);
 
-colours = jet(num_model);
 for m = 1:num_model
-    c=c+1;
-	rvals = model_corrs_avg_all(:,m);
-    pl(c) = plot(rvals, '.-', 'Color', colours(m,:));
-    leg{c} = strrep(p.MODELS.names{m},'_',' ');
-    
-	ebs = errorbars_all(:,m);
-    errorbar(1:length(voi_names), rvals, ebs, 'Color', colours(m,:))
-	
-	row = row + 1;
-	xls{row,1} = p.MODELS.names{m};
-	xls{row,2} = 'mean r-value';
-	xls(row,3:(2+num_voi)) = num2cell(rvals);
-	
-	row = row + 1;
-	xls{row,1} = p.MODELS.names{m};
-	xls{row,2} = '95% CI +-';
-	xls(row,3:(2+num_voi)) = num2cell(ebs);
+    rvals = model_corrs_avg_all(:,m);
+    ebs = errorbars_all(:,m);
+
+    row = row + 1;
+    xls{row,1} = p.MODELS.names{m};
+    xls{row,2} = 'mean r-value';
+    xls(row,3:(2+num_voi)) = num2cell(rvals);
+
+    row = row + 1;
+    xls{row,1} = p.MODELS.names{m};
+    xls{row,2} = '95% CI +-';
+    xls(row,3:(2+num_voi)) = num2cell(ebs);
 end
-
-x = [1 length(voi_names)] + [-0.1 +0.1];
-plot(x, [0 0], 'k')
-
-hold off
-
-legend(pl, leg, 'Location', 'EastOutside');
-
-v = axis;
-axis([x v(3:4)]);
-ylabel('r-value')
-set(gca, 'XTick', 1:length(voi_names), 'XTickLabel', strrep(voi_names,'_',' '));
-xticklabel_rotate([], 30, [], 'Fontsize', 10);
-grid on
-
-saveas(fig, [saveFolUse 'Summary_' split_type '.png'], 'png')
 
 %add model-specific noise ceilings
 if do_model_specifc_ceiling
