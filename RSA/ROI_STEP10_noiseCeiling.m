@@ -201,7 +201,241 @@ if exist(xls_fp,'file')
 end
 xlswrite(xls_fp, xls);
 
-%done
+%% custom figures
+number_custom = length(p.CUSTOM_VOI_SUMMARY_FIGURES);
+for c = 1:number_custom
+    fprintf('Creating custom summary figure %d of %d: %s\n', c, number_custom, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NAME);
+    
+    %default to all voi names
+    if isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES)
+        p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES = voi_names;
+    end
+    
+    %select voi
+    ind_voi = cellfun(@(x) find(strcmp(voi_names,x)), p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES);
+    number_voi = length(ind_voi);
+    noise_ceiling_upper = upper_all(ind_voi);
+    noise_ceiling_lower = lower_all(ind_voi);
+    
+    %select model
+    ind_model = cellfun(@(x) find(strcmp(p.MODELS.names,x)), {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME});
+    number_model = length(ind_model);
+    model_corrs_selected = model_corrs_avg_all(ind_voi, ind_model);
+    error_bars_selected = errorbars_all(ind_voi, ind_model);
+    
+    %default model colour to line
+    for m = 1:number_model
+        if isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_COLOUR)
+            p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_COLOUR = p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR;
+        end
+        if isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR)
+            p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR = p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR;
+        end
+    end
+    
+    %COPY_FROM
+    for m = 1:number_model
+        if isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m), 'COPY_FROM') && ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).COPY_FROM) && p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).COPY_FROM
+            fs = fields(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m));
+            for fid = fs'
+                fid = fid{1};
+                v = getfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m), fid);
+                if isempty(v) & ~ischar(v)
+                    p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m) = setfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m), ...
+                                                                        fid, ...
+                                                                        getfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL( p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).COPY_FROM ), fid) );
+                end
+            end
+        end
+    end
+    
+    %clear figure
+    clf
+    clear pl
+    hold on
+
+    %zone
+    ax = [1-p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , number_voi+p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMIN , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMAX];
+    
+    %shaded noise ceiling area
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR)
+        for i = 2:number_voi
+            ns = fill([-1 0 0 -1]+i , [noise_ceiling_upper(i-1) noise_ceiling_upper(i) noise_ceiling_lower(i) noise_ceiling_lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR);
+        end
+    end
+    
+    %x lines
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_VERTICAL
+        for i = 1:number_voi
+            plot([i i],ax(3:4),p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_VERTICAL_TYPE,'Color',p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_VERTICAL_COLOUR,'LineWidth',p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_VERTICAL_WIDTH);
+        end
+    end
+    
+    %y lines
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_HORIZONTAL
+        for i = p.CUSTOM_VOI_SUMMARY_FIGURES(c).YTICKS
+            plot(ax(1:2),[i i],p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_HORIZONTAL_TYPE,'Color',p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_HORIZONTAL_COLOUR,'LineWidth',p.CUSTOM_VOI_SUMMARY_FIGURES(c).DRAW_LINES_HORIZONTAL_WIDTH);
+        end
+    end
+    
+    %zero line
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE)
+        plot(ax(1:2),[0 0], p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_WIDTH);
+    end
+    
+    %plot noise ceiling lines
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_TYPE)
+        pl(1) = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_WIDTH);
+        need_pl_ns_upper = false;
+    else
+        need_pl_ns_upper = true;
+    end
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_TYPE)
+        pl(2) = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_WIDTH);
+        need_pl_ns_lower = false;
+    else
+        need_pl_ns_lower = true;
+    end
+    
+    %plot noise ceiling markers
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_TYPE)
+        if p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_FILLED
+            pli = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_FILL_COLOUR);
+        else
+            pli = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_LINE_WIDTH);
+        end
+        if need_pl_ns_upper
+            pl(1) = pli;
+        end
+    end
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_TYPE)
+        if p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_FILLED
+            pli = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_FILL_COLOUR);
+        else
+            pli = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_LINE_WIDTH);
+        end
+        if need_pl_ns_upper
+            pl(1) = pli;
+        end
+    end
+    
+    %default pl for ceiling
+    if need_pl_ns_upper
+        pl(1) = ns;
+    end
+    if need_pl_ns_lower
+        pl(2) = ns;
+    end
+    
+    %set overrides
+    model_corrs_selected_low = model_corrs_selected - error_bars_selected;
+    model_corrs_selected_high = model_corrs_selected + error_bars_selected;
+    override_greater_zero = false(number_voi, number_model);
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_GREATER_ZERO
+        override_greater_zero = model_corrs_selected_low > 0;
+    end
+    override_signif_highest = false(number_voi, number_model);
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_HIGHEST
+        for v = 1:number_voi
+            [value, index] = max(model_corrs_selected_low(v,:));
+            cmp = model_corrs_selected_high(v,:);
+            cmp(index) = [];
+            if ~any(cmp >= value)
+                override_signif_highest(v,index) = true;
+            end
+        end
+    end
+    
+    %plot models
+    for m = 1:number_model
+        %error bars
+        if p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).ERROR_BARS
+            for v = 1:number_voi
+                errorbar(v, model_corrs_selected(v,m), error_bars_selected(v,m), 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).ERROR_BARS_WIDTH);
+            end
+        end
+        
+        %line
+        if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE)
+            pl(2+m) = plot(model_corrs_selected(:,m), p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_WIDTH);
+            need_pl = false;
+        else
+            need_pl = true;
+        end
+        
+        %markers
+        for v = 1:number_voi
+            if override_signif_highest(v,m)
+                marker = p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_HIGHEST_TYPE;
+                marker_filled = p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_HIGHEST_FILLED;
+            elseif override_greater_zero(v,m)
+                marker = p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_GREATER_ZERO_TYPE;
+                marker_filled = p.CUSTOM_VOI_SUMMARY_FIGURES(c).OVERRIDE_MODEL_MARKER_SIGNIF_GREATER_ZERO_FILLED;
+            else
+                marker = p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_TYPE;
+                marker_filled = p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED;
+            end
+            
+            if ~isempty(marker)
+                if marker_filled
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
+                else
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
+                end
+                
+                if need_pl
+                    need_pl = false;
+                    pl(2+m) = pli;
+                end
+            end
+        end
+        
+        if need_pl
+            need_pl = ns; %no line or marker, put something to prevent crash
+        end
+        
+    end
+    
+    %restrict
+    axis(ax);
+    %yticks
+    set(gca, 'ytick', p.CUSTOM_VOI_SUMMARY_FIGURES(c).YTICKS);
+    
+    
+    %xticks
+    set(gca, 'xtick', 1:number_voi, 'xticklabel', cell(1,number_voi));
+    xticklabel_rotate(1:number_voi, p.CUSTOM_VOI_SUMMARY_FIGURES(c).X_LABEL_ROTATION_DEGREES, strrep(voi_names(ind_voi),'_',' '), 'Fontsize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).FONT_SIZE);
+    
+    %legend
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).LEGEND_DISPLAY
+        legend(pl, ['Noise Ceiling (upper)' 'Noise Ceiling (lower)' {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME}], 'Location', p.CUSTOM_VOI_SUMMARY_FIGURES(c).LEGEND_LOCATION);
+    end
+    
+    %title
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).TITLE)
+        title(p.CUSTOM_VOI_SUMMARY_FIGURES(c).TITLE);
+    end
+    
+    %yaxis label
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL)
+        ylabel(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL);
+    end
+    
+    %font
+    set(gca,'FontSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).FONT_SIZE);
+    
+    %re-restrict
+    axis(ax);
+    
+    %done
+    hold off
+    set(fig, 'PaperPosition', [0 0 15 15]);
+    saveas(fig, [saveFolUse 'Summary_' split_type '_' p.CUSTOM_VOI_SUMMARY_FIGURES(c).NAME '.png'], 'png')
+    
+end
+
+
+%% done
 close(fig)
 disp Done.
 cd ..
