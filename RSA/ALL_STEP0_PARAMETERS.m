@@ -95,6 +95,11 @@ try
         p.VOI_USE_SPLIT = true;
     end
     
+    if ~any(strcmp(fs, 'CUSTOM_VOI_SUMMARY_FIGURES'))
+        warning('Parameter file does not contain the new field "p.CUSTOM_VOI_SUMMARY_FIGURES". This field will be defaulted to empty.')
+        p.CUSTOM_VOI_SUMMARY_FIGURES = [];
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
