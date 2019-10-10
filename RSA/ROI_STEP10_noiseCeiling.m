@@ -443,7 +443,7 @@ for c = 1:number_custom
     
     %yaxis label
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL)
-        ylabel(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL);
+        ylabel(sprintf('%s\n',p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL));
     end
     
     %font
