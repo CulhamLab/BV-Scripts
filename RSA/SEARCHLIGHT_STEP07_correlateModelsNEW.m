@@ -121,7 +121,7 @@ for part = 1:number_parts
     fprintf('-Processing part %d of %d...\n', part, number_parts);
     
     %load
-    step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, part, suffix));
+    step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{par}, part, suffix));
 
     %check size
     if any(step6.ss_ref ~= ss_ref)
