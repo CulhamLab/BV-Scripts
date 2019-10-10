@@ -82,6 +82,11 @@ try
         p.RENUMBER_RUNS = false;
     end
     
+    if ~any(strcmp(fs, 'INDIVIDUAL_MODEL_NOISE_CEILING'))
+        warning('Parameter file does not contain the new field "p.INDIVIDUAL_MODEL_NOISE_CEILING". This field will be defaulted to true.')
+        p.INDIVIDUAL_MODEL_NOISE_CEILING = true;
+    end
+    
     if ~any(strcmp(fs, 'RSM_PREDICTOR_ORDER'))
         warning('Parameter file does not contain the new field "p.RSM_PREDICTOR_ORDER". This field will be defaulted to [1:p.NUMBER_OF_CONDITIONS]')
         p.RSM_PREDICTOR_ORDER = 1:p.NUMBER_OF_CONDITIONS;
