@@ -305,6 +305,7 @@ for c = 1:number_custom
     %zero line
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE)
         plot(ax(1:2),[0 0], p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_WIDTH);
+        plot([1 1]*ax(1), ax(3:4), p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_WIDTH);
     end
     
     %plot noise ceiling lines
@@ -402,9 +403,9 @@ for c = 1:number_custom
             
             if ~isempty(marker)
                 if marker_filled
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
                 else
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
                 end
                 
                 if need_pl
@@ -442,7 +443,7 @@ for c = 1:number_custom
     
     %yaxis label
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL)
-        ylabel(p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL);
+        ylabel(sprintf('%s\n',p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL));
     end
     
     %font
