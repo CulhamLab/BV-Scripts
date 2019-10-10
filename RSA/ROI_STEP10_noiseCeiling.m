@@ -446,6 +446,14 @@ for c = 1:number_custom
         ylabel(sprintf('%s\n',p.CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL));
     end
     
+    %background colour
+    if isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c), 'BACKGROUND_COLOUR_OUTSIDE')
+        set(gcf,'color',p.CUSTOM_VOI_SUMMARY_FIGURES(c).BACKGROUND_COLOUR_OUTSIDE);
+    end
+    if isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c), 'BACKGROUND_COLOUR_INSIDE')
+        set(gca,'color',p.CUSTOM_VOI_SUMMARY_FIGURES(c).BACKGROUND_COLOUR_INSIDE);
+    end
+    
     %font
     set(gca,'FontSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).FONT_SIZE);
     
