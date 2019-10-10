@@ -319,22 +319,19 @@ if exist('selection', 'var')
     RSMs_array = RSMs_array(selection_index, :);
 end
 
-%1. convert to RDM
-RDMs = 1 - RSMs_array;
+%convert to RDM (0=similar to 1=different)
+RDMs = (1 - RSMs_array)/2;
 
-%2. percentile transform
-RDMs_pct = cell2mat(arrayfun(@(x) tiedrank(RDMs(:,x)) / n, 1:dim3, 'UniformOutput', false));
+% fisher z transform
+RDMs_z = atanh(RDMs);
 
-% 3. z transform
-RDMs_pct_z = atanh(RDMs_pct);
-
-%4. calculate upper bound (mean correlation of each matrix to the mean matrix)
-avg = nanmean(RDMs_pct_z, 2);
-corrs_full_average = arrayfun(@(x) corr(RDMs_pct_z(:,x), avg, 'Type', 'Pearson'), 1:dim3);
+%calculate upper bound (mean correlation of each matrix to the mean matrix)
+avg = nanmean(RDMs_z, 2);
+corrs_full_average = arrayfun(@(x) corr(RDMs_z(:,x), avg, 'Type', 'Pearson'), 1:dim3);
 upper = mean(corrs_full_average);
 
-%5. calculate upper bound (mean correlation of each matrix to the leave-this-one-out matrix)
+%calculate upper bound (mean correlation of each matrix to the leave-this-one-out matrix)
 d3s = 1:dim3;
 selections = arrayfun(@(x) d3s(d3s~=x), d3s, 'UniformOutput', false);
-corrs_leave_one_out = arrayfun(@(x) corr(RDMs_pct_z(:,x), nanmean(RDMs_pct_z(:,selections{x}),2), 'Type', 'Pearson'), 1:dim3);
+corrs_leave_one_out = arrayfun(@(x) corr(RDMs_z(:,x), nanmean(RDMs_z(:,selections{x}),2), 'Type', 'Pearson'), 1:dim3);
 lower = mean(corrs_leave_one_out);
