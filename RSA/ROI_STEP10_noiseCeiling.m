@@ -403,9 +403,9 @@ for c = 1:number_custom
             
             if ~isempty(marker)
                 if marker_filled
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
                 else
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
+                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
                 end
                 
                 if need_pl
