@@ -452,7 +452,11 @@ if do_voi_model_split
     %% RSM
     clf
     imagesc(rsm_voi_model_with_nan)
-    colormap([0 0 0; p.RSM_COLOURMAP])
+	if any(isnan(rsm_voi_model_with_nan(:)))
+		colormap([0 0 0; p.RSM_COLOURMAP])
+	else
+		colormap(p.RSM_COLOURMAP)
+	end
     colorbar
     caxis([-1.01 +1])
 
@@ -478,7 +482,13 @@ if do_voi_model_split
     clf;
     imagesc(rsm_voi_model_with_nan);
     caxis([-1.01 +1])
-    colormap([0 0 0; p.RSM_COLOURMAP])
+
+	if any(isnan(rsm_voi_model_with_nan(:)))
+		colormap([0 0 0; p.RSM_COLOURMAP])
+	else
+		colormap(p.RSM_COLOURMAP)
+	end
+	
     axis square;
     axis off;
     SaveFigure(fig, [saveFol_roi t '_nolabel']); 
@@ -579,7 +589,13 @@ if do_voi_model_nonsplit
     %% RSM
     clf
     imagesc(rsm_voi_model_with_nan)
-    colormap([0 0 0; p.RSM_COLOURMAP])
+
+	if any(isnan(rsm_voi_model_with_nan(:)))
+		colormap([0 0 0; p.RSM_COLOURMAP])
+	else
+		colormap(p.RSM_COLOURMAP)
+	end
+	
     colorbar
     caxis([-1.01 +1])
 
@@ -605,7 +621,13 @@ if do_voi_model_nonsplit
     clf;
     imagesc(rsm_voi_model_with_nan);
     caxis([-1.01 +1])
-    colormap([0 0 0; p.RSM_COLOURMAP])
+
+	if any(isnan(rsm_voi_model_with_nan(:)))
+		colormap([0 0 0; p.RSM_COLOURMAP])
+	else
+		colormap(p.RSM_COLOURMAP)
+	end
+	
     axis square;
     axis off;
     SaveFigure(fig, [saveFol_roi t '_nolabel']); 
@@ -729,7 +751,9 @@ set(fig, 'PaperPosition', [0 0 15 15]);
 saveas(fig,filepath,'png');
 
 function PlotModel(model,cmap)
-cmap = [0 0 0; cmap];
+if any(isnan(model(:)))
+	cmap = [0 0 0; cmap];
+end
 imagesc(model)
 caxis([nanmin(model(:))-(2/size(cmap,1)) nanmax(model(:))])
 colormap(cmap);
