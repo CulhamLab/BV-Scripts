@@ -305,6 +305,7 @@ for c = 1:number_custom
     %zero line
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE)
         plot(ax(1:2),[0 0], p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_WIDTH);
+        plot([1 1]*ax(1), ax(3:4), p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_WIDTH);
     end
     
     %plot noise ceiling lines
