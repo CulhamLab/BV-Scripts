@@ -294,6 +294,9 @@ for c = 1:number_custom
         for i = 2:number_voi
             ns = fill([-1 0 0 -1]+i , [noise_ceiling_upper(i-1) noise_ceiling_upper(i) noise_ceiling_lower(i) noise_ceiling_lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR);
         end
+        j = length(pl) + 1;
+        pl(j) = ns;
+        pl_legend{j} = 'Noise Ceiling';
     end
     
     %do model-specific noise ceilings?
@@ -311,8 +314,11 @@ for c = 1:number_custom
                 lower = model_specific_noise_ceiling_lower(m,:);
                 if ~any(isnan([upper lower]))
                     for i = 2:number_voi
-                        fill([-1 0 0 -1]+i , [upper(i-1) upper(i) lower(i) lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR);
+                        ns = fill([-1 0 0 -1]+i , [upper(i-1) upper(i) lower(i) lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR);
                     end
+                    j = length(pl) + 1;
+                    pl(j) = ns;
+                    pl_legend{j} = ['Noise Ceiling (' strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ') ')'];
                 end
             end
         end
