@@ -41,6 +41,8 @@ DRAW_LINES_OVER_MATRIX = []; %leave empty to disable, else array of structures c
 % % % DRAW_LINES_OVER_MATRIX(2).STYLE = ':'; %line style
 % % % DRAW_LINES_OVER_MATRIX(2).WIDTH = 1; %line width
 
+MAKE_MODEL_FIGUES = true;
+
 %% Load
 fprintf('\nLoading images...\n')
 [images, p, image_names, image_pred_value, image_is_collapse] = load_predictor_images;
@@ -99,13 +101,32 @@ p.RSM_COLOURMAP = max(0,min(1,imresize(p.RSM_COLOURMAP, [1000 3])));
 %% Plot
 number_voi = length(data.VOInumVox);
 fig = figure('Position', get(0,'ScreenSize'));
+if MAKE_MODEL_FIGUES
+    for mid = 1:length(p.MODELS.names)
+        rsm = imresize(p.MODELS.matrices{mid}(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER), PIXEL_SIZE_RSM_CELLS, 'Nearest');
+        
+        rsm = rsm - nanmin(rsm(:));
+        rsm = rsm / nanmax(rsm(:));
+        
+        CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, rsm, images_select_resized, images_select_bgd_resized, true);
+        if any(isnan(rsm(:)))
+            colormap([0 0 0; p.RSM_COLOURMAP]);
+        else
+            colormap(p.RSM_COLOURMAP);
+        end
+        caxis([nanmin(rsm(:))-(2/size(p.RSM_COLOURMAP,1)) nanmax(rsm(:))])
+        set(fig, 'PaperPosition', [0 0 15 15]);
+        saveas(fig, [directory_save 'MODEL_' p.MODELS.names{mid} '.png'], 'png');
+        
+    end
+end
 for vid = 1:number_voi
-    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_split(:,:,vid), images_select_resized, images_select_bgd_resized);
+    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_split(:,:,vid), images_select_resized, images_select_bgd_resized, false);
     suptitle(strrep(data.VOINames{vid},'_',' '))
     set(fig, 'PaperPosition', [0 0 15 15]);
     saveas(fig, [directory_save 'SPLIT_' data.VOINames{vid} '.png'], 'png');
     
-    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_nonsplit(:,:,vid), images_select_resized, images_select_bgd_resized);
+    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_nonsplit(:,:,vid), images_select_resized, images_select_bgd_resized, false);
     suptitle(strrep(data.VOINames{vid},'_',' '))
     set(fig, 'PaperPosition', [0 0 15 15]);
     saveas(fig, [directory_save 'NONSPLIT_' data.VOINames{vid} '.png'], 'png');
@@ -115,7 +136,7 @@ close(fig);
 %% Done
 disp Done.
 
-function CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, rsm, images, images_alpha)
+function CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, rsm, images, images_alpha, is_model)
 %check size
 rsm_size = size(rsm,1);
 
@@ -128,7 +149,11 @@ set(gcf,'color',BACKGROUND_COLOUR);
 %draw matrix
 imagesc(rsm);
 colormap(p.RSM_COLOURMAP)
-caxis(p.RSM_COLOUR_RANGE_COND);
+
+%colour range
+if ~is_model
+    caxis(p.RSM_COLOUR_RANGE_COND);
+end
 
 %colour bar
 if COLOUR_BAR.DRAW
