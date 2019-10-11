@@ -275,9 +275,17 @@ for c = 1:number_custom
     
     %clear figure
     clf
-    clear pl
     hold on
 
+    %init
+    pl = [];
+    pl_legend = cell(0);
+    pl_has_ns_upper = false;
+    pl_has_ns_lower = false;
+    pl_has_model = false(number_model);
+    pl_has_model_ns_upper = false(number_model);
+    pl_has_model_ns_lower = false(number_model);
+    
     %zone
     ax = [1-p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , number_voi+p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMIN , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMAX];
     
@@ -285,6 +293,28 @@ for c = 1:number_custom
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR)
         for i = 2:number_voi
             ns = fill([-1 0 0 -1]+i , [noise_ceiling_upper(i-1) noise_ceiling_upper(i) noise_ceiling_lower(i) noise_ceiling_lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR);
+        end
+    end
+    
+    %do model-specific noise ceilings?
+    try_model_specific_noise_ceilings = do_model_specifc_ceiling && isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(1), 'NOISE_CEILING_ENABLED');
+    if try_model_specific_noise_ceilings
+        model_specific_noise_ceiling_upper = model_specific_upper(ind_model, ind_voi);
+        model_specific_noise_ceiling_lower = model_specific_lower(ind_model, ind_voi);
+    end
+    
+    %model-specific shaded noise ceiling area
+    if try_model_specific_noise_ceilings
+        for m = 1:number_model
+            if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED) && p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED && ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR)
+                upper = model_specific_noise_ceiling_upper(m,:);
+                lower = model_specific_noise_ceiling_lower(m,:);
+                if ~any(isnan([upper lower]))
+                    for i = 2:number_voi
+                        fill([-1 0 0 -1]+i , [upper(i-1) upper(i) lower(i) lower(i-1)], p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR, 'EdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_SHADE_COLOUR);
+                    end
+                end
+            end
         end
     end
     
@@ -310,16 +340,22 @@ for c = 1:number_custom
     
     %plot noise ceiling lines
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_TYPE)
-        pl(1) = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_WIDTH);
-        need_pl_ns_upper = false;
-    else
-        need_pl_ns_upper = true;
+        pli = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_LINE_WIDTH);
+        if ~pl_has_ns_upper
+            pl_has_ns_upper = true;
+            j = length(pl)+1;
+            pl(j) = pli;
+            pl_legend{j} = 'Noise Ceiling (upper)';
+        end
     end
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_TYPE)
-        pl(2) = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_WIDTH);
-        need_pl_ns_lower = false;
-    else
-        need_pl_ns_lower = true;
+        pli = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_LINE_WIDTH);
+        if ~pl_has_ns_lower
+            pl_has_ns_lower = true;
+            j = length(pl)+1;
+            pl(j) = pli;
+            pl_legend{j} = 'Noise Ceiling (lower)';
+        end
     end
     
     %plot noise ceiling markers
@@ -329,8 +365,11 @@ for c = 1:number_custom
         else
             pli = plot(noise_ceiling_upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_UPPER_MARKER_LINE_WIDTH);
         end
-        if need_pl_ns_upper
-            pl(1) = pli;
+        if ~pl_has_ns_upper
+            pl_has_ns_upper = true;
+            j = length(pl)+1;
+            pl(j) = pli;
+            pl_legend{j} = 'Noise Ceiling (upper)';
         end
     end
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_TYPE)
@@ -339,17 +378,85 @@ for c = 1:number_custom
         else
             pli = plot(noise_ceiling_lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_LOWER_MARKER_LINE_WIDTH);
         end
-        if need_pl_ns_upper
-            pl(1) = pli;
+        if ~pl_has_ns_lower
+            pl_has_ns_lower = true;
+            j = length(pl)+1;
+            pl(j) = pli;
+            pl_legend{j} = 'Noise Ceiling (lower)';
         end
     end
     
-    %default pl for ceiling
-    if need_pl_ns_upper
-        pl(1) = ns;
+    %model-specific noise ceiling lines
+    if try_model_specific_noise_ceilings
+        for m = 1:number_model
+            if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED) && p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED
+                upper = model_specific_noise_ceiling_upper(m,:);
+                lower = model_specific_noise_ceiling_lower(m,:);
+                if ~any(isnan([upper lower]))
+                    
+                    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_LINE_TYPE)
+                        pli = plot(upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_LINE_WIDTH);
+                        if ~pl_has_model_ns_upper(m)
+                            pl_has_model_ns_upper(m) = true;
+                            j = length(pl)+1;
+                            pl(j) = pli;
+                            pl_legend{j} = ['Noise Ceiling (upper, ' strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ') ')'];
+                        end
+                    end
+                    
+                    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_LINE_TYPE)
+                        pli = plot(lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_LINE_WIDTH);
+                        if ~pl_has_model_ns_lower(m)
+                            pl_has_model_ns_lower(m) = true;
+                            j = length(pl)+1;
+                            pl(j) = pli;
+                            pl_legend{j} = ['Noise Ceiling (lower, ' strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ') ')'];
+                        end
+                    end
+                    
+                end
+            end
+        end
     end
-    if need_pl_ns_lower
-        pl(2) = ns;
+    
+    %model-specific noise ceiling markers
+    if try_model_specific_noise_ceilings
+        for m = 1:number_model
+            if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED) && p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_ENABLED
+                upper = model_specific_noise_ceiling_upper(m,:);
+                lower = model_specific_noise_ceiling_lower(m,:);
+                if ~any(isnan([upper lower]))
+                    
+                    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_TYPE)
+                        if p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_FILLED
+                            pli = plot(upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_FILL_COLOUR);
+                        else
+                            pli = plot(upper, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_UPPER_MARKER_LINE_WIDTH);
+                        end
+                        if ~pl_has_model_ns_upper(m)
+                            pl_has_model_ns_upper(m) = true;
+                            j = length(pl)+1;
+                            pl(j) = pli;
+                            pl_legend{j} = ['Noise Ceiling (upper, ' strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ') ')'];
+                        end
+                    end
+                    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_TYPE)
+                        if p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_FILLED
+                            pli = plot(lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_FILL_COLOUR);
+                        else
+                            pli = plot(lower, p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_TYPE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_COLOUR, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_SIZE, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NOISE_CEILING_LOWER_MARKER_LINE_WIDTH);
+                        end
+                        if ~pl_has_model_ns_lower(m)
+                            pl_has_model_ns_lower(m) = true;
+                            j = length(pl)+1;
+                            pl(j) = pli;
+                            pl_legend{j} = ['Noise Ceiling (lower, ' strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ') ')'];
+                        end
+                    end
+                    
+                end
+            end
+        end
     end
     
     %set overrides
@@ -382,10 +489,13 @@ for c = 1:number_custom
         
         %line
         if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE)
-            pl(2+m) = plot(model_corrs_selected(:,m), p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_WIDTH);
-            need_pl = false;
-        else
-            need_pl = true;
+            pli = plot(model_corrs_selected(:,m), p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_WIDTH);
+            if ~pl_has_model(m)
+                pl_has_model(m) = true;
+                j = length(pl)+1;
+                pl(j) = pli;
+                pl_legend{j} = strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ');
+            end
         end
         
         %markers
@@ -408,15 +518,13 @@ for c = 1:number_custom
                     pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
                 end
                 
-                if need_pl
-                    need_pl = false;
-                    pl(2+m) = pli;
+                if ~pl_has_model(m)
+                    pl_has_model(m) = true;
+                    j = length(pl)+1;
+                    pl(j) = pli;
+                    pl_legend{j} = strrep(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME,'_',' ');
                 end
             end
-        end
-        
-        if need_pl
-            need_pl = ns; %no line or marker, put something to prevent crash
         end
         
     end
@@ -433,7 +541,7 @@ for c = 1:number_custom
     
     %legend
     if p.CUSTOM_VOI_SUMMARY_FIGURES(c).LEGEND_DISPLAY
-        legend(pl, ['Noise Ceiling (upper)' 'Noise Ceiling (lower)' {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME}], 'Location', p.CUSTOM_VOI_SUMMARY_FIGURES(c).LEGEND_LOCATION);
+        legend(pl, pl_legend, 'Location', p.CUSTOM_VOI_SUMMARY_FIGURES(c).LEGEND_LOCATION);
     end
     
     %title
