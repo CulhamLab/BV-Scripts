@@ -26,6 +26,21 @@ LABEL_LINES.WIDTH = 1;
 
 DIRECTORY_NAME_SAVE = 'aux_RSM_ImageLabels';
 
+LABEL_POSITION_PERCENT = 0.5; %1=start, 0.5=middle, 0=end
+
+DRAW_LINES_OVER_MATRIX = []; %leave empty to disable, else array of structures containing WHERE, COLOUR, STYLE, WIDTH
+
+%%EXAMPLE:
+% % % DRAW_LINES_OVER_MATRIX(1).WHERE = [24 30 45 60]; %draw after specified cells
+% % % DRAW_LINES_OVER_MATRIX(1).COLOUR = [0 0 0]; %0-to-1
+% % % DRAW_LINES_OVER_MATRIX(1).STYLE = '-'; %line style
+% % % DRAW_LINES_OVER_MATRIX(1).WIDTH = 1; %line width
+% % % 
+% % % DRAW_LINES_OVER_MATRIX(2).WHERE = [6 12 15 18 21        27      33 36 39 42     48 51 54 57]; %draw after specified cells
+% % % DRAW_LINES_OVER_MATRIX(2).COLOUR = [0 0 0]; %0-to-1
+% % % DRAW_LINES_OVER_MATRIX(2).STYLE = ':'; %line style
+% % % DRAW_LINES_OVER_MATRIX(2).WIDTH = 1; %line width
+
 %% Load
 fprintf('\nLoading images...\n')
 [images, p, image_names, image_pred_value, image_is_collapse] = load_predictor_images;
@@ -83,14 +98,16 @@ p.RSM_COLOURMAP = max(0,min(1,imresize(p.RSM_COLOURMAP, [1000 3])));
 
 %% Plot
 number_voi = length(data.VOInumVox);
-fig = figure('Position', [1 1 1000 1000]);
+fig = figure('Position', get(0,'ScreenSize'));
 for vid = 1:number_voi
-    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, mean_rsm_vois_split(:,:,vid), images_select_resized, images_select_bgd_resized);
+    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_split(:,:,vid), images_select_resized, images_select_bgd_resized);
     suptitle(strrep(data.VOINames{vid},'_',' '))
+    set(fig, 'PaperPosition', [0 0 15 15]);
     saveas(fig, [directory_save 'SPLIT_' data.VOINames{vid} '.png'], 'png');
     
-    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, mean_rsm_vois_nonsplit(:,:,vid), images_select_resized, images_select_bgd_resized);
+    CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, mean_rsm_vois_nonsplit(:,:,vid), images_select_resized, images_select_bgd_resized);
     suptitle(strrep(data.VOINames{vid},'_',' '))
+    set(fig, 'PaperPosition', [0 0 15 15]);
     saveas(fig, [directory_save 'NONSPLIT_' data.VOINames{vid} '.png'], 'png');
 end
 close(fig);
@@ -98,7 +115,7 @@ close(fig);
 %% Done
 disp Done.
 
-function CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, rsm, images, images_alpha)
+function CreateImageRSM(p, PIXEL_SIZE_LABELS, PIXEL_SIZE_RSM_CELLS, NUMBER_OFFSETS_LABELS, LABEL_LINES, BACKGROUND_COLOUR, COLOUR_BAR, FONT_SIZE, LABEL_POSITION_PERCENT, DRAW_LINES_OVER_MATRIX, rsm, images, images_alpha)
 %check size
 rsm_size = size(rsm,1);
 
@@ -133,11 +150,19 @@ image_sizes = cellfun(@size, images, 'UniformOutput', false);
 
 hold on
 
+%lines over matrix
+for j = 1:length(DRAW_LINES_OVER_MATRIX)
+    for k = DRAW_LINES_OVER_MATRIX(j).WHERE
+        plot([0 rsm_size],[k k]*PIXEL_SIZE_RSM_CELLS, DRAW_LINES_OVER_MATRIX(j).STYLE, 'Color', DRAW_LINES_OVER_MATRIX(j).COLOUR, 'LineWidth', DRAW_LINES_OVER_MATRIX(j).WIDTH);
+        plot([k k]*PIXEL_SIZE_RSM_CELLS,[0 rsm_size], DRAW_LINES_OVER_MATRIX(j).STYLE, 'Color', DRAW_LINES_OVER_MATRIX(j).COLOUR, 'LineWidth', DRAW_LINES_OVER_MATRIX(j).WIDTH);
+    end
+end
+
 %draw lines?
 if LABEL_LINES.DRAW
     for c = 1:p.NUMBER_OF_CONDITIONS
         x_center = (mod(c - 1, NUMBER_OFFSETS_LABELS) + 0.5) * -PIXEL_SIZE_LABELS;
-        y_center = ((c-0.5) * PIXEL_SIZE_RSM_CELLS);
+        y_center = ((c-LABEL_POSITION_PERCENT) * PIXEL_SIZE_RSM_CELLS);
         
         plot([x_center 0],[y_center y_center],LABEL_LINES.TYPE,'Color',LABEL_LINES.COLOUR,'LineWidth',LABEL_LINES.WIDTH);
         plot([y_center y_center],[x_center 0],LABEL_LINES.TYPE,'Color',LABEL_LINES.COLOUR,'LineWidth',LABEL_LINES.WIDTH);
@@ -147,7 +172,7 @@ end
 %draw each image
 for c = 1:p.NUMBER_OF_CONDITIONS
     x_center = (mod(c - 1, NUMBER_OFFSETS_LABELS) + 0.5) * -PIXEL_SIZE_LABELS;
-    y_center = ((c-0.5) * PIXEL_SIZE_RSM_CELLS);
+    y_center = ((c-LABEL_POSITION_PERCENT) * PIXEL_SIZE_RSM_CELLS);
     
     x = x_center - image_sizes{c}(2)/2;
     y = y_center - image_sizes{c}(1)/2;
