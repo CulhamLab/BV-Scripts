@@ -238,7 +238,7 @@ for i = 1:num_image
     axis off
     colorbar
     caxis([-0.01 MAX_LUMINANCE])
-    colormap([0 0 0; parula(100)])
+    colormap bone %colormap([0 0 0; parula(100)])
     
     if image_is_collapse(i)
         name = image_names{i};
