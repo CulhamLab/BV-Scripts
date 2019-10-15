@@ -538,18 +538,34 @@ for c = 1:number_custom
         end
     end
     
+    %determine model x positions
+    if ~isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c), 'MODEL_OFFSET_RANGE') || isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL_OFFSET_RANGE)
+        p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL_OFFSET_RANGE = 0;
+    end
+    midpoint = mean(1:number_model);
+    model_offsets = midpoint - [1:number_model];
+    if any(model_offsets)
+        model_offsets = model_offsets / max(model_offsets) * p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL_OFFSET_RANGE / 2 * -1;
+    end
+    for m = 1:number_model
+        if isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m), 'MODEL_OFFSET_OVERRIDE') && ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).MODEL_OFFSET_OVERRIDE)
+            model_offsets(m) = p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).MODEL_OFFSET_OVERRIDE;
+        end
+    end
+    
+    
     %plot models
     for m = 1:number_model
         %error bars
         if p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).ERROR_BARS
             for v = 1:number_voi
-                errorbar(v, model_corrs_selected(v,m), error_bars_selected(v,m), 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).ERROR_BARS_WIDTH);
+                errorbar(v+model_offsets(m), model_corrs_selected(v,m), error_bars_selected(v,m), 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).ERROR_BARS_WIDTH);
             end
         end
         
         %line
         if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE)
-            pli = plot(model_corrs_selected(:,m), p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_WIDTH);
+            pli = plot((1:number_voi)+model_offsets(m),model_corrs_selected(:,m), p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_TYPE, 'Color', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_WIDTH);
             if ~pl_has_model(m)
                 pl_has_model(m) = true;
                 j = length(pl)+1;
@@ -573,9 +589,9 @@ for c = 1:number_custom
             
             if ~isempty(marker)
                 if marker_filled
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
+                    pli = plot(v+model_offsets(m), model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH, 'MarkerFaceColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_FILLED_COLOUR);
                 else
-                    pli = plot(v, model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
+                    pli = plot(v+model_offsets(m), model_corrs_selected(v,m), marker, 'MarkerSize', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_SIZE, 'MarkerEdgeColor', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR, 'LineWidth', p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_LINE_WIDTH);
                 end
                 
                 if ~pl_has_model(m)

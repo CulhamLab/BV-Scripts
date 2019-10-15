@@ -295,6 +295,7 @@ CUSTOM_VOI_SUMMARY_FIGURES = []; %leave empty to diable
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).TITLE = 'test';
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).YLABEL = 'Correlation';
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT = 0.05;
+% % CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL_OFFSET_RANGE = 0; %spread the models out across the range at each VOI (the distance between VOIs is 1.0 units), exclude or set 0 for no spread
 % % 
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_TYPE = '-'; %empty = no line
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).ZERO_LINE_COLOUR = [0 0 0];
@@ -358,6 +359,7 @@ CUSTOM_VOI_SUMMARY_FIGURES = []; %leave empty to diable
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME = 'Graspable1';
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).LINE_COLOUR = [0 0 1];
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).COPY_FROM = 1; %if set true, any fields not defined will be copied from specified model
+% % %CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).MODEL_OFFSET_OVERRIDE = 0; %optional, sets an x offset, overrides CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL_OFFSET_RANGE
 % % 
 % % m=m+1;
 % % CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).NAME = 'Graspable2';
