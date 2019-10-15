@@ -33,7 +33,7 @@ FILEPATH_OUTPUT_MEAN_LUMINANCE_FOREGROUND_MAT_COLLAPSED = 'mean_luminance_foregr
 
 
 APPROX_LUMINANCE_VALUES = reshape([0.299 0.587 0.114], [1 1 3]); %must be 1x1x3
-MAX_LUMINANCE = sqrt(sum( APPROX_LUMINANCE_VALUES .^ 2 ));
+MAX_LUMINANCE = sum(APPROX_LUMINANCE_VALUES);
 
 FONT_SIZE = 6;
 
@@ -229,7 +229,7 @@ for i = 1:num_image
     image = images{i};
     sz = size(image);
     
-    luminance = sqrt(sum(  ( single(image)/255 .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
+    luminance = sqrt(sum(  ((single(image)/255).^ 2) .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1])  , 3));
     luminance(~pixels_use) = nan;
        
     subplot(num_row, num_col, i)
@@ -238,7 +238,7 @@ for i = 1:num_image
     axis off
     colorbar
     caxis([-0.01 MAX_LUMINANCE])
-    colormap([0 0 0; parula(100)])
+    colormap bone %colormap([0 0 0; parula(100)])
     
     if image_is_collapse(i)
         name = image_names{i};
@@ -346,7 +346,7 @@ for i = 1:num_image
     %calculate approx pixel luminance
     image = images{i};
     sz = size(image);
-    luminance = sqrt(sum(  ( single(image)/255 .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
+    luminance = sqrt(sum(  ((single(image)/255).^ 2) .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1])  , 3));
     
     %mean of all pixels
     mean_luminance_all(i) = mean(luminance(:));
