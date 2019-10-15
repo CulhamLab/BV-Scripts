@@ -3,7 +3,7 @@ function generate_colour_average_model
 %% Parameters
 
 DIR_SAVE = pwd;
-FILENAME_SAVE = 'colour average_model';
+FILENAME_SAVE = 'colour_average_model';
 FILETYPE_IMAGE = '.png';
 
 FONT_SIZE = 6;
@@ -50,7 +50,7 @@ for i = 1:num_image
     hold off
     axis image
 end
-fp = [DIR_SAVE FILENAME_SAVE '_perImage' FILETYPE_IMAGE];
+fp = [DIR_SAVE 'colour_averages' FILETYPE_IMAGE];
 imwrite(frame2im(getframe(fig)), fp);
 
 %% Difference Match
