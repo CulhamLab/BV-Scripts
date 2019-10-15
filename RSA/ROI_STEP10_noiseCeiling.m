@@ -74,7 +74,7 @@ num_model = size(corrs_use, 2);
 for voi = 1:length(voi_names)
     RSMs = rsms_use(:,:,:,voi);
     
-    [upper,lower] = compute_rsm_noise_ceiling(RSMs, selection_for_base_ceiling);
+    [upper,lower,indiv_all,indiv_leaveoneout] = compute_rsm_noise_ceiling(RSMs, selection_for_base_ceiling);
     model_corrs = corrs_use(:,:,voi);
     model_corrs_avg = mean(model_corrs, 1);
     
@@ -85,7 +85,7 @@ for voi = 1:length(voi_names)
         model_specific_upper(:,voi) = nan(1, num_model);
         model_specific_lower(:,voi) = nan(1, num_model);
         for m = submatrix_model_inds
-            [model_specific_upper(m,voi), model_specific_lower(m,voi)] = compute_rsm_noise_ceiling(RSMs, ~isnan(models_use{m}));
+            [model_specific_upper(m,voi), model_specific_lower(m,voi), model_specific_corrs_indiv_all(m,voi,:), model_specific_corrs_corrs_indiv_leaveoneout(m,voi,:)] = compute_rsm_noise_ceiling(RSMs, ~isnan(models_use{m}));
         end
     end
     
@@ -116,6 +116,8 @@ for voi = 1:length(voi_names)
     errorbars_all(voi,:) = eb;
     upper_all(voi) = upper;
     lower_all(voi) = lower;
+    corrs_indiv_all(voi,:) = indiv_all;
+    corrs_indiv_leaveoneout(voi,:) = indiv_leaveoneout;
 end
 
 %% new figure
@@ -206,6 +208,58 @@ if do_model_specifc_ceiling
         xls{row,1} = p.MODELS.names{m};
         xls{row,2} = 'model-specific noise ceiling lower';
         xls(row,3:(2+num_voi)) = num2cell(model_specific_lower(m,:));
+    end
+end
+
+%indiv model values
+for m = 1:num_model
+    row = row + 2;
+    xls(row,3:(2+length(voi_names))) = voi_names;
+    for pid = 1:p.NUMBER_OF_PARTICIPANTS
+        row = row + 1;
+        xls{row,1} = sprintf('P%02d', pid);
+        xls{row,2} = p.MODELS.names{m};
+        xls(row,3:(2+num_voi)) = num2cell(squeeze(corrs_use(pid,m,:))');
+    end
+end
+
+%indiv corr values from noise ceils
+row = row + 2;
+xls(row,3:(2+length(voi_names))) = voi_names;
+for pid = 1:p.NUMBER_OF_PARTICIPANTS
+    row = row + 1;
+    xls{row,1} = sprintf('P%02d', pid);
+    xls{row,2} = 'Correlation to group (for upper bound)';
+    xls(row,3:(2+num_voi)) = num2cell(corrs_indiv_all(:,pid)');
+end
+row = row + 2;
+xls(row,3:(2+length(voi_names))) = voi_names;
+for pid = 1:p.NUMBER_OF_PARTICIPANTS
+    row = row + 1;
+    xls{row,1} = sprintf('P%02d', pid);
+    xls{row,2} = 'Correlation to leave-one-out (for lower bound)';
+    xls(row,3:(2+num_voi)) = num2cell(corrs_indiv_leaveoneout(:,pid)');
+end
+
+if do_model_specifc_ceiling
+    for m = submatrix_model_inds
+        row = row + 2;
+        xls(row,3:(2+length(voi_names))) = voi_names;
+        for pid = 1:p.NUMBER_OF_PARTICIPANTS
+            row = row + 1;
+            xls{row,1} = sprintf('P%02d', pid);
+            xls{row,2} = ['model-specific (' p.MODELS.names{m} ') correlation to group (for upper bound)'];
+            xls(row,3:(2+num_voi)) = num2cell(model_specific_corrs_indiv_all(m,:,pid));
+        end
+        
+        row = row + 2;
+        xls(row,3:(2+length(voi_names))) = voi_names;
+        for pid = 1:p.NUMBER_OF_PARTICIPANTS
+            row = row + 1;
+            xls{row,1} = sprintf('P%02d', pid);
+            xls{row,2} = ['model-specific (' p.MODELS.names{m} ') correlation to leave-one-out (for lower bound)'];
+            xls(row,3:(2+num_voi)) = num2cell(model_specific_corrs_corrs_indiv_leaveoneout(m,:,pid));
+        end
     end
 end
 
@@ -597,7 +651,7 @@ end
 
 %RSMs is Cond-by-Cond-by-Particpants, expected range -1 to +1
 %(optional) selection is Cond-by-Cond logical where true indicates cells to include and false indicates cells to exclude
-function [upper,lower] = compute_rsm_noise_ceiling(RSMs, selection)
+function [upper,lower,indiv_all,indiv_leaveoneout] = compute_rsm_noise_ceiling(RSMs, selection)
 %checks and prep
 if ndims(RSMs) ~= 3
     error('Requires 3D matrix.')
@@ -642,11 +696,11 @@ RDMs_pct = cell2mat(arrayfun(@(x) tiedrank(RDMs(:,x)) / n, 1:dim3, 'UniformOutpu
 
 %4. calculate upper bound (mean correlation of each matrix to the mean matrix)
 avg = nanmean(RDMs_pct, 2);
-corrs = arrayfun(@(x) corr(RDMs_pct(:,x), avg, 'Type', 'Pearson'), 1:dim3);
-upper = mean(corrs);
+indiv_all = arrayfun(@(x) corr(RDMs_pct(:,x), avg, 'Type', 'Pearson'), 1:dim3);
+upper = mean(indiv_all);
 
-%5. calculate upper bound (mean correlation of each matrix to the leave-this-one-out matrix)
+%5. calculate lower bound (mean correlation of each matrix to the leave-this-one-out matrix)
 d3s = 1:dim3;
 selections = arrayfun(@(x) d3s(d3s~=x), d3s, 'UniformOutput', false);
-corrs = arrayfun(@(x) corr(RDMs_pct(:,x), nanmean(RDMs_pct(:,selections{x}),2), 'Type', 'Pearson'), 1:dim3);
-lower = mean(corrs);
+indiv_leaveoneout = arrayfun(@(x) corr(RDMs_pct(:,x), nanmean(RDMs_pct(:,selections{x}),2), 'Type', 'Pearson'), 1:dim3);
+lower = mean(indiv_leaveoneout);
