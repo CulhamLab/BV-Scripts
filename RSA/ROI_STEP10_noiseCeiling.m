@@ -267,7 +267,12 @@ xls_fp = [saveFolUse 'Summary_' split_type '.xlsx'];
 if exist(xls_fp,'file')
 	delete(xls_fp)
 end
-xlswrite(xls_fp, xls);
+try
+    xlswrite(xls_fp, xls);
+catch err
+    disp(xls)
+    warning('xlswrite failed. This is a known problem on Mac. The would-be contents of the file have been displayed above.')
+end
 
 %% custom figures
 number_custom = length(p.CUSTOM_VOI_SUMMARY_FIGURES);
