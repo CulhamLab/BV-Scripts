@@ -346,7 +346,7 @@ for i = 1:num_image
     %calculate approx pixel luminance
     image = images{i};
     sz = size(image);
-    luminance = sqrt(sum(  ( single(image)/255 .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1]) ) .^ 2 , 3));
+    luminance = sqrt(sum(  ((single(image)/255).^ 2) .* repmat(APPROX_LUMINANCE_VALUES, [sz(1:2) 1])  , 3));
     
     %mean of all pixels
     mean_luminance_all(i) = mean(luminance(:));
