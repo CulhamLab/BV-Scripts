@@ -222,7 +222,7 @@ if any(image_is_collapse)
     fp = [DIR_SAVE FILENAME_SAVE '_collapsed' '.mat'];
     fprintf('Filepath: %s\n', fp);
 
-    eval(sprintf('%s = model;', [FILENAME_SAVE '_collapsed']))
+    eval(sprintf('%s = model_collapsed;', [FILENAME_SAVE '_collapsed']))
     eval(sprintf('save(fp, ''%s'');', [FILENAME_SAVE '_collapsed']))
     
 end
