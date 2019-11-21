@@ -522,7 +522,8 @@ function CreateFileList
             
             %VTC
             
-            vtc_search = sprintf('%s_%s-S1R%d_*MNI*.vtc', p.PAR.ID{par}, p.VTC.NAME, run);
+            run_name_format = ApplyNamingConvention(p.RUN.NAME_FORMAT, par, run, -1);
+            vtc_search = sprintf('%s_%s_*MNI*.vtc', p.PAR.ID{par}, run_name_format);
             list = dir([p.file_list(par).dir vtc_search]);
             filenames = {list.name};
             
@@ -598,7 +599,8 @@ function CheckBBR
                 continue
             end
             
-            search = sprintf('Workflow_*_%s_%s-S1R%d_%s-S1_BRAIN_IIHC_1_COREG_BBR.txt', p.PAR.ID{par}, p.VTC.NAME, run, p.VMR.NAME);
+            run_name_format = ApplyNamingConvention(p.RUN.NAME_FORMAT, par, run, -1);
+            search = sprintf('Workflow_*_%s_%s_%s-S1_BRAIN_IIHC_1_COREG_BBR.txt', p.PAR.ID{par}, run_name_format, p.VMR.NAME);
             list = dir([fol search]);
             
             if length(list) > 1
@@ -656,7 +658,8 @@ function MotionChecks
                 continue
             end
             
-            search = sprintf('%s_%s-S1R%d_3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME, run);
+            run_name_format = ApplyNamingConvention(p.RUN.NAME_FORMAT, par, run, -1);
+            search = sprintf('%s_%s_3DMC.sdm', p.PAR.ID{par}, run_name_format);
             list = dir([p.file_list(par).dir search]);
             if length(list) > 1
                 error2( 'Too many files found for SDM searc: %s\n%s', search, sprintf('%s\n', list.name));
@@ -1172,10 +1175,11 @@ function GenerateSDMs
                 sdm.RTCMatrix = sdm.RTCMatrix(:,1:(sdm.FirstConfoundPredictor-1));
                 
                 %save
+                run_name_format = ApplyNamingConvention(p.RUN.NAME_FORMAT, par, run, -1, true);
                 if ~iscell(p.PRT.SETS)
-                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC.sdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, run);
+                    fn_out = sprintf('%s_%s_PRT-and-3DMC.sdm', p.PAR.ID{par}, run_name_format);
                 else
-                    fn_out = sprintf('%s_%s-S1R%d_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, p.VTC.NAME_NOWILDCARD, run, p.PRT.SETS{set});
+                    fn_out = sprintf('%s_%s_PRT-and-3DMC_%s.sdm', p.PAR.ID{par}, run_name_format, p.PRT.SETS{set});
                 end
                 
                 p.file_list(par).run(run).sdm{set} = fn_out;
@@ -1286,7 +1290,7 @@ function [did_link] = LinkPRT(fp_vtc, fn_prt)
     vtc.clear;
 end
 
-function [string] = ApplyNamingConvention(string, par, run, set)
+function [string] = ApplyNamingConvention(string, par, run, set, func_name_nowild)
     global p
     string = strrep(string, '[PID]', p.PAR.ID{par});
     
@@ -1312,6 +1316,12 @@ function [string] = ApplyNamingConvention(string, par, run, set)
         replace = sprintf(sprintf('%%0%sd', num), par);
         
         string = strrep(string, exp, replace);    
+    end
+    
+    if exist('func_name_nowild', 'var') && func_name_nowild
+        string = strrep(string, '[FuncName]', p.VTC.NAME_NOWILDCARD);
+    else
+        string = strrep(string, '[FuncName]', p.VTC.NAME);
     end
 end
 
