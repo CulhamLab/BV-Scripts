@@ -306,6 +306,10 @@ for c = 1:number_custom
     model_corrs_selected = model_corrs_avg_all(ind_voi, ind_model);
     error_bars_selected = errorbars_all(ind_voi, ind_model);
     
+    %model-specific values
+    model_specific_noise_ceiling_upper = model_specific_upper(ind_model, ind_voi);
+    model_specific_noise_ceiling_lower = model_specific_lower(ind_model, ind_voi);
+    
     %default model colour to line
     for m = 1:number_model
         if isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(m).DEFAULT_MARKER_COLOUR)
@@ -348,6 +352,26 @@ for c = 1:number_custom
     %zone
     ax = [1-p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , number_voi+p.CUSTOM_VOI_SUMMARY_FIGURES(c).SPACING_LEFT_RIGHT , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMIN , p.CUSTOM_VOI_SUMMARY_FIGURES(c).YMAX];
     
+    %normalize to noise ceiling lower bound?
+    if p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND
+        
+        for m = 1:number_model
+            div = model_specific_noise_ceiling_lower(m,:);
+            if ~any(~isnan(div))
+                div = noise_ceiling_lower;
+            end
+            
+            model_corrs_selected(:,m) = model_corrs_selected(:,m) ./ div';
+            error_bars_selected(:,m) = error_bars_selected(:,m) ./ div';
+        end
+        
+        model_specific_noise_ceiling_upper = model_specific_noise_ceiling_upper ./ model_specific_noise_ceiling_lower;
+        model_specific_noise_ceiling_lower = model_specific_noise_ceiling_lower ./ model_specific_noise_ceiling_lower;
+        
+        noise_ceiling_upper = noise_ceiling_upper ./ noise_ceiling_lower;
+        noise_ceiling_lower = noise_ceiling_lower ./ noise_ceiling_lower;
+    end
+    
     %shaded noise ceiling area
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NOISE_CEILING_SHADE_COLOUR)
         for i = 2:number_voi
@@ -359,11 +383,7 @@ for c = 1:number_custom
     end
     
     %do model-specific noise ceilings?
-    try_model_specific_noise_ceilings = do_model_specifc_ceiling && isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(1), 'NOISE_CEILING_ENABLED');
-    if try_model_specific_noise_ceilings
-        model_specific_noise_ceiling_upper = model_specific_upper(ind_model, ind_voi);
-        model_specific_noise_ceiling_lower = model_specific_lower(ind_model, ind_voi);
-    end
+    try_model_specific_noise_ceilings = do_model_specifc_ceiling && isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(1), 'NOISE_CEILING_ENABLED') && ~p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND;
     
     %model-specific shaded noise ceiling area
     if try_model_specific_noise_ceilings
