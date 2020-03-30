@@ -133,8 +133,10 @@ for vid = 1:voi.NrOfVOIs %for each voi...
         end
         
         %if there are any missing values, remove the row (remove the voxel)
-        indNotNan = find(~isnan(sum(sum(betas,3),2)));
-        betas = betas(indNotNan,:,:);
+        if ~isfield(p, 'ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS') || ~p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS
+            indNotNan = find(~isnan(sum(sum(betas,3),2)));
+            betas = betas(indNotNan,:,:);
+        end
         
         %%%%%NOT VERY EFFICIENT
         for c1 = 1:p.NUMBER_OF_CONDITIONS %even
