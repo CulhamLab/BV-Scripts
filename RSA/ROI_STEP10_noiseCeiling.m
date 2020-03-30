@@ -383,7 +383,7 @@ for c = 1:number_custom
     end
     
     %do model-specific noise ceilings?
-    try_model_specific_noise_ceilings = do_model_specifc_ceiling && isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(1), 'NOISE_CEILING_ENABLED') && ~p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND;
+    try_model_specific_noise_ceilings = do_model_specifc_ceiling && isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL(1), 'NOISE_CEILING_ENABLED');
     
     %model-specific shaded noise ceiling area
     if try_model_specific_noise_ceilings
