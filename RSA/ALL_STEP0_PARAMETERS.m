@@ -115,6 +115,11 @@ try
         p.CREATE_FIGURE_SUMMARY = true;
     end
     
+    if ~any(strcmp(fs, 'ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS'))
+        warning('Parameter file does not contain the new field "p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS". This field will be defaulted to false.')
+        p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
