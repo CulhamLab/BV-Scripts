@@ -18,7 +18,7 @@ end
 
 %% read VOI RSMs
 try
-    load([main_path p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep 'VOI_RSMs.mat']);
+    load([p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep 'VOI_RSMs.mat']);
 catch err
     warning('Could not load VOI RSMs. Has VOI step6 been run or has data moved?')
     rethrow(err);
