@@ -120,6 +120,15 @@ try
         p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
     end
     
+    if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES) 
+        for c = 1:length(p.CUSTOM_VOI_SUMMARY_FIGURES)
+            if ~isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c), 'NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND') || isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND)
+                warning('Parameter file does not contain the new field "p.CUSTOM_VOI_SUMMARY_FIGURES(%d).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND". This field will be defaulted to false.', c)
+                p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND = false;
+            end
+        end
+    end
+    
 catch err
 	cd(return_path);
 	rethrow(err);
