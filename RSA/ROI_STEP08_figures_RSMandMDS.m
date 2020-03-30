@@ -68,7 +68,7 @@ if do_cond_rsm_split
 for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
-    rsm = mean(rsms_split(:,:,:,vid),3);
+    rsm = nanmean(rsms_split(:,:,:,vid),3);
     
     %reorder
     rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
@@ -112,7 +112,7 @@ if do_cond_rsm_nonsplit
 for vid = 1:numVOI_type
     clf;
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
     
     %reorder
     rsm_reorder = rsm(p.RSM_PREDICTOR_ORDER,p.RSM_PREDICTOR_ORDER);
@@ -158,7 +158,7 @@ for vid = 1:numVOI_type
     clf;
     
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
     
     %convert to rdm
     rdm = (rsm-1) *-0.5; %multiplying by 0.5 doesn't affect mds but fits data 0-1 (unless Fisher is applied)
@@ -214,7 +214,7 @@ rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
-    rsm = mean(rsms_split(:,:,:,vid),3);
+    rsm = nanmean(rsms_split(:,:,:,vid),3);
     rsm_array = rsm(:);
     rsms(:,vid) = rsm_array;
 end
@@ -259,7 +259,7 @@ rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
     rsm_array = rsm(:);
     rsms(:,vid) = rsm_array;
 end
@@ -303,7 +303,7 @@ rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
-    rsm = mean(rsms_split(:,:,:,vid),3);
+    rsm = nanmean(rsms_split(:,:,:,vid),3);
     rsm_array = rsm(:);
     rsms(:,vid) = rsm_array;
 end
@@ -351,7 +351,7 @@ rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
-    rsm = mean(rsms_nonsplit(:,:,:,vid),3);
+    rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
     rsm_array = rsm(:);
     rsms(:,vid) = rsm_array;
 end
@@ -408,7 +408,7 @@ if do_voi_model_split
 
     for vid = 1:numVOI_type
         %mean rsm across subs
-        rsm = mean(rsms_split(:,:,:,vid),3); %use split data
+        rsm = nanmean(rsms_split(:,:,:,vid),3); %use split data
         rsm_array = rsm(:);
         rsms(:,vid) = rsm_array;
         is_data(vid) = true;
@@ -545,7 +545,7 @@ if do_voi_model_nonsplit
 
     for vid = 1:numVOI_type
         %mean rsm across subs
-        rsm = mean(rsms_nonsplit(:,:,:,vid),3); %use split data
+        rsm = nanmean(rsms_nonsplit(:,:,:,vid),3); %use split data
         rsm_array = rsm(:);
         rsms(:,vid) = rsm_array;
         is_data(vid) = true;
