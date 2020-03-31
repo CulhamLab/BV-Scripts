@@ -27,7 +27,7 @@ else
 end
 
 %range
-temp = mean(data_use,1);
+temp = nanmean(data_use,1);
 ran = [min(temp(:)) max(temp(:))];
 ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 
@@ -56,7 +56,7 @@ for voi = 1:length(voi_names)
     name = voi_names{voi};
     name(name=='_') = ' ';
     subplot(r,c,voi)
-    corrs = mean(data_use(:,:,voi),1);
+    corrs = nanmean(data_use(:,:,voi),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
@@ -124,7 +124,7 @@ for m = 1:length(p.MODELS.names)
     name = p.MODELS.names{m};
     name(name=='_') = ' ';
     subplot(r,c,m)
-    corrs = mean(data_use(:,m,:),1);
+    corrs = nanmean(data_use(:,m,:),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
