@@ -63,6 +63,15 @@ do_voi_model_nonsplit = true;
 do_model_figures_split = true;
 do_model_figures_nonsplit = true;
 
+%toggle off split if not VOI_USE_SPLIT
+if ~p.VOI_USE_SPLIT
+    do_cond_rsm_split = false;
+    do_voi_mds_split = false;
+    do_voi_rsm_split = false;
+    do_voi_model_split = false;
+    do_model_figures_split = false;
+end
+
 %% Condition RSM (split)
 if do_cond_rsm_split
 for vid = 1:numVOI_type
