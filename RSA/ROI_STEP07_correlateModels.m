@@ -15,6 +15,11 @@ end
 %load ROI RSMs
 load([readFol 'VOI_RSMs'])
 
+%valid version?
+if ~exist('dates') || ~isfield(dates, 'Step6') || dates.Step6.VERSION<datetime('April 24, 2020')
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 %count
 numVOI = size(data.RSM_split,4);
 numMod = length(p.MODELS.names);

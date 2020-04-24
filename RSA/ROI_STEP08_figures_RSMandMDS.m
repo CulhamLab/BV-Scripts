@@ -35,6 +35,11 @@ end
 %load ROI RSMs
 load([readFol 'VOI_corrs'])
 
+%valid version?
+if ~exist('dates') || ~isfield(dates, 'Step6') || dates.Step6.VERSION<datetime('April 24, 2020')
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
 
