@@ -76,7 +76,7 @@ for run = 1:p.NUMBER_OF_RUNS
     
     file = load(loadPath);
     
-    if run == 1
+    if (run == 1) && isfield(file, 'runtime')
         runtime = file.runtime;
     end
     
