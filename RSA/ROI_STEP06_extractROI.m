@@ -172,6 +172,9 @@ for vid = 1:voi.NrOfVOIs %for each voi...
             end
         end
         end
+        
+        %average odd/even and even/odd to create symmetrical RSM
+        data.RSM_split(:,:,par,vid) = arrayfun(@(x,y) nanmean([x y]), data.RSM_split(:,:,par,vid), data.RSM_split(:,:,par,vid)');
    end
 end
 

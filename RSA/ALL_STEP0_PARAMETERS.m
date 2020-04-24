@@ -79,6 +79,19 @@ try
     p.DATES.VERSION = datetime('April 24, 2020');
     p.DATES.RUN = datetime('today');
     
+    %remove split model lower half (keep upper + diag)
+    [row,col] = ind2sub([p.NUMBER_OF_CONDITIONS p.NUMBER_OF_CONDITIONS],1:(p.NUMBER_OF_CONDITIONS^2));
+    indClear = find(col < row);
+    for i = 1:length(p.MODELS.matrices)
+        p.MODELS.matrices{i}(indClear) = nan;
+    end
+    
+    %remove nonsplit model lower half plus diag (keep upper)
+    indClear = find(col <= row);
+    for i = 1:length(p.MODELS.matrices)
+        p.MODELS.matricesNonsplit{i}(indClear) = nan;
+    end
+    
     %check new fields
     fs = fields(p);
     if ~any(strcmp(fs, 'RENUMBER_RUNS'))
