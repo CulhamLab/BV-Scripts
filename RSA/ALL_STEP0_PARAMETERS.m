@@ -75,6 +75,10 @@ try
     %add directory to filelist
     p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
     
+    %add version timestamp
+    p.DATES.VERSION = datetime('April 24, 2020');
+    p.DATES.RUN = datetime('today');
+    
     %check new fields
     fs = fields(p);
     if ~any(strcmp(fs, 'RENUMBER_RUNS'))

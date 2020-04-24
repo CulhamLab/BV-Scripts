@@ -263,7 +263,8 @@ end
 
 %save part
 fprintf('-Saving part %d (voxels %d to %d)...\n', part, part_min, part_max);
-save([saveFol sprintf('step6_RSMs_%s_PART%02d_%s',p.FILELIST_PAR_ID{par},part,suffix)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
+dates.Step6= p.DATES;
+save([saveFol sprintf('step6_RSMs_%s_PART%02d_%s',p.FILELIST_PAR_ID{par},part,suffix)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part','dates')
 
 end
 

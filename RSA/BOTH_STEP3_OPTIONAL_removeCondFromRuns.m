@@ -55,11 +55,12 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
         betas(:,condsToRemove) = nan;
         
         %resave in new folder
+        dates.Step3 = p.DATES;
         removalNotice = sprintf('The following conditions were intentionally set to nan: %s',sprintf('%d ',condsToRemove));
         if ~exist('notice','var')
-            save(sprintf('%s%s',folSave,loadname),'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','removalNotice','conditionNames');
+            save(sprintf('%s%s',folSave,loadname),'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','removalNotice','conditionNames','dates');
         else
-            save(sprintf('%s%s',folSave,loadname),'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','notice','removalNotice','conditionNames');
+            save(sprintf('%s%s',folSave,loadname),'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','notice','removalNotice','conditionNames','dates');
         end
     end
 end

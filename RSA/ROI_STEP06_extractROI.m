@@ -14,7 +14,7 @@ end
 
 %% process each voi
 if ~iscell(p.VOI_FILE) && isnan(p.VOI_FILE)
-    voi_data = process_voi(nan, p, readFol);
+    [voi_data,dates] = process_voi(nan, p, readFol);
 else
     if ~iscell(p.VOI_FILE)
         p.VOI_FILE = {p.VOI_FILE};
@@ -25,7 +25,10 @@ else
         voi_path = p.VOI_FILE{i};
         fprintf('Processing VOI file %d of %d (%s) ...\n', i, num_voi, voi_path);
         
-        voi_data(i) = process_voi(voi_path, p, readFol);
+        [voi_data(i),d] = process_voi(voi_path, p, readFol);
+        if i==1
+            dates = d;
+        end
     end
 end
 
@@ -56,10 +59,11 @@ fprintf('Total VOIs: %d\n', count_voi);
 
 %% save
 
-save([saveFol 'VOI_RSMs'],'data','vtcRes')
+dates.Step6 = p.DATES;
+save([saveFol 'VOI_RSMs'],'data','vtcRes','dates')
 disp Done.
 
-function [voi_data] = process_voi(voi_filepath, p, readFol)
+function [voi_data,dates] = process_voi(voi_filepath, p, readFol)
 
 %load VOI file
 if isnan(voi_filepath)
@@ -173,3 +177,5 @@ end
 
 voi_data.data = data;
 voi_data.vtcRes = vtcRes;
+
+dates = preloaded_subdata(1).dates;

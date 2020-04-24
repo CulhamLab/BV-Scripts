@@ -76,6 +76,10 @@ for run = 1:p.NUMBER_OF_RUNS
     
     file = load(loadPath);
     
+    if run == 1
+        dates = file.dates;
+    end
+    
     if ~participant_setup_completed
         %individualize numVox (w/ data)
         numVox = size(file.betas,1);
@@ -165,7 +169,8 @@ vox = vox(indKeep,:);
 
 %save
 conditions = p.CONDITIONS;
-save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossSub','oddBetas_MeanAcrossSub','evenBetas_MeanAcrossSub','conditions','vtcRes')
+dates.Step4 = p.DATES;
+save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossSub','oddBetas_MeanAcrossSub','evenBetas_MeanAcrossSub','conditions','vtcRes','dates')
 
 end
 

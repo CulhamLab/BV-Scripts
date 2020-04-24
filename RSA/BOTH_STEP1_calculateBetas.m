@@ -317,8 +317,9 @@ VariableHelp.vtcFilepath = 'path to time course used';
 VariableHelp.sdmFilepath = 'path to design matrix used';
 VariableHelp.voiWholeBrain = 'BVQX voi struct for the whole-brain.';
 
-%save everything we may need (voiWholeBrain may be overkill but it's small)
-save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames');
+%save
+dates.Step1 = p.DATES;
+save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames' 'dates');
 
 vtc.ClearObject;
 sdm.ClearObject;

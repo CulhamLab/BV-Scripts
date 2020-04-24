@@ -212,7 +212,8 @@ for vid = 1:numVOI_type
 	
 	all_MD2D(:,:,vid) = MD2D;
 end
-save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS')
+dates.Step8 = p.DATES;
+save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS', 'dates')
 end
     
 %% VOI-VOI MDS
