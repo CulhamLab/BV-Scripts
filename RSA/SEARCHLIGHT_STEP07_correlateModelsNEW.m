@@ -45,7 +45,7 @@ end
 %% load part 1 for info
 fprintf('-Loading participant 1, part 1 and initializing...\n');
 step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, 1, suffix));
-dates = step6.dates.
+dates = step6.dates;
 ss_ref = step6.ss_ref;
 vtcRes = step6.vtcRes;
 number_parts = step6.number_parts;
