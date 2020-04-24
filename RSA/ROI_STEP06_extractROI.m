@@ -178,4 +178,8 @@ end
 voi_data.data = data;
 voi_data.vtcRes = vtcRes;
 
-dates = preloaded_subdata(1).dates;
+if isfield(preloaded_subdata, 'dates')
+    dates = preloaded_subdata(1).dates;
+else
+    dates = struct;
+end
