@@ -38,6 +38,11 @@ clearvars -except par inputFol saveFol p maps suffix prefix suffix_save
 %load
 load([inputFol sprintf('%s_modelCorrelations_%s%s.mat',prefix,p.FILELIST_PAR_ID{par},suffix)]);
 
+%valid version?
+if ~exist('dates') || ~isfield(dates, 'Step6') || dates.Step6.VERSION<datetime('April 24, 2020')
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 for m = 1:models.mNum
     %vmp map
     map = [];

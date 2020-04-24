@@ -50,6 +50,11 @@ ss_ref = step6.ss_ref;
 vtcRes = step6.vtcRes;
 number_parts = step6.number_parts;
 
+%valid version?
+if ~isfield(step6, 'dates') || ~isfield(step6.dates, 'Step6') || step6.dates.Step6.VERSION<datetime('April 24, 2020')
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 convert_sf_rdms = false;
 if ~step6.usedSplit
     ind_first = find(~cellfun(@isempty, step6.RSMs), 1, 'first');
