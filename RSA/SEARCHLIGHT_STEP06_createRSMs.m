@@ -210,6 +210,7 @@ for voxInd = indxVoxWithData_part'
                 warning('nans should not make it into rsm') %%this is happening
             else
                 if p.SEARCHLIGHT_USE_SPLIT
+                    rsm = arrayfun(@(x,y) nanmean([x y]), rsm, rsm');
                     RSMs{x_center,y_center,z_center} = rsm;
                 else
                     rdm = 1 - rsm;
@@ -250,6 +251,7 @@ for voxInd = indxVoxWithData_part'
         
         if sum(~isnan(rsm(:))) %so long as there is 1+ non-nan
             if p.SEARCHLIGHT_USE_SPLIT
+                rsm = arrayfun(@(x,y) nanmean([x y]), rsm, rsm');
                 RSMs{x_center,y_center,z_center} = rsm;
             else
                 rdm = 1 - rsm;
