@@ -18,7 +18,7 @@ load([readFolA 'VOI_RSMs'])
 load([readFolB 'VOI_corrs'])
 
 %valid version?
-if ~exist('dates') || ~isfield(dates, 'Step6') || dates.Step6.VERSION<datetime('April 24, 2020')
+if ~exist('runtime', 'var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1
     error('The odd//even split method has been improved. Rerun from step 6.')
 end
 

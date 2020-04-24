@@ -76,8 +76,11 @@ try
     p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
     
     %add version timestamp
-    p.DATES.VERSION = datetime('April 24, 2020');
-    p.DATES.RUN = datetime('today');
+    %1. April 24, 2020
+    %   -new odd/even split method (mandatory)
+    %   -track runtime info in data files
+    p.RUNTIME.VERSION = 1;
+    p.RUNTIME.RUN = datetime('now');
     
     %remove split model lower half (keep upper + diag)
     [row,col] = ind2sub([p.NUMBER_OF_CONDITIONS p.NUMBER_OF_CONDITIONS],1:(p.NUMBER_OF_CONDITIONS^2));

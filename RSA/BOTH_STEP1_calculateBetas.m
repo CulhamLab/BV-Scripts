@@ -318,8 +318,8 @@ VariableHelp.sdmFilepath = 'path to design matrix used';
 VariableHelp.voiWholeBrain = 'BVQX voi struct for the whole-brain.';
 
 %save
-dates.Step1 = p.DATES;
-save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames' 'dates');
+runtime.Step1 = p.RUNTIME;
+save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames' 'runtime');
 
 vtc.ClearObject;
 sdm.ClearObject;

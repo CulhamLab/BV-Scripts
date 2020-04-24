@@ -16,7 +16,7 @@ end
 load([readFol 'VOI_RSMs'])
 
 %valid version?
-if ~exist('dates') || ~isfield(dates, 'Step6') || dates.Step6.VERSION<datetime('April 24, 2020')
+if ~exist('runtime','var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1
     error('The odd//even split method has been improved. Rerun from step 6.')
 end
 
@@ -59,5 +59,5 @@ rsms_split = data.RSM_split;
 
 voi_names = cellfun(@(x) strrep(strrep(x,'/',' '),'\', ' '), data.VOINames, 'UniformOutput', false);
 
-dates.Step7 = p.DATES;
-save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names','dates')
+runtime.Step7 = p.RUNTIME;
+save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names','runtime')

@@ -14,7 +14,7 @@ end
 
 %% process each voi
 if ~iscell(p.VOI_FILE) && isnan(p.VOI_FILE)
-    [voi_data,dates] = process_voi(nan, p, readFol);
+    [voi_data,runtime] = process_voi(nan, p, readFol);
 else
     if ~iscell(p.VOI_FILE)
         p.VOI_FILE = {p.VOI_FILE};
@@ -27,7 +27,7 @@ else
         
         [voi_data(i),d] = process_voi(voi_path, p, readFol);
         if i==1
-            dates = d;
+            runtime = d;
         end
     end
 end
@@ -59,11 +59,11 @@ fprintf('Total VOIs: %d\n', count_voi);
 
 %% save
 
-dates.Step6 = p.DATES;
-save([saveFol 'VOI_RSMs'],'data','vtcRes','dates')
+runtime.Step6 = p.RUNTIME;
+save([saveFol 'VOI_RSMs'],'data','vtcRes','runtime')
 disp Done.
 
-function [voi_data,dates] = process_voi(voi_filepath, p, readFol)
+function [voi_data,runtime] = process_voi(voi_filepath, p, readFol)
 
 %load VOI file
 if isnan(voi_filepath)
@@ -181,8 +181,8 @@ end
 voi_data.data = data;
 voi_data.vtcRes = vtcRes;
 
-if isfield(preloaded_subdata, 'dates')
-    dates = preloaded_subdata(1).dates;
+if isfield(preloaded_subdata, 'runtime')
+    runtime = preloaded_subdata(1).runtime;
 else
-    dates = struct;
+    runtime = struct;
 end

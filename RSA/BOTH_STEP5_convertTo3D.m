@@ -81,8 +81,8 @@ for i = 1:p.NUMBER_OF_CONDITIONS
     betas_3D_odd(:,:,:,i) = thisBetaSlice_odd;
 end
 
-dates.Step5 = p.DATES;
-save([saveFol sprintf('step3_organize3D_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','betas_3D_all','betas_3D_even','betas_3D_odd','conditions','vtcRes','dates')
+runtime.Step5 = p.RUNTIME;
+save([saveFol sprintf('step3_organize3D_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','betas_3D_all','betas_3D_even','betas_3D_odd','conditions','vtcRes','runtime')
 
 end
 
