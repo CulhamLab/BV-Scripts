@@ -1,6 +1,6 @@
 %places betas (odd and even, separate) from step2 in 3D matrices for easier searchlight-ing
 
-function BOTH_step1_PREPARE5_convertTo3D
+function BOTH_STEP5_convertTo3D
 
 %params
 [p] = ALL_STEP0_PARAMETERS;
