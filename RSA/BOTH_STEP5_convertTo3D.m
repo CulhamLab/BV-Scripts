@@ -19,6 +19,11 @@ clearvars -except par p ss inputFol saveFol doOnce
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
 load ([inputFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})])
 
+%check if need rerun due to reorganized data in step 4
+if ~exist('allBetas_MeanAcrossRun', 'var')
+    error('The naming in step 4 has been changed. Please rerun step 4.')
+end
+
 if ~doOnce
     ss = [floor(length(p.BBOX.XStart:p.BBOX.XEnd)/vtcRes) floor(length(p.BBOX.YStart:p.BBOX.YEnd)/vtcRes) floor(length(p.BBOX.ZStart:p.BBOX.ZEnd)/vtcRes)];
     fprintf('Data will be placed into matrix %d x %d x %d\n',ss)
