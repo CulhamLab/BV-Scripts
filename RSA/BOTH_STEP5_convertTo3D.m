@@ -72,9 +72,9 @@ for i = 1:p.NUMBER_OF_CONDITIONS
     thisBetaSlice_even = nan(ss);
     thisBetaSlice_odd = nan(ss);
     
-    thisBetaSlice_all(indxVoxWithData) = allBetas_MeanAcrossSub(:,i);
-    thisBetaSlice_even(indxVoxWithData) = evenBetas_MeanAcrossSub(:,i);
-    thisBetaSlice_odd(indxVoxWithData) = oddBetas_MeanAcrossSub(:,i);
+    thisBetaSlice_all(indxVoxWithData) = allBetas_MeanAcrossRun(:,i);
+    thisBetaSlice_even(indxVoxWithData) = evenBetas_MeanAcrossRun(:,i);
+    thisBetaSlice_odd(indxVoxWithData) = oddBetas_MeanAcrossRun(:,i);
     
     betas_3D_all(:,:,:,i) = thisBetaSlice_all;
     betas_3D_even(:,:,:,i) = thisBetaSlice_even;
