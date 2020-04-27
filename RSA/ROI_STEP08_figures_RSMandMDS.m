@@ -65,8 +65,7 @@ do_voi_rsm_split = true;
 do_voi_rsm_nonsplit = true;
 do_voi_model_split = true;
 do_voi_model_nonsplit = true;
-do_model_figures_split = true;
-do_model_figures_nonsplit = true;
+do_model_figures = true;
 
 %toggle off split if not VOI_USE_SPLIT
 if ~p.VOI_USE_SPLIT
@@ -74,7 +73,6 @@ if ~p.VOI_USE_SPLIT
     do_voi_mds_split = false;
     do_voi_rsm_split = false;
     do_voi_model_split = false;
-    do_model_figures_split = false;
 end
 
 %% Condition RSM (split)
@@ -684,11 +682,21 @@ if do_voi_model_nonsplit
 end
 
 %% Model Figures (split)
-if do_model_figures_split
+if do_model_figures
     number_models = length(p.MODELS.names);
     
     for m = 1:number_models
         model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+        
+        for c1 = 1:p.NUMBER_OF_CONDITIONS
+        for c2 = 1:p.NUMBER_OF_CONDITIONS
+            if isnan(model(c1,c2)) && ~isnan(model(c2,c1))
+                model(c1,c2) = model(c2,c1);
+            elseif ~isnan(model(c1,c2)) && isnan(model(c2,c1))
+                model(c2,c1) = model(c1,c2);
+            end
+        end
+        end
         
         clf
         PlotModel(model , p.RSM_COLOURMAP)
@@ -706,7 +714,7 @@ if do_model_figures_split
             rethrow(e)
         end
         
-        t = ['SPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+        t = [strrep(p.MODELS.names{m},'_',' ')];
         suptitle(t);
         
         SaveFigure(fig, [saveFol_models t]);
@@ -719,43 +727,54 @@ if do_model_figures_split
     
 end
 
-%% Model Figures (nonsplit)
-if do_model_figures_nonsplit
-    number_models = length(p.MODELS.names);
-    
-    for m = 1:number_models
-        model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
-        for i = 1:p.NUMBER_OF_CONDITIONS
-            model(i,1:i) = nan;
-        end
-        
-        clf
-        PlotModel(model , p.RSM_COLOURMAP)
-        colorbar
-        
-        set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
-        
-        returnPath = pwd;
-        try
-            cd('Required Methods');
-            hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
-            cd ..
-        catch e
-            cd(returnPath)
-            rethrow(e)
-        end
-        
-        t = ['NONSPLIT-' strrep(p.MODELS.names{m},'_',' ')];
-        suptitle(t);
-        
-        SaveFigure(fig, [saveFol_models t]);
-        
-        clf
-        PlotModel(model , p.RSM_COLOURMAP)
-        axis off;
-        SaveFigure(fig, [saveFol_models t '_nolabel']); 
-    end
-end
+% %% Model Figures (nonsplit)
+% if do_model_figures_nonsplit
+%     number_models = length(p.MODELS.names);
+%     
+%     for m = 1:number_models
+%         model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+%         
+%         for c1 = 1:p.NUMBER_OF_CONDITIONS
+%         for c2 = 1:p.NUMBER_OF_CONDITIONS
+%             if isnan(model(c1,c2)) && ~isnan(model(c2,c1))
+%                 model(c1,c2) = model(c2,c1);
+%             elseif ~isnan(model(c1,c2)) && isnan(model(c2,c1))
+%                 model(c2,c1) = model(c1,c2);
+%             end
+%         end
+%         end
+%         
+%         for i = 1:p.NUMBER_OF_CONDITIONS
+%             model(i,1:i) = nan;
+%         end
+%         
+%         clf
+%         PlotModel(model , p.RSM_COLOURMAP)
+%         colorbar
+%         
+%         set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
+%         
+%         returnPath = pwd;
+%         try
+%             cd('Required Methods');
+%             hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
+%             cd ..
+%         catch e
+%             cd(returnPath)
+%             rethrow(e)
+%         end
+%         
+%         t = ['NONSPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+%         suptitle(t);
+%         
+%         SaveFigure(fig, [saveFol_models t]);
+%         
+%         clf
+%         PlotModel(model , p.RSM_COLOURMAP)
+%         axis off;
+%         SaveFigure(fig, [saveFol_models t '_nolabel']); 
+%     end
+% end
 
 %% close figure
 close all
