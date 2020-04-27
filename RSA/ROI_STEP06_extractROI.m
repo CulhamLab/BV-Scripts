@@ -3,6 +3,31 @@ function ROI_STEP6_extractROI
 %params
 p = ALL_STEP0_PARAMETERS;
 
+%all splits?
+if p.DO_ALL_SPLITS_VOI
+    %full set of splits
+    selections = combnk(1:p.NUMBER_OF_RUNS, floor(p.NUMBER_OF_RUNS/2));
+    number_splits = size(selections, 1);
+    selected = cell2mat(arrayfun(@(x) arrayfun(@(y) any(selections(x,:) == y), 1:p.NUMBER_OF_RUNS), 1:number_splits, 'UniformOutput', false)');
+
+    %restrict to the "unique splits" - i.e., don't include [1 2 3] and [4 5 6] (opposite pairs) in a 6 run set
+    %THE FULL SET OF SPLITS IS STILL USED, but only the unique half are computed
+    %and then the final matrix is averaged with its transposition (more efficient)
+    for i = number_splits:-1:1
+        if any(~any(selected(1:(i-1),:) ~= ~selected(i,:), 2))
+            selected(i,:) = [];
+        end
+    end
+    
+    do_all_split = true;
+    
+    fprintf('Split Method: full (%d splits)\n', size(selected,1)*2);
+else
+    selected = [];
+    do_all_split = false;
+    fprintf('Split Method: odd-even\n');
+end
+
 %paths
 readFol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SHARED_DATA filesep '5. 3D Matrices of Betas' filesep];
 saveFol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep];
@@ -14,7 +39,7 @@ end
 
 %% process each voi
 if ~iscell(p.VOI_FILE) && isnan(p.VOI_FILE)
-    voi_data = process_voi(nan, p, readFol);
+    [voi_data,runtime] = process_voi(nan, p, readFol);
 else
     if ~iscell(p.VOI_FILE)
         p.VOI_FILE = {p.VOI_FILE};
@@ -25,7 +50,10 @@ else
         voi_path = p.VOI_FILE{i};
         fprintf('Processing VOI file %d of %d (%s) ...\n', i, num_voi, voi_path);
         
-        voi_data(i) = process_voi(voi_path, p, readFol);
+        [voi_data(i),d] = process_voi(voi_path, p, readFol, do_all_split, selected);
+        if i==1
+            runtime = d;
+        end
     end
 end
 
@@ -56,10 +84,11 @@ fprintf('Total VOIs: %d\n', count_voi);
 
 %% save
 
-save([saveFol 'VOI_RSMs'],'data','vtcRes')
+runtime.Step6 = p.RUNTIME;
+save([saveFol 'VOI_RSMs'],'data','vtcRes','runtime','do_all_split')
 disp Done.
 
-function [voi_data] = process_voi(voi_filepath, p, readFol)
+function [voi_data,runtime] = process_voi(voi_filepath, p, readFol, do_all_split, selected)
 
 %load VOI file
 if isnan(voi_filepath)
@@ -78,6 +107,9 @@ data.RSM_nonsplit = nan(p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_CONDITIONS,p.NUMBER_O
 data.VOINames = cell(1,voi.NrOfVOIs);
 data.VOINames_short = cell(1,voi.NrOfVOIs);
 data.VOInumVox = zeros(1,voi.NrOfVOIs);
+
+%count
+number_splits = size(selected,1);
 
 %load sub data only once
 disp('Loading subject data...')
@@ -119,6 +151,13 @@ for vid = 1:voi.NrOfVOIs %for each voi...
         %load sub betas
         subdata = preloaded_subdata(par);
         
+        %check for do_all_split
+        if do_all_split && ~subdata.do_all_split
+            error('All splits mode is enabled, but step 5 was not run with all splits enabled. Rerun step 5.');
+        elseif ~do_all_split && subdata.do_all_split
+            warning('All splits mode is disabled, but step 5 was run with all splits enabled. This does not cause an issues, but you should make sure that parameters are as intended.');
+        end
+        
         %preinit [vox# cond# odd/even/all]
         betas = nan(data.VOInumVox(vid),p.NUMBER_OF_CONDITIONS,3);
         
@@ -155,10 +194,13 @@ for vid = 1:voi.NrOfVOIs %for each voi...
             bothc1(indNan) = [];
             bothc2(indNan) = [];
             
-            if length(evens)
-                data.RSM_split(c1,c2,par,vid) = corr(evens,odds,'type','Pearson');
-            else
-                data.RSM_split(c1,c2,par,vid) = nan;
+            if ~do_all_split
+                %odd/even split method
+                if length(evens)
+                    data.RSM_split(c1,c2,par,vid) = corr(evens,odds,'type','Pearson');
+                else
+                    data.RSM_split(c1,c2,par,vid) = nan;
+                end
             end
                
             if length(bothc1)
@@ -168,8 +210,65 @@ for vid = 1:voi.NrOfVOIs %for each voi...
             end
         end
         end
+        
+        %if do_all_split, calcualte split with all unique splits
+        if do_all_split
+            %init nan
+            rsms = nan(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS, number_splits);
+            
+            for split = 1:number_splits
+                %init
+                betas_group1 = nan(data.VOInumVox(vid), p.NUMBER_OF_CONDITIONS);
+                betas_group2 = nan(data.VOInumVox(vid), p.NUMBER_OF_CONDITIONS);
+                
+                %process betas_3D_runs(x,y,z,run,cond)
+                for v = 1:data.VOInumVox(vid)
+                    %group 1
+                    betas_run = squeeze(subdata.betas_3D_runs(xyz(v,1), xyz(v,2), xyz(v,3), selected(split,:), :));
+                    betas_group1(v,:) = nanmean(betas_run, 1) - nanmean(betas_run(:));
+                    
+                    %group 2
+                    betas_run = squeeze(subdata.betas_3D_runs(xyz(v,1), xyz(v,2), xyz(v,3), ~selected(split,:), :));
+                    betas_group2(v,:) = nanmean(betas_run, 1) - nanmean(betas_run(:));
+                end
+                
+                for c1 = 1:p.NUMBER_OF_CONDITIONS %group1
+                for c2 = 1:p.NUMBER_OF_CONDITIONS %group2
+                    %select conditions
+                    group1c1 = betas_group1(:,c1);
+                    group2c2 = betas_group2(:,c2);
+
+                    %exclude nans
+                    indNan = find(isnan(group1c1)|isnan(group2c2));
+                    group1c1(indNan) = [];
+                    group2c2(indNan) = [];
+
+                    %corr (default nan)
+                    if length(evens)
+                        rsms(c1,c2,split) = corr(group1c1,group2c2,'type','Pearson');
+                    else
+                        rsms(c1,c2,split) = nan;
+                    end
+                end
+                end
+                
+            end %for each split
+            
+            %average across RSMs from splits
+            data.RSM_split(:,:,par,vid) = nanmean(rsms, 3);
+
+        end %all split method
+        
+        %average odd/even and even/odd to create symmetrical RSM
+        data.RSM_split(:,:,par,vid) = arrayfun(@(x,y) nanmean([x y]), data.RSM_split(:,:,par,vid), data.RSM_split(:,:,par,vid)');
    end
 end
 
 voi_data.data = data;
 voi_data.vtcRes = vtcRes;
+
+if isfield(preloaded_subdata, 'runtime')
+    runtime = preloaded_subdata(1).runtime;
+else
+    runtime = struct;
+end

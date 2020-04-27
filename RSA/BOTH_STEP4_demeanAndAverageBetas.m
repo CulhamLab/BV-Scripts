@@ -76,6 +76,10 @@ for run = 1:p.NUMBER_OF_RUNS
     
     file = load(loadPath);
     
+    if (run == 1) && isfield(file, 'runtime')
+        runtime = file.runtime;
+    end
+    
     if ~participant_setup_completed
         %individualize numVox (w/ data)
         numVox = size(file.betas,1);
@@ -83,9 +87,9 @@ for run = 1:p.NUMBER_OF_RUNS
         vox = file.vox;
         vtcRes = file.vtcRes;
         %reinit for this first run
-        allBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
-        oddBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
-        evenBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_PARTICIPANTS); 
+        allBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS); 
+        oddBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS); 
+        evenBetas_MeanAcrossRun = nan(numVox,p.NUMBER_OF_CONDITIONS); 
         allBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_RUNS);
         oddBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,ceil(p.NUMBER_OF_RUNS/2)); 
         evenBetas = nan(numVox,p.NUMBER_OF_CONDITIONS,floor(p.NUMBER_OF_RUNS/2));
@@ -139,33 +143,37 @@ oddBetas = allBetas(:,:,ind_odd);
 %all
 meanVector = nanmean(nanmean(allBetas,3),2);
 meanMat = repmat(meanVector,[1 p.NUMBER_OF_CONDITIONS p.NUMBER_OF_RUNS]);
-allBetas_MeanAcrossRun(:,:,par) = nanmean(allBetas - meanMat,3);
+allBetas_MeanAcrossRun = nanmean(allBetas - meanMat,3);
 
 %odd
 meanVector = nanmean(nanmean(oddBetas,3),2);
 meanMat = repmat(meanVector,[1 p.NUMBER_OF_CONDITIONS ceil(p.NUMBER_OF_RUNS/2)]);
-oddBetas_MeanAcrossRun(:,:,par) = nanmean(oddBetas - meanMat,3);
+oddBetas_MeanAcrossRun = nanmean(oddBetas - meanMat,3);
 
 %even
 meanVector = nanmean(nanmean(evenBetas,3),2);
 meanMat = repmat(meanVector,[1 p.NUMBER_OF_CONDITIONS floor(p.NUMBER_OF_RUNS/2)]);
-evenBetas_MeanAcrossRun(:,:,par) = nanmean(evenBetas - meanMat,3);
-
-%mean across sub
-allBetas_MeanAcrossSub = nanmean(allBetas_MeanAcrossRun,3);
-oddBetas_MeanAcrossSub = nanmean(oddBetas_MeanAcrossRun,3);
-evenBetas_MeanAcrossSub = nanmean(evenBetas_MeanAcrossRun,3);
+evenBetas_MeanAcrossRun = nanmean(evenBetas - meanMat,3);
 
 %remove vox with no data (there are a few at corners sometimes)
-indKeep = find(sum(~isnan(allBetas_MeanAcrossSub),2));
-allBetas_MeanAcrossSub = allBetas_MeanAcrossSub(indKeep,:);
-oddBetas_MeanAcrossSub = oddBetas_MeanAcrossSub(indKeep,:);
-evenBetas_MeanAcrossSub = evenBetas_MeanAcrossSub(indKeep,:);
+indKeep = find(sum(~isnan(allBetas_MeanAcrossRun),2));
+allBetas_MeanAcrossRun = allBetas_MeanAcrossRun(indKeep,:);
+oddBetas_MeanAcrossRun = oddBetas_MeanAcrossRun(indKeep,:);
+evenBetas_MeanAcrossRun = evenBetas_MeanAcrossRun(indKeep,:);
 vox = vox(indKeep,:);
+
+%all betas for all-split method
+allBetas = allBetas(indKeep,:,:);
 
 %save
 conditions = p.CONDITIONS;
-save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossSub','oddBetas_MeanAcrossSub','evenBetas_MeanAcrossSub','conditions','vtcRes')
+runtime.Step4 = p.RUNTIME;
+if p.VOI_USE_SPLIT && p.DO_ALL_SPLITS_VOI
+    warning('p.VOI_USE_SPLIT and p.DO_ALL_SPLITS_VOI are both TRUE. The full set of run betas will be saved. This results in large files that take a while to save/load.')
+    save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossRun','oddBetas_MeanAcrossRun','evenBetas_MeanAcrossRun','conditions','vtcRes','runtime', 'allBetas')
+else
+    save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossRun','oddBetas_MeanAcrossRun','evenBetas_MeanAcrossRun','conditions','vtcRes','runtime')
+end
 
 end
 

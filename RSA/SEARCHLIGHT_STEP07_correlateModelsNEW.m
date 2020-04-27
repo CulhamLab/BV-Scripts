@@ -45,9 +45,15 @@ end
 %% load part 1 for info
 fprintf('-Loading participant 1, part 1 and initializing...\n');
 step6 = load(sprintf('%s%s_RSMs_%s_PART%02d%s.mat',inputFol, prefix, p.FILELIST_PAR_ID{1}, 1, suffix));
+runtime = step6.runtime;
 ss_ref = step6.ss_ref;
 vtcRes = step6.vtcRes;
 number_parts = step6.number_parts;
+
+%valid version?
+if ~isfield(step6, 'runtime') || ~isfield(step6.runtime, 'Step6') || step6.runtime.Step6.VERSION<1
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
 
 convert_sf_rdms = false;
 if ~step6.usedSplit
@@ -62,7 +68,7 @@ try %if anything goes wrong, close the parallel workers
 tic
 for par = 1:p.NUMBER_OF_PARTICIPANTS
 fprintf('\nRunning participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
-clearvars -except par p inputFol saveFol useParfor ss_ref vtcRes suffix prefix suffix_save convert_sf_rdms number_parts
+clearvars -except par p inputFol saveFol useParfor ss_ref vtcRes suffix prefix suffix_save convert_sf_rdms number_parts runtime
 
 %% prep models
 %place in vectors
@@ -186,7 +192,8 @@ end
 %% save
 fprintf('Saving data ... ')
 models = p.MODELS;
-save(fp_save,'resultMat','models','vtcRes')
+runtime.Step7 = p.RUNTIME;
+save(fp_save,'resultMat','models','vtcRes','runtime')
 fprintf('saved at %f seconds.\n',toc)
 
 end

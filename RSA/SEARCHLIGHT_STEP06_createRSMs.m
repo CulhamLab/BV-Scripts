@@ -210,6 +210,7 @@ for voxInd = indxVoxWithData_part'
                 warning('nans should not make it into rsm') %%this is happening
             else
                 if p.SEARCHLIGHT_USE_SPLIT
+                    rsm = arrayfun(@(x,y) nanmean([x y]), rsm, rsm');
                     RSMs{x_center,y_center,z_center} = rsm;
                 else
                     rdm = 1 - rsm;
@@ -250,6 +251,7 @@ for voxInd = indxVoxWithData_part'
         
         if sum(~isnan(rsm(:))) %so long as there is 1+ non-nan
             if p.SEARCHLIGHT_USE_SPLIT
+                rsm = arrayfun(@(x,y) nanmean([x y]), rsm, rsm');
                 RSMs{x_center,y_center,z_center} = rsm;
             else
                 rdm = 1 - rsm;
@@ -263,7 +265,8 @@ end
 
 %save part
 fprintf('-Saving part %d (voxels %d to %d)...\n', part, part_min, part_max);
-save([saveFol sprintf('step6_RSMs_%s_PART%02d_%s',p.FILELIST_PAR_ID{par},part,suffix)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part')
+runtime.Step6= p.RUNTIME;
+save([saveFol sprintf('step6_RSMs_%s_PART%02d_%s',p.FILELIST_PAR_ID{par},part,suffix)],'indxVoxWithData','RSMs','usedSplit','vtcRes','part_min','part_max','ss_ref','number_parts','indxVoxWithData_part','runtime')
 
 end
 

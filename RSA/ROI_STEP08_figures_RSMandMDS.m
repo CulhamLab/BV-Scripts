@@ -35,6 +35,11 @@ end
 %load ROI RSMs
 load([readFol 'VOI_corrs'])
 
+%valid version?
+if ~exist('runtime', 'var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
 
@@ -60,8 +65,25 @@ do_voi_rsm_split = true;
 do_voi_rsm_nonsplit = true;
 do_voi_model_split = true;
 do_voi_model_nonsplit = true;
-do_model_figures_split = true;
-do_model_figures_nonsplit = true;
+do_model_figures = true;
+
+%toggle off split if not VOI_USE_SPLIT
+if ~p.VOI_USE_SPLIT
+    do_cond_rsm_split = false;
+    do_voi_mds_split = false;
+    do_voi_rsm_split = false;
+    do_voi_model_split = false;
+end
+
+%cell indices to use
+ind_use_nonsplit = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+ind_use_split = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+for i = 1:p.NUMBER_OF_CONDITIONS
+    ind_use_nonsplit(i,i+1:end) = true;
+    ind_use_split(i,i:end) = true;
+end
+num_cell_nonsplit = sum(ind_use_nonsplit(:));
+num_cell_split = sum(ind_use_split(:));
 
 %% Condition RSM (split)
 if do_cond_rsm_split
@@ -203,19 +225,20 @@ for vid = 1:numVOI_type
 	
 	all_MD2D(:,:,vid) = MD2D;
 end
-save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS')
+runtime.Step8 = p.RUNTIME;
+save([saveFol_condMDS 'mds_data'], 'voi_names', 'all_MD2D', 'CONDITIONS', 'runtime')
 end
     
 %% VOI-VOI MDS
 if do_voi_mds_split
 colours = jet(numVOI_type);
 %init
-rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+rsms = nan(num_cell_split, numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = nanmean(rsms_split(:,:,:,vid),3);
-    rsm_array = rsm(:);
+    rsm_array = rsm(ind_use_split);
     rsms(:,vid) = rsm_array;
 end
 
@@ -255,12 +278,12 @@ end
 if do_voi_mds_nonsplit
 colours = jet(numVOI_type);
 %init
-rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+rsms = nan(num_cell_nonsplit,numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
-    rsm_array = rsm(:);
+    rsm_array = rsm(ind_use_nonsplit);
     rsms(:,vid) = rsm_array;
 end
 
@@ -299,12 +322,12 @@ end
 %% VOI-VOI RSM
 if do_voi_rsm_split
 %init
-rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+rsms = nan(num_cell_split, numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = nanmean(rsms_split(:,:,:,vid),3);
-    rsm_array = rsm(:);
+    rsm_array = rsm(ind_use_split);
     rsms(:,vid) = rsm_array;
 end
 
@@ -347,12 +370,12 @@ end
 %% VOI-VOI RSM (nonsplit)
 if do_voi_rsm_split
 %init
-rsms = nan(p.NUMBER_OF_CONDITIONS^2,numVOI_type);
+rsms = nan(num_cell_nonsplit, numVOI_type);
 
 for vid = 1:numVOI_type
     %mean rsm across subs
     rsm = nanmean(rsms_nonsplit(:,:,:,vid),3);
-    rsm_array = rsm(:);
+    rsm_array = rsm(ind_use_nonsplit);
     rsms(:,vid) = rsm_array;
 end
 
@@ -403,20 +426,20 @@ if do_voi_model_split
     rsm_voi_model = nan(matrix_size,matrix_size);
     rsm_voi_model_with_nan = nan(matrix_size,matrix_size);
     
-    rsms = nan(p.NUMBER_OF_CONDITIONS^2,matrix_size);
+    rsms = nan(num_cell_split, matrix_size);
     is_data = false(matrix_size,1);
 
     for vid = 1:numVOI_type
         %mean rsm across subs
         rsm = nanmean(rsms_split(:,:,:,vid),3); %use split data
-        rsm_array = rsm(:);
+        rsm_array = rsm(ind_use_split);
         rsms(:,vid) = rsm_array;
         is_data(vid) = true;
     end
     
     for mid = 1:number_models
         model = p.MODELS.matrices{mid};
-        model_array = model(:);
+        model_array = model(ind_use_split);
         rsms(:,numVOI_type+mid) = model_array;
     end
     
@@ -540,20 +563,20 @@ if do_voi_model_nonsplit
     rsm_voi_model = nan(matrix_size,matrix_size);
     rsm_voi_model_with_nan = nan(matrix_size,matrix_size);
     
-    rsms = nan(p.NUMBER_OF_CONDITIONS^2,matrix_size);
+    rsms = nan(num_cell_nonsplit, matrix_size);
     is_data = false(matrix_size,1);
 
     for vid = 1:numVOI_type
         %mean rsm across subs
         rsm = nanmean(rsms_nonsplit(:,:,:,vid),3); %use split data
-        rsm_array = rsm(:);
+        rsm_array = rsm(ind_use_nonsplit);
         rsms(:,vid) = rsm_array;
         is_data(vid) = true;
     end
     
     for mid = 1:number_models
         model = p.MODELS.matrices{mid};
-        model_array = model(:);
+        model_array = model(ind_use_nonsplit);
         rsms(:,numVOI_type+mid) = model_array;
     end
     
@@ -669,11 +692,21 @@ if do_voi_model_nonsplit
 end
 
 %% Model Figures (split)
-if do_model_figures_split
+if do_model_figures
     number_models = length(p.MODELS.names);
     
     for m = 1:number_models
         model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+        
+        for c1 = 1:p.NUMBER_OF_CONDITIONS
+        for c2 = 1:p.NUMBER_OF_CONDITIONS
+            if isnan(model(c1,c2)) && ~isnan(model(c2,c1))
+                model(c1,c2) = model(c2,c1);
+            elseif ~isnan(model(c1,c2)) && isnan(model(c2,c1))
+                model(c2,c1) = model(c1,c2);
+            end
+        end
+        end
         
         clf
         PlotModel(model , p.RSM_COLOURMAP)
@@ -691,7 +724,7 @@ if do_model_figures_split
             rethrow(e)
         end
         
-        t = ['SPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+        t = [strrep(p.MODELS.names{m},'_',' ')];
         suptitle(t);
         
         SaveFigure(fig, [saveFol_models t]);
@@ -704,43 +737,54 @@ if do_model_figures_split
     
 end
 
-%% Model Figures (nonsplit)
-if do_model_figures_nonsplit
-    number_models = length(p.MODELS.names);
-    
-    for m = 1:number_models
-        model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
-        for i = 1:p.NUMBER_OF_CONDITIONS
-            model(i,1:i) = nan;
-        end
-        
-        clf
-        PlotModel(model , p.RSM_COLOURMAP)
-        colorbar
-        
-        set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
-        
-        returnPath = pwd;
-        try
-            cd('Required Methods');
-            hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
-            cd ..
-        catch e
-            cd(returnPath)
-            rethrow(e)
-        end
-        
-        t = ['NONSPLIT-' strrep(p.MODELS.names{m},'_',' ')];
-        suptitle(t);
-        
-        SaveFigure(fig, [saveFol_models t]);
-        
-        clf
-        PlotModel(model , p.RSM_COLOURMAP)
-        axis off;
-        SaveFigure(fig, [saveFol_models t '_nolabel']); 
-    end
-end
+% %% Model Figures (nonsplit)
+% if do_model_figures_nonsplit
+%     number_models = length(p.MODELS.names);
+%     
+%     for m = 1:number_models
+%         model = p.MODELS.matrices{m}(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
+%         
+%         for c1 = 1:p.NUMBER_OF_CONDITIONS
+%         for c2 = 1:p.NUMBER_OF_CONDITIONS
+%             if isnan(model(c1,c2)) && ~isnan(model(c2,c1))
+%                 model(c1,c2) = model(c2,c1);
+%             elseif ~isnan(model(c1,c2)) && isnan(model(c2,c1))
+%                 model(c2,c1) = model(c1,c2);
+%             end
+%         end
+%         end
+%         
+%         for i = 1:p.NUMBER_OF_CONDITIONS
+%             model(i,1:i) = nan;
+%         end
+%         
+%         clf
+%         PlotModel(model , p.RSM_COLOURMAP)
+%         colorbar
+%         
+%         set(gca,'XAxisLocation', 'top','yticklabel',condition_reorder,'ytick',1:p.NUMBER_OF_CONDITIONS);
+%         
+%         returnPath = pwd;
+%         try
+%             cd('Required Methods');
+%             hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_reorder);
+%             cd ..
+%         catch e
+%             cd(returnPath)
+%             rethrow(e)
+%         end
+%         
+%         t = ['NONSPLIT-' strrep(p.MODELS.names{m},'_',' ')];
+%         suptitle(t);
+%         
+%         SaveFigure(fig, [saveFol_models t]);
+%         
+%         clf
+%         PlotModel(model , p.RSM_COLOURMAP)
+%         axis off;
+%         SaveFigure(fig, [saveFol_models t '_nolabel']); 
+%     end
+% end
 
 %% close figure
 close all

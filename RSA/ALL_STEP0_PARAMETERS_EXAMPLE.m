@@ -231,6 +231,10 @@ SEARCHLIGHT_USE_SPLIT  = true;
 %Option to use split or default to nonsplit in VOI (steps 9 and 10)
 VOI_USE_SPLIT = true;
 
+%When VOI_USE_SPLIT is true, perform all run splits instead of ODD-EVEN
+%Applies only to VOI analysis (not searchlight)
+DO_ALL_SPLITS_VOI = false;
+
 %mask for vmp
 MSK_FILE = nan;
 

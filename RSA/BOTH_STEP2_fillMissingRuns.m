@@ -27,7 +27,8 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
     load([fol list_findagood(1).name]);
     betas(:) = nan;
     notice = sprintf('this file was created as a nan fill of %s',[fol list_findagood(1).name]);
-    save(fillerPath,'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','notice','conditionNames');
+    runtime.Step2 = p.RUNTIME;
+    save(fillerPath,'betas','vox','vtcRes','sdmFilepath','vtcFilepath','voiWholeBrain','VariableHelp','notice','conditionNames','runtime');
     
     for run = 1:p.NUMBER_OF_RUNS
         list_findme = dir(sprintf('%s%s_%s.mat',fol,p.FILELIST_PAR_ID{par},p.FILELIST_RUN_ID{run}));

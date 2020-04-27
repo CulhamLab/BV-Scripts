@@ -15,6 +15,11 @@ end
 %load ROI RSMs
 load([readFol 'VOI_RSMs'])
 
+%valid version?
+if ~exist('runtime','var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1
+    error('The odd//even split method has been improved. Rerun from step 6.')
+end
+
 %count
 numVOI = size(data.RSM_split,4);
 numMod = length(p.MODELS.names);
@@ -54,4 +59,5 @@ rsms_split = data.RSM_split;
 
 voi_names = cellfun(@(x) strrep(strrep(x,'/',' '),'\', ' '), data.VOINames, 'UniformOutput', false);
 
-save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names')
+runtime.Step7 = p.RUNTIME;
+save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names','runtime','do_all_split')

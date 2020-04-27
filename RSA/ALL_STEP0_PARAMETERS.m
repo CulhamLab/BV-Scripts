@@ -75,6 +75,26 @@ try
     %add directory to filelist
     p.FILELIST_FILENAME = [directory p.FILELIST_FILENAME];
     
+    %add version timestamp
+    %1. April 24, 2020
+    %   -new odd/even split method (mandatory)
+    %   -track runtime info in data files
+    p.RUNTIME.VERSION = 1;
+    p.RUNTIME.RUN = datetime('now');
+    
+    %remove split model lower half (keep upper + diag)
+    [row,col] = ind2sub([p.NUMBER_OF_CONDITIONS p.NUMBER_OF_CONDITIONS],1:(p.NUMBER_OF_CONDITIONS^2));
+    indClear = find(col < row);
+    for i = 1:length(p.MODELS.matrices)
+        p.MODELS.matrices{i}(indClear) = nan;
+    end
+    
+    %remove nonsplit model lower half plus diag (keep upper)
+    indClear = find(col <= row);
+    for i = 1:length(p.MODELS.matrices)
+        p.MODELS.matricesNonsplit{i}(indClear) = nan;
+    end
+    
     %check new fields
     fs = fields(p);
     if ~any(strcmp(fs, 'RENUMBER_RUNS'))
@@ -118,6 +138,11 @@ try
     if ~any(strcmp(fs, 'ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS'))
         warning('Parameter file does not contain the new field "p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS". This field will be defaulted to false.')
         p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
+    end
+    
+    if ~any(strcmp(fs, 'DO_ALL_SPLITS_VOI'))
+        warning('Parameter file does not contain the new field "p.DO_ALL_SPLITS_VOI". This field will be defaulted to false.')
+        p.DO_ALL_SPLITS_VOI = false;
     end
     
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES) 
