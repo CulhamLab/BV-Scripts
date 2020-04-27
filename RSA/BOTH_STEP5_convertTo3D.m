@@ -19,6 +19,17 @@ clearvars -except par p ss inputFol saveFol doOnce
 fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
 load ([inputFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})])
 
+%if all split, prior step has all data needed?
+if p.VOI_USE_SPLIT && p.DO_ALL_SPLITS_VOI
+    if ~exist('allBetas', 'var')
+        error('VOI_USE_SPLIT and DO_ALL_SPLITS_VOI are true, but prior step did not save all required data. Rerun step 4 with these parameters.')
+    end
+    warning('All-Splits mode is enabled. This will take longer than usual.')
+    do_all_split = true;
+else
+    do_all_split = false;
+end
+
 %check if need rerun due to reorganized data in step 4
 if ~exist('allBetas_MeanAcrossRun', 'var')
     error('The naming in step 4 has been changed. Please rerun step 4.')
@@ -69,8 +80,11 @@ fprintf('This particiapnt uses sub-matrix %d x %d x %d\n',r)
 betas_3D_all = nan([ss p.NUMBER_OF_CONDITIONS]);
 betas_3D_even = nan([ss p.NUMBER_OF_CONDITIONS]);
 betas_3D_odd = nan([ss p.NUMBER_OF_CONDITIONS]);
+betas_3D_runs = nan([ss p.NUMBER_OF_RUNS p.NUMBER_OF_CONDITIONS]);
 
 indxVoxWithData = sub2ind(ss,newVox(:,1),newVox(:,2),newVox(:,3));
+
+number_voxels = size(newVox,1);
 
 for i = 1:p.NUMBER_OF_CONDITIONS
     thisBetaSlice_all = nan(ss);
@@ -84,10 +98,22 @@ for i = 1:p.NUMBER_OF_CONDITIONS
     betas_3D_all(:,:,:,i) = thisBetaSlice_all;
     betas_3D_even(:,:,:,i) = thisBetaSlice_even;
     betas_3D_odd(:,:,:,i) = thisBetaSlice_odd;
+    
+    if do_all_split
+        thisBetaSlice_runs = nan([ss p.NUMBER_OF_RUNS]);
+        for v = 1:number_voxels
+            betas_3D_runs(newVox(v,1), newVox(v,2), newVox(v,3), :, i) = allBetas(v,i,:);
+        end
+    end
 end
 
 runtime.Step5 = p.RUNTIME;
-save([saveFol sprintf('step3_organize3D_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','betas_3D_all','betas_3D_even','betas_3D_odd','conditions','vtcRes','runtime')
+
+if do_all_split
+    save([saveFol sprintf('step3_organize3D_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','betas_3D_all','betas_3D_even','betas_3D_odd','conditions','vtcRes','runtime','do_all_split','betas_3D_runs')
+else
+    save([saveFol sprintf('step3_organize3D_%s',p.FILELIST_PAR_ID{par})],'indxVoxWithData','betas_3D_all','betas_3D_even','betas_3D_odd','conditions','vtcRes','runtime','do_all_split')
+end
 
 end
 

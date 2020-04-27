@@ -60,4 +60,4 @@ rsms_split = data.RSM_split;
 voi_names = cellfun(@(x) strrep(strrep(x,'/',' '),'\', ' '), data.VOINames, 'UniformOutput', false);
 
 runtime.Step7 = p.RUNTIME;
-save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names','runtime')
+save([saveFol 'VOI_corrs'],'corrs_split','corrs_nonsplit','vtcRes','rsms_nonsplit','rsms_split','voi_names','runtime','do_all_split')

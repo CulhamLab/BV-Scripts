@@ -140,6 +140,11 @@ try
         p.ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
     end
     
+    if ~any(strcmp(fs, 'DO_ALL_SPLITS_VOI'))
+        warning('Parameter file does not contain the new field "p.DO_ALL_SPLITS_VOI". This field will be defaulted to false.')
+        p.DO_ALL_SPLITS_VOI = false;
+    end
+    
     if ~isempty(p.CUSTOM_VOI_SUMMARY_FIGURES) 
         for c = 1:length(p.CUSTOM_VOI_SUMMARY_FIGURES)
             if ~isfield(p.CUSTOM_VOI_SUMMARY_FIGURES(c), 'NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND') || isempty(p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND)
