@@ -243,6 +243,9 @@ MSK_FILE = nan;
 %separate noise ceiling for any models that use a subset.
 INDIVIDUAL_MODEL_NOISE_CEILING = true;
 
+%allow some participants to be missing a condition in VOI analysis
+ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
+
 %% Fisher Transformation Options
 %Apply Fisher to the subject-average RSM prior to condition-condition
 %MDS calculation (not VOI-VOI MDS)
