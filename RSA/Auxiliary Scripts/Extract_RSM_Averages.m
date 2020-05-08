@@ -355,8 +355,14 @@ try
     objExcel = actxserver('Excel.Application');
     objExcel.Workbooks.Open(full_filepath);
     objExcel.ActiveWorkbook.Worksheets.Item('Sheet1').Delete;
-    objExcel.ActiveWorkbook.Worksheets.Item('Sheet2').Delete;
-    objExcel.ActiveWorkbook.Worksheets.Item('Sheet3').Delete;
+    
+	try
+		%old version of Excel
+		objExcel.ActiveWorkbook.Worksheets.Item('Sheet2').Delete;
+		objExcel.ActiveWorkbook.Worksheets.Item('Sheet3').Delete;
+    catch
+    end
+	
     objExcel.ActiveWorkbook.Save;
     objExcel.ActiveWorkbook.Close;
     objExcel.Quit;
