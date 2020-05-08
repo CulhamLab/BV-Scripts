@@ -240,9 +240,7 @@ for voxInd = indxVoxWithData_part'
             
             indGood = find(~isnan(v1)&~isnan(v2));
             if length(indGood)
-                v1=v1(indGood);
-                v2=v2(indGood);
-                rsm(r1,r2) = corr(v1,v2,'type','Pearson');
+                rsm(r1,r2) = corr(v1(indGood),v2(indGood),'type','Pearson');
             else
                 rsm(r1,r2) = nan;
             end
