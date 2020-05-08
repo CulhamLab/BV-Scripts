@@ -117,6 +117,13 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
     preloaded_subdata(par) = load(sprintf('%sstep3_organize3D_%s',readFol,p.FILELIST_PAR_ID{par}));
 end
 
+if ~isfield(preloaded_subdata, 'do_all_split')
+    warning('Loaded step 5 data does not contain "do_all_split". Will default to false to assume that prepartions for this method have NOT been made.');
+    for par = 1:p.NUMBER_OF_PARTICIPANTS
+        preloaded_subdata(par).do_all_split = false;
+    end
+end
+
 vtcRes = preloaded_subdata(1).vtcRes;
 
 disp('Calculating ROI RSMs...')
