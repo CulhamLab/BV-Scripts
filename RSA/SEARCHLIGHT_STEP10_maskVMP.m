@@ -20,11 +20,20 @@ if isnan(p.MSK_FILE)
     end
     disp('Loading MSK...');
     msk = xff([fp_in fn_in]);
-    p.VOI_FILE = fn_in;
+    mask_filename = fn_in;
 else
     disp('Loading MSK...');
     msk = xff(p.MSK_FILE);
+    mask_filename = p.MSK_FILE;
 end
+
+%mask_filename
+if any(mask_filename == filesep)
+    mask_filename = mask_filename(find(mask_filename==filesep,1,'last')+1:end);
+end
+% % if any(mask_filename == '.')
+% %     mask_filename = mask_filename(1:find(mask_filename=='.',1,'last')-1);
+% % end
 
 %list vmp
 list = dir([vmpFol '*.vmp']);
@@ -34,12 +43,19 @@ for f = 1:num_vmp
     name = list(f).name;
     vmp = xff([vmpFol name]);
     
-    num_map = vmp.NrOfMaps;
-    for m = 1:num_map
-        vmp.Map(m).VMPData( ~msk.Mask ) = nan;
+    if isfield(msk, 'Mask')
+        %msk type file
+        num_map = vmp.NrOfMaps;
+        for m = 1:num_map
+            vmp.Map(m).VMPData( ~msk.Mask ) = nan;
+        end
+    elseif isfield(msk, 'VMRData')
+        vmp.MaskWithVMR(msk, 10);
+    else
+        error('Unsupported mask file type (supports msk and vmr)')
     end
     
-    name_new = strrep(name,'.vmp',sprintf('_MSK-%s.vmp',strrep(p.VOI_FILE,'.msk','')));
+    name_new = strrep(name,'.vmp',sprintf('_MSK-%s.vmp',mask_filename));
     vmp.SaveAs([vmpFol_out name_new]);
     
     vmp.ClearObject;
