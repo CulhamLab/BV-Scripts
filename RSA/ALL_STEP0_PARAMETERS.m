@@ -45,6 +45,45 @@ try
 	p.FULL_PATH_TO_PARAMETER_SCRIPT = FULL_PATH_TO_PARAMETER_SCRIPT;
     p.FULL_PATH_TO_PARAMETER_SCRIPT_DIR = directory;
     
+    %Select first valid filepath, ensure that the correct file separators are
+	%used (/ or \), and ensure that filepaths end in a file separator
+    p_fields = fields(p);
+    p_fields_filepath = p_fields(contains(p_fields,'FILEPATH_'));
+	for field_name = p_fields_filepath'
+        field_name = field_name{1};
+        temp = getfield(p, field_name);
+        if ~iscell(temp)
+            temp = {temp};
+        end
+		foundPath = false;
+		for i = 1:length(temp)
+			filepath = temp{i};
+			filepath(filepath=='\' | filepath=='/') = filesep;
+			if filepath(end)~=filesep
+				filepath = [filepath filesep];
+			end
+			if exist(filepath,'dir')
+				foundPath = true;
+				break
+			end
+		end
+		if ~foundPath
+			error(sprintf('No valid path was found in %s.\n',field_name))
+        else
+            p = setfield(p, field_name, filepath);
+		end
+	end
+
+	%Create subfolders if they do not yet exist
+    p_fields_subfolder = p_fields(contains(p_fields,'SUBFOLDER_'));
+	for field_name = p_fields_subfolder'
+        field_name = field_name{1};
+        fullpath = [p.FILEPATH_TO_SAVE_LOCATION getfield(p, field_name)];
+        if ~exist(fullpath, 'dir')
+            mkdir(fullpath);
+        end
+	end
+    
     %make sure p.VOI_FILE is cell
     if ~iscell(p.VOI_FILE)
         p.VOI_FILE = {p.VOI_FILE};
@@ -79,22 +118,35 @@ try
     %1. April 24, 2020
     %   -new odd/even split method (mandatory)
     %   -track runtime info in data files
-    p.RUNTIME.VERSION = 1;
+	%2. May 12, 2020
+	%	-add support for participant-specific models
+	%	-move last bits of prep from param file to this script
+    %   -searchlight slow RSM method now only used when needed
+    p.RUNTIME.VERSION = 2;
     p.RUNTIME.RUN = datetime('now');
     
+	%copy for nonsplit model, clear lower half plus diag (keep upper)
+	[row,col] = ind2sub([p.NUMBER_OF_CONDITIONS p.NUMBER_OF_CONDITIONS],1:(p.NUMBER_OF_CONDITIONS^2));
+	indClear = find(col <= row);
+	for i = 1:length(p.MODELS.matrices)
+		for j = 1:size(p.MODELS.matrices{i}, 3)
+			mat = p.MODELS.matrices{i}(:,:,j);
+			mat(indClear) = nan;
+			p.MODELS.matricesNonsplit{i}(:,:,j) = mat;
+		end
+	end
+	
     %remove split model lower half (keep upper + diag)
     [row,col] = ind2sub([p.NUMBER_OF_CONDITIONS p.NUMBER_OF_CONDITIONS],1:(p.NUMBER_OF_CONDITIONS^2));
     indClear = find(col < row);
-    for i = 1:length(p.MODELS.matrices)
-        p.MODELS.matrices{i}(indClear) = nan;
-    end
-    
-    %remove nonsplit model lower half plus diag (keep upper)
-    indClear = find(col <= row);
-    for i = 1:length(p.MODELS.matrices)
-        p.MODELS.matricesNonsplit{i}(indClear) = nan;
-    end
-    
+	for i = 1:length(p.MODELS.matrices)
+		for j = 1:size(p.MODELS.matrices{i}, 3)
+			mat = p.MODELS.matrices{i}(:,:,j);
+			mat(indClear) = nan;
+			p.MODELS.matrices{i}(:,:,j) = mat;
+		end
+	end
+	
     %check new fields
     fs = fields(p);
     if ~any(strcmp(fs, 'RENUMBER_RUNS'))

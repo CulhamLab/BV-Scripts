@@ -291,7 +291,7 @@ for c = 1:number_custom
     
     %select voi
     try
-        ind_voi = cellfun(@(x) find(strcmp(voi_names,x)), p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES);
+        ind_voi = cellfun(@(x) find(strcmp(voi_names,x),1,'first'), p.CUSTOM_VOI_SUMMARY_FIGURES(c).VOI_NAMES);
     catch err
         warning('A VOI name in CUSTOM_VOI_SUMMARY_FIGURES might not have been found')
         rethrow(err)
@@ -302,7 +302,7 @@ for c = 1:number_custom
     
     %select model
     try
-        ind_model = cellfun(@(x) find(strcmp(p.MODELS.names,x)), {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME});
+        ind_model = cellfun(@(x) find(strcmp(p.MODELS.names,x),1,'first'), {p.CUSTOM_VOI_SUMMARY_FIGURES(c).MODEL.NAME});
     catch err
         warning('A model name in CUSTOM_VOI_SUMMARY_FIGURES might not have been found')
         rethrow(err)

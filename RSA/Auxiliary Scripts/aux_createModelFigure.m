@@ -55,6 +55,14 @@ for split = 1:2
         %start with non split
         model = p.MODELS.matrices{m};
         
+        %if indiv, average
+        if size(model,3) > 1
+            averaged = true;
+            model = nanmean(model, 3);
+        else
+            averaged = false;
+        end
+        
         %reorder model
         if isfield(p, 'RSM_PREDICTOR_ORDER') & ~isnan(p.RSM_PREDICTOR_ORDER)
             model = model(p.RSM_PREDICTOR_ORDER, p.RSM_PREDICTOR_ORDER);
@@ -109,6 +117,9 @@ for split = 1:2
         %model name
         name = p.MODELS.names{m};
         name(name=='_') = ' ';
+        if averaged
+            name = [name ' (avg of indiv)'];
+        end
         title(name);
         if ~isnan(FONT_SIZE)
             set(gca,'fontsize',4);

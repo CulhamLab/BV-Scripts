@@ -85,6 +85,17 @@ end
 num_cell_nonsplit = sum(ind_use_nonsplit(:));
 num_cell_split = sum(ind_use_split(:));
 
+%% Indiv Model Support
+
+for mid = 1:length(p.MODELS.matrices)
+    if size(p.MODELS.matrices{mid},3) > 1
+        warning('Converting indiv models to average model for "%s"', p.MODELS.names{mid});
+        p.MODELS.matrices{mid} = nanmean(p.MODELS.matrices{mid}, 3);
+        p.MODELS.matricesNonsplit{mid} = nanmean(p.MODELS.matricesNonsplit{mid}, 3);
+        p.MODELS.names{mid} = [p.MODELS.names{mid} ' (avg of indiv)'];
+    end
+end
+
 %% Condition RSM (split)
 if do_cond_rsm_split
 for vid = 1:numVOI_type
