@@ -161,6 +161,10 @@ for voxInd = indxVoxWithData_part'
 %         end
         
         numIncluded = size(evens,1);
+        
+        if p.USE_SLOW_RSM_CALCULATION
+            force_fast_method = ~any(isnan(evens(:))) && ~any(isnan(odds(:)));
+        end
     else
         alls = cell2mat(arrayfun(@(x,y,z) squeeze(betas_3D_all(x,y,z,:)), coordList_valid(:,1), coordList_valid(:,2), coordList_valid(:,3), 'UniformOutput', false)')';
 
@@ -171,10 +175,14 @@ for voxInd = indxVoxWithData_part'
 %         end
         
         numIncluded = size(alls,1);
+        
+        if p.USE_SLOW_RSM_CALCULATION
+            force_fast_method = ~any(isnan(alls(:)));
+        end
     end
     
     %calculate RSM
-    if ~p.USE_SLOW_RSM_CALCULATION
+    if ~p.USE_SLOW_RSM_CALCULATION || force_fast_method
         %NORMAL METHOD:
         %if a nan made it in, remove it (this can happen at the edge)
         if numIncluded>1

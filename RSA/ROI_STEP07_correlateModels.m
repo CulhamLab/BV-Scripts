@@ -25,12 +25,25 @@ numVOI = size(data.RSM_split,4);
 numMod = length(p.MODELS.names);
 
 %place models in vectors
+for pid = 1:p.NUMBER_OF_PARTICIPANTS
 for mid = 1:numMod
-    modelVecs_indxGood_split{mid} = find(~isnan(p.MODELS.matrices{mid}(:)));
-    modelVecs_indxGood_nonsplit{mid} = find(~isnan(p.MODELS.matricesNonsplit{mid}(:)));
+    if size(p.MODELS.matrices{mid},3) > 1
+        %indiv model
+        mat_split = p.MODELS.matrices{mid}(:,:,pid);
+        mat_nonsplit = p.MODELS.matricesNonsplit{mid}(:,:,pid);
+        
+    else
+        %common model
+        mat_split = p.MODELS.matrices{mid}(:,:,1);
+        mat_nonsplit = p.MODELS.matricesNonsplit{mid}(:,:,1);
+    end
     
-    modelVecs_split{mid} = p.MODELS.matrices{mid}(modelVecs_indxGood_split{mid});
-    modelVecs_nonsplit{mid} = p.MODELS.matricesNonsplit{mid}(modelVecs_indxGood_nonsplit{mid});
+    modelVecs_indxGood_split{mid,pid} = find(~isnan(mat_split(:)));
+    modelVecs_indxGood_nonsplit{mid,pid} = find(~isnan(mat_nonsplit(:)));
+
+    modelVecs_split{mid,pid} = mat_split(modelVecs_indxGood_split{mid,pid});
+    modelVecs_nonsplit{mid,pid} = mat_nonsplit(modelVecs_indxGood_nonsplit{mid,pid});
+end
 end
 
 %init
@@ -44,12 +57,14 @@ for mid = 1:numMod
            rsm_nonsplit = data.RSM_nonsplit(:,:,par,vid);
            
            %split
-           rsm_split_vec = rsm_split(modelVecs_indxGood_split{mid});
-           corrs_split(par,mid,vid) = corr(rsm_split_vec,modelVecs_split{mid},'type','Spearman');
+           rsm_split_vec = rsm_split(modelVecs_indxGood_split{mid,par});
+           ind_use = ~isnan(rsm_split_vec);
+           corrs_split(par,mid,vid) = corr(rsm_split_vec(ind_use), modelVecs_split{mid,par}(ind_use), 'type', 'Spearman');
            
            %nonsplit
-           rsm_nonsplit_vec = rsm_nonsplit(modelVecs_indxGood_nonsplit{mid});
-           corrs_nonsplit(par,mid,vid) = corr(rsm_nonsplit_vec,modelVecs_nonsplit{mid},'type','Spearman');
+           rsm_nonsplit_vec = rsm_nonsplit(modelVecs_indxGood_nonsplit{mid,par});
+           ind_use = ~isnan(rsm_nonsplit_vec);
+           corrs_nonsplit(par,mid,vid) = corr(rsm_nonsplit_vec(ind_use), modelVecs_nonsplit{mid,par}(ind_use), 'type', 'Spearman');
        end
    end
 end

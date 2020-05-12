@@ -628,52 +628,8 @@ end
 %% add condition names to params kept
 paramList{end+1} = 'CONDITIONS';
 
-%% Organize model information and create nonsplit versions
-%add nonsplit versions (top half excluding diag)
-[row,col] = ind2sub([NUMBER_OF_CONDITIONS NUMBER_OF_CONDITIONS],1:(NUMBER_OF_CONDITIONS^2));
-indClear = find(col <= row);
-for i = 1:length(MODELS.matrices)
-    MODELS.matricesNonsplit{i} = MODELS.matrices{i};
-    MODELS.matricesNonsplit{i}(indClear) = nan;
-end
-
-%add models to saved params
+%% add models to saved params
 paramList{end+1} = 'MODELS';
-
-%% Select first valid filepath, ensure that the correct file separators are
-%% used (/ or \), and ensure that filepaths end in a file separator
-ind_filepathVars = find(cellfun(@(x) any(strfind(x,'FILEPATH_')),paramList));
-for ind = ind_filepathVars'
-    temp = eval(paramList{ind});
-    if ~iscell(temp)
-        error('Filepaths should be cell arrays.')
-    end
-    foundPath = false;
-    for i = 1:length(temp)
-        filepath = temp{i};
-        filepath(filepath=='\' | filepath=='/') = filesep;
-        if filepath(end)~=filesep
-            filepath = [filepath filesep];
-        end
-        if exist(filepath,'dir')
-            foundPath = true;
-            break
-        end
-    end
-    if ~foundPath
-        error(sprintf('No valid path was found in %s.\n',paramList{ind}))
-    else
-        eval([paramList{ind} ' = filepath;']);
-    end
-end
-
-%% Create subfolders if they do not yet exist
-ind_subfolderVars = find(cellfun(@(x) any(strfind(x,'SUBFOLDER_')),paramList));
-for ind = ind_subfolderVars'
-    if ~eval(['exist([FILEPATH_TO_SAVE_LOCATION ' paramList{ind} '],''dir'')'])
-        eval(['mkdir([FILEPATH_TO_SAVE_LOCATION ' paramList{ind} '])'])
-    end
-end
 
 %% place param variables in a structure called "p"
 for i = 1:length(paramList)

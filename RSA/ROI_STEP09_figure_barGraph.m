@@ -34,7 +34,8 @@ end
 %range
 temp = nanmean(data_use,1);
 ran = [min(temp(:)) max(temp(:))];
-ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
+% ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
+ran = [ran(1)-0.1 ran(2)+0.1];
 
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
@@ -62,9 +63,11 @@ for voi = 1:length(voi_names)
     name(name=='_') = ' ';
     subplot(r,c,voi)
     corrs = nanmean(data_use(:,:,voi),1);
+    stds = nanstd(data_use(:,:,voi),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
+        errorbar(i, corrs(i), stds(i)*1.96, 'k');
         set(b(i), 'FaceColor', cs(i,:));
     end
     hold off
@@ -98,7 +101,7 @@ else
     legend(s,b(h+1:end),l);
 end
 
-t = ['Mean Model Correlation For Each VOI (' split_type ')'];
+t = ['Mean Model Correlation For Each VOI (' split_type '), ErrorBars=95%CI'];
 suptitle(t);
 
 saveas(fig,[saveFol t],'png')
@@ -130,9 +133,11 @@ for m = 1:length(p.MODELS.names)
     name(name=='_') = ' ';
     subplot(r,c,m)
     corrs = nanmean(data_use(:,m,:),1);
+    stds = nanstd(data_use(:,m,:),1);
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
+        errorbar(i, corrs(i), stds(i)*1.96, 'k');
         set(b(i), 'FaceColor', cs(i,:)) 
     end
     hold off
@@ -166,7 +171,7 @@ else
     legend(s,b(h+1:end),l)
 end
 
-t = ['Mean Model Correlation For Each Model (' split_type ')'];
+t = ['Mean Model Correlation For Each Model (' split_type '), ErrorBars=95%CI'];
 suptitle(t);
 
 saveas(fig,[saveFol t],'png')
