@@ -101,7 +101,7 @@ try
     
     %add directory to any filepath starting with .
     all_fields = fields(p);
-    filepath_fields = all_fields(cellfun(@(x) any(strfind(x,'FILEPATH_')),all_fields));
+    filepath_fields = all_fields( contains(all_fields, 'FILEPATH_') | strcmp(all_fields, 'MSK_FILE') );
     for field = filepath_fields'
         field = field{1};
         value = getfield(p, field);
