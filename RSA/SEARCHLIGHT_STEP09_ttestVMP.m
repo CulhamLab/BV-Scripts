@@ -49,6 +49,9 @@ for m = 1:length(list)
     vmp.Map(m).ShowPositiveNegativeFlag = p.VMP_TTEST_SHOW_POS_NEG;
     vmp.Map(m).Name = [name '_ttest(one-minus-p)'];
     
+    %number of voxels for bonf
+    vmp.Map(m).BonferroniValue = sum(vmp.Map(m).VMPData(:) ~= 0);
+    
     %BV ttest (for t-map)
     %NOTE: these were coded separately as a check for validity
     indMapUse = 1:vmpModel.NrOfMaps;
