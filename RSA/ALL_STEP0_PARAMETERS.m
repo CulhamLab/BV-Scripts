@@ -122,10 +122,10 @@ try
 	%	-add support for participant-specific models
 	%	-move last bits of prep from param file to this script
     %   -searchlight slow RSM method now only used when needed
-    %3. May 12, 2020
     %   -support relative paths for MSK_FILE
     %   -VMR file can now be used to mask searchlight VMPs (uses intensity>10)
-    p.RUNTIME.VERSION = 3;
+    %   -searchlight VMPs now contain voxel counts for BV's Bonferroni (adjusted by mask)
+    p.RUNTIME.VERSION = 2;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)

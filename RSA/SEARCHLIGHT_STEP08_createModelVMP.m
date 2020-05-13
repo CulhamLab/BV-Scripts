@@ -104,8 +104,8 @@ for m = 1:models.mNum
         %show all values
         vmp.Map(par).ShowPositiveNegativeFlag = p.VMP_RMAP_SHOW_POS_NEG;
         
-        %no bonf
-        vmp.Map(par).BonferroniValue = 0;
+        %number of voxels for bonf
+        vmp.Map(par).BonferroniValue = sum(vmp.Map(par).VMPData(:) ~= 0);
         
         %no DF
         vmp.Map(par).DF1 = 0;

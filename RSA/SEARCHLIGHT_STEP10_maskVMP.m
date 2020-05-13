@@ -43,9 +43,10 @@ for f = 1:num_vmp
     name = list(f).name;
     vmp = xff([vmpFol name]);
     
+    num_map = vmp.NrOfMaps;
+    
     if isfield(msk, 'Mask')
         %msk type file
-        num_map = vmp.NrOfMaps;
         for m = 1:num_map
             vmp.Map(m).VMPData( ~msk.Mask ) = nan;
         end
@@ -53,6 +54,11 @@ for f = 1:num_vmp
         vmp.MaskWithVMR(msk, 10);
     else
         error('Unsupported mask file type (supports msk and vmr)')
+    end
+    
+    %new voxel counts for bonf
+    for m = 1:num_map
+        vmp.Map(m).BonferroniValue = sum(vmp.Map(m).VMPData(:) ~= 0);
     end
     
     name_new = strrep(name,'.vmp',sprintf('_MSK-%s.vmp',mask_filename));
