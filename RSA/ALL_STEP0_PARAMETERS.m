@@ -125,7 +125,9 @@ try
     %   -support relative paths for MSK_FILE
     %   -VMR file can now be used to mask searchlight VMPs (uses intensity>10)
     %   -searchlight VMPs now contain voxel counts for BV's Bonferroni (adjusted by mask)
-    p.RUNTIME.VERSION = 2;
+    %3. May 19, 2020
+    %   -added model comparison t-maps to searchlight (see new parameter SEARCHLIGHT_MODEL_COMPARISON_TTEST in example)
+    p.RUNTIME.VERSION = 3;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
@@ -206,6 +208,16 @@ try
                 warning('Parameter file does not contain the new field "p.CUSTOM_VOI_SUMMARY_FIGURES(%d).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND". This field will be defaulted to false.', c)
                 p.CUSTOM_VOI_SUMMARY_FIGURES(c).NORMALIZE_TO_NOISE_CEILING_LOWER_BOUND = false;
             end
+        end
+    end
+    
+    if ~any(strcmp(fs, 'SEARCHLIGHT_MODEL_COMPARISON_TTEST'))
+        warning('Parameter file does not contain the new field "p.SEARCHLIGHT_MODEL_COMPARISON_TTEST". This field will be defaulted to empty [].')
+        p.SEARCHLIGHT_MODEL_COMPARISON_TTEST = [];
+    else
+        %check SEARCHLIGHT_MODEL_COMPARISON_TTEST
+        if any(any(cellfun(@(x) ~any(strcmp(p.MODELS.names,x)), p.SEARCHLIGHT_MODEL_COMPARISON_TTEST)))
+            error('Parameter SEARCHLIGHT_MODEL_COMPARISON_TTEST contains one or more unknown model name')
         end
     end
     
