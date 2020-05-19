@@ -246,6 +246,24 @@ INDIVIDUAL_MODEL_NOISE_CEILING = true;
 %allow some participants to be missing a condition in VOI analysis
 ALLOW_MISSING_CONDITIONS_IN_VOI_ANALYSIS = false;
 
+%Searchlight Model Comparison t-test
+%Positive t-value indicates that the first model is higher, negative for the second
+%No inherent correction for multiple comparisons but you can use FDR or Bonferroni in BV
+%Leave empty [] to disable.
+%
+%Example:
+% SEARCHLIGHT_MODEL_COMPARISON_TTEST = {	'Physical Distance'		'Perceived Distance';
+%                                           'Physical Size'			'Perceived Size';
+%                                           'Retinal Size'			'Physical Distance';
+%                                           'Retinal Size'			'Perceived Distance'
+%                                           'Retinal Size'			'Physical Size';
+%                                           'Retinal Size'			'Perceived Size';
+%                                           'Retinal Size'			'Identity';
+%                                           'Perceived Size'		'Identity';
+% 									};
+%
+SEARCHLIGHT_MODEL_COMPARISON_TTEST = [];
+
 %% Fisher Transformation Options
 %Apply Fisher to the subject-average RSM prior to condition-condition
 %MDS calculation (not VOI-VOI MDS)
