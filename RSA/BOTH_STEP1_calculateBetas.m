@@ -38,7 +38,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
                 fp_out = sprintf('%s%s_%s', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
             end
             fprintf('VTC: %s\nSDM: %s\nOut: %s\n', fp_vtc, fp_sdm, fp_out);
-            createBetasFromBV(fp_sdm, fp_vtc, strrep(fp_out, '*', ''), true, fig); %subfunction below
+            createBetasFromBV(fp_sdm, fp_vtc, strrep(fp_out, '*', ''), true, fig, p); %subfunction below
 		end
 		
     end
@@ -64,7 +64,7 @@ end
 %    A - a 3D matlab matrix in some sort of 3D space
 %        other return values may also be useful, such as some sort of code identifying the 3D space used
 %        (e.g., MNI space, Talairach space, ACPC space, etc.
-function [betas,vox,vtcRes,offsetXYZ] = createBetasFromBV(sdmFilepath,vtcFilepath,outputFilepath,doSave,fig)
+function [betas,vox,vtcRes,offsetXYZ] = createBetasFromBV(sdmFilepath,vtcFilepath,outputFilepath,doSave,fig,p)
 if ~exist('doSave','var')
 	doSave = true;
 end
@@ -236,7 +236,7 @@ if close_fig
 end
 
 %only need a few things kept
-clearvars -except vtcFilepath sdmFilepath outputFilepath vtc sdm voiWholeBrain originCoords ne
+clearvars -except vtcFilepath sdmFilepath outputFilepath vtc sdm voiWholeBrain originCoords ne p
 
 %% Step 3:Create Whole-Brain voi (reuse old voi struct)
 %Only uses one 1mm^3 voxel for each functional voxel, uses step 2 (above)
@@ -319,7 +319,7 @@ VariableHelp.voiWholeBrain = 'BVQX voi struct for the whole-brain.';
 
 %save
 runtime.Step1 = p.RUNTIME;
-save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames' 'runtime');
+save(outputFilepath,'betas','vox','vtcRes','vtcFilepath','sdmFilepath','voiWholeBrain','VariableHelp','box','conditionNames', 'runtime');
 
 vtc.ClearObject;
 sdm.ClearObject;
