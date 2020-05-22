@@ -59,12 +59,20 @@ for mid = 1:numMod
            %split
            rsm_split_vec = rsm_split(modelVecs_indxGood_split{mid,par});
            ind_use = ~isnan(rsm_split_vec);
-           corrs_split(par,mid,vid) = corr(rsm_split_vec(ind_use), modelVecs_split{mid,par}(ind_use), 'type', 'Spearman');
+           if ~any(ind_use)
+               corrs_split(par,mid,vid) = nan;
+           else
+               corrs_split(par,mid,vid) = corr(rsm_split_vec(ind_use), modelVecs_split{mid,par}(ind_use), 'type', 'Spearman');
+           end
            
            %nonsplit
            rsm_nonsplit_vec = rsm_nonsplit(modelVecs_indxGood_nonsplit{mid,par});
            ind_use = ~isnan(rsm_nonsplit_vec);
-           corrs_nonsplit(par,mid,vid) = corr(rsm_nonsplit_vec(ind_use), modelVecs_nonsplit{mid,par}(ind_use), 'type', 'Spearman');
+           if ~any(ind_use)
+               corrs_nonsplit(par,mid,vid) = nan;
+           else
+               corrs_nonsplit(par,mid,vid) = corr(rsm_nonsplit_vec(ind_use), modelVecs_nonsplit{mid,par}(ind_use), 'type', 'Spearman');
+           end
        end
    end
 end
