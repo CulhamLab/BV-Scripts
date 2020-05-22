@@ -676,29 +676,34 @@ if do_voi_model_nonsplit
         rdm(i,i) = 0;
     end
     rdm = squareform(rdm);
-    MD2D = mdscale(rdm,2,'criterion','sstress');
+    
+    if any(isnan(rdm))
+        warning('Cannot create MDS for VOI+Models due to nan datapoints')
+    else
+        MD2D = mdscale(rdm,2,'criterion','sstress');
 
-    clf;
-    hold on
-    for i = 1:matrix_size
-        c = colours(i,:);
-        t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
-        set(t,'MarkerFaceColor',c);
-        t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
-        set(t,'FontSize',10);
+        clf;
+        hold on
+        for i = 1:matrix_size
+            c = colours(i,:);
+            t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
+            set(t,'MarkerFaceColor',c);
+            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
+            set(t,'FontSize',10);
+        end
+        hold off
+
+        axis square;
+        v=axis;
+        r = max([range(v(1:2)) range(v(3:4))])/10;
+        axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+        grid on;
+
+        t = 'VOI-VOI-and-Models MDS (nonsplit)';
+        suptitle(t);
+
+        SaveFigure(fig, [saveFol_roi t]); 
     end
-    hold off
-
-    axis square;
-    v=axis;
-    r = max([range(v(1:2)) range(v(3:4))])/10;
-    axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
-    grid on;
-
-    t = 'VOI-VOI-and-Models MDS (nonsplit)';
-    suptitle(t);
-
-    SaveFigure(fig, [saveFol_roi t]); 
     
 end
 
