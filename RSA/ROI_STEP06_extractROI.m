@@ -251,7 +251,7 @@ for vid = 1:voi.NrOfVOIs %for each voi...
                     group2c2(indNan) = [];
 
                     %corr (default nan)
-                    if length(evens)
+                    if length(group1c1)
                         rsms(c1,c2,split) = corr(group1c1,group2c2,'type','Pearson');
                     else
                         rsms(c1,c2,split) = nan;
