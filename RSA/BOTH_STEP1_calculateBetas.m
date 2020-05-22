@@ -291,7 +291,15 @@ voiWholeBrain.VOI(1).NrOfVoxels = size(vox,1);
 betas = nan(voiWholeBrain.VOI(1).NrOfVoxels,sdm.FirstConfoundPredictor-1);
 
 %compute beta maps
-[betas, irtc, ptc, se] = ne.calcbetas(sdm.RTCMatrix, ztc);
+beta_valid = any(sdm.RTCMatrix);
+if any(~beta_valid)
+    warning('One or more predictors is blank (all zeros)')
+    
+    [betas_temp, irtc, ptc, se] = ne.calcbetas(sdm.RTCMatrix(:, beta_valid), ztc);
+    betas(:,beta_valid) = betas_temp;
+else
+    [betas, irtc, ptc, se] = ne.calcbetas(sdm.RTCMatrix, ztc);
+end
 
 %% Step 5: Save (for now)
 
