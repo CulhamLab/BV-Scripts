@@ -22,8 +22,11 @@ if ~exist('runtime', 'var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSI
     error('The odd//even split method has been improved. Rerun from step 6.')
 end
 
+%% split/nonsplit
+for do_split = [false true]
+
 %split?
-if p.VOI_USE_SPLIT
+if do_split
     split_type = 'split';
     data_use = corrs_split;
 else
@@ -175,6 +178,9 @@ t = ['Mean Model Correlation For Each Model (' split_type '), ErrorBars=95%CI'];
 suptitle(t);
 
 saveas(fig,[saveFol t],'png')
+
+%% split/nonsplit
+end
 
 %% done
 close(fig)
