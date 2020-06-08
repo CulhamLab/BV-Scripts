@@ -467,7 +467,7 @@ if do_voi_model_split
             col_val_ind = ~isnan(col_val);
             
             ind = row_val_ind & col_val_ind;
-            any_mismatch = any(row_val_ind ~= col_val_ind);
+            any_mismatch = ~any(row_val_ind == col_val_ind);
             
             if any_mismatch && ~is_data(col) && ~is_data(row)
                 rsm_voi_model(row,col) = 0;
@@ -604,7 +604,7 @@ if do_voi_model_nonsplit
             col_val_ind = ~isnan(col_val);
             
             ind = row_val_ind & col_val_ind;
-            any_mismatch = any(row_val_ind ~= col_val_ind);
+            any_mismatch = ~any(row_val_ind == col_val_ind);
             
             if any_mismatch && ~is_data(col) && ~is_data(row)
                 rsm_voi_model(row,col) = 0;
