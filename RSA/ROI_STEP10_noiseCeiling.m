@@ -28,7 +28,10 @@ if p.VOI_USE_SPLIT
     corrs_use = corrs_split;
     rsms_use = rsms_split;
     models_use = p.MODELS.matrices;
-    selection_for_base_ceiling = true(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    selection_for_base_ceiling = false(p.NUMBER_OF_CONDITIONS, p.NUMBER_OF_CONDITIONS);
+    for i = 1:p.NUMBER_OF_CONDITIONS
+        selection_for_base_ceiling(i,i:end) = true;
+    end
 else
     split_type = 'nonsplit';
     corrs_use = corrs_nonsplit;
