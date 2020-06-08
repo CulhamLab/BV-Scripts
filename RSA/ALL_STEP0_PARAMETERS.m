@@ -127,7 +127,15 @@ try
     %   -searchlight VMPs now contain voxel counts for BV's Bonferroni (adjusted by mask)
     %3. May 19, 2020
     %   -added model comparison t-maps to searchlight (see new parameter SEARCHLIGHT_MODEL_COMPARISON_TTEST in example)
-    p.RUNTIME.VERSION = 3;
+	%4. June 8, 2020
+	%	-fix crashes: step1, ROI step6+7 when missing data and all splits, 
+	%	-diag and similar models are now automatically exlcuded from nonsplit MDS
+	%	-step1 now supports runs with empty predictors
+	%	-prep for DO_ALL_SPLITS_VOI will now occur even if VOI_USE_SPLIT is not currently true
+	%	-ROI step9 now creates both split and nonsplit
+	%	-ROI step10 generic noise ceiling is now corrected for the new split method (i.e., don't use whole matrix)
+	%	-ROI step6 no longer preloads all subject data, which could run out of memory in large datasets
+    p.RUNTIME.VERSION = 4;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)

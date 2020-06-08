@@ -112,58 +112,67 @@ data.VOInumVox = zeros(1,voi.NrOfVOIs);
 number_splits = size(selected,1);
 
 %load sub data only once
-disp('Loading subject data...')
+disp('Processing participant data...')
 for par = 1:p.NUMBER_OF_PARTICIPANTS
-    preloaded_subdata(par) = load(sprintf('%sstep3_organize3D_%s',readFol,p.FILELIST_PAR_ID{par}));
-end
-
-if ~isfield(preloaded_subdata, 'do_all_split')
-    warning('Loaded step 5 data does not contain "do_all_split". Will default to false to assume that prepartions for this method have NOT been made.');
-    for par = 1:p.NUMBER_OF_PARTICIPANTS
-        preloaded_subdata(par).do_all_split = false;
-    end
-end
-
-vtcRes = preloaded_subdata(1).vtcRes;
-
-disp('Calculating ROI RSMs...')
-for vid = 1:voi.NrOfVOIs %for each voi...
-   fprintf('Processing VOI %g of %g...\n',vid,voi.NrOfVOIs)
+    fprintf('Processing participant %d of %d: %s\n', par, p.NUMBER_OF_PARTICIPANTS, p.FILELIST_PAR_ID{par});
     
-   %name of voi
-   data.VOINames{vid} = voi.VOI(vid).Name;
-   data.VOINames_short{vid} = data.VOINames{vid};
-   
-   %convert TAL VOI coords to save coords
-   vox_TAL = voi.VOI(vid).Voxels;
-   returnPath = pwd;
-    try
-        cd('Required Methods')
-        [X,Y,Z] = SAVE_SYSTEM_COORD_CONVERSION( vox_TAL , vtcRes );
-        cd ..
-    catch e
-        cd(returnPath)
-        rethrow(e)
-    end
-   xyz = [X,Y,Z];
-   
-   %remove anything outside data
-   xyz = xyz(find(~isnan(sum(xyz,2))),:);
-   
-   %param
-   data.VOInumVox(vid) = size(xyz,1);
-   
-   %calculate RSM for each sub at this VOI
-   for par = 1:p.NUMBER_OF_PARTICIPANTS
-        %load sub betas
-        subdata = preloaded_subdata(par);
+    %load
+    fprintf('\tLoading...\n');
+    subdata = load(sprintf('%sstep3_organize3D_%s',readFol,p.FILELIST_PAR_ID{par}));
+    
+    %use settings of first file
+    fprintf('\tChecking settings...\n');
+    if par == 1
+        %func res
+        vtcRes = subdata.vtcRes;
         
-        %check for do_all_split
-        if do_all_split && ~subdata.do_all_split
-            error('All splits mode is enabled, but step 5 was not run with all splits enabled. Rerun step 5.');
-        elseif ~do_all_split && subdata.do_all_split
-            warning('All splits mode is disabled, but step 5 was run with all splits enabled. This does not cause an issues, but you should make sure that parameters are as intended.');
+        %runtime data
+        if isfield(subdata, 'runtime')
+            runtime = subdata.runtime;
+        else
+            runtime = struct;
         end
+        
+        %prep ROIs
+        fprintf('\tPreparing ROIs based on settings...\n');
+        for vid = 1:voi.NrOfVOIs %for each voi...
+           %name of voi
+           data.VOINames{vid} = voi.VOI(vid).Name;
+           data.VOINames_short{vid} = data.VOINames{vid};
+
+           %convert TAL VOI coords to save coords
+           vox_TAL = voi.VOI(vid).Voxels;
+           returnPath = pwd;
+            try
+                cd('Required Methods')
+                [X,Y,Z] = SAVE_SYSTEM_COORD_CONVERSION( vox_TAL , vtcRes );
+                cd ..
+            catch e
+                cd(returnPath)
+                rethrow(e)
+            end
+           xyz = [X,Y,Z];
+
+           %remove anything outside data
+           voi_xyz{vid} = xyz(find(~isnan(sum(xyz,2))),:);
+
+           %param
+           data.VOInumVox(vid) = size(voi_xyz{vid},1);
+        end
+        
+    elseif subdata.vtcRes ~= vtcRes
+        error('mismatch in vtcRes')
+    end
+        
+    %check do_all_split
+    if (~isfield(subdata, 'do_all_split') || ~subdata.do_all_split) && do_all_split
+        error('All splits mode is enabled, but step 5 was not run with all splits enabled. Rerun step 5.')
+    end
+       
+    %calculate
+    fprintf('\tCalculating RSMs...\n');
+    for vid = 1:voi.NrOfVOIs %for each voi...
+        fprintf('\t\tProcessing ROI %d of %d: %s\n', vid, voi.NrOfVOIs, data.VOINames{vid});
         
         %preinit [vox# cond# odd/even/all]
         betas = nan(data.VOInumVox(vid),p.NUMBER_OF_CONDITIONS,3);
@@ -171,7 +180,7 @@ for vid = 1:voi.NrOfVOIs %for each voi...
         %for each cond, gather all betas
         for cond = 1:p.NUMBER_OF_CONDITIONS
             %all three matrices have the same shape so we only need one index
-            ind_vox_thiscond = sub2ind(size(subdata.betas_3D_even),xyz(:,1),xyz(:,2),xyz(:,3),repmat(cond,[data.VOInumVox(vid) 1]));
+            ind_vox_thiscond = sub2ind(size(subdata.betas_3D_even),voi_xyz{vid}(:,1),voi_xyz{vid}(:,2),voi_xyz{vid}(:,3),repmat(cond,[data.VOInumVox(vid) 1]));
             
             betas(:,cond,1) = subdata.betas_3D_even(ind_vox_thiscond); %even
             betas(:,cond,2) = subdata.betas_3D_odd(ind_vox_thiscond); %odd
@@ -231,11 +240,11 @@ for vid = 1:voi.NrOfVOIs %for each voi...
                 %process betas_3D_runs(x,y,z,run,cond)
                 for v = 1:data.VOInumVox(vid)
                     %group 1
-                    betas_run = squeeze(subdata.betas_3D_runs(xyz(v,1), xyz(v,2), xyz(v,3), selected(split,:), :));
+                    betas_run = squeeze(subdata.betas_3D_runs(voi_xyz{vid}(v,1), voi_xyz{vid}(v,2), voi_xyz{vid}(v,3), selected(split,:), :));
                     betas_group1(v,:) = nanmean(betas_run, 1) - nanmean(betas_run(:));
                     
                     %group 2
-                    betas_run = squeeze(subdata.betas_3D_runs(xyz(v,1), xyz(v,2), xyz(v,3), ~selected(split,:), :));
+                    betas_run = squeeze(subdata.betas_3D_runs(voi_xyz{vid}(v,1), voi_xyz{vid}(v,2), voi_xyz{vid}(v,3), ~selected(split,:), :));
                     betas_group2(v,:) = nanmean(betas_run, 1) - nanmean(betas_run(:));
                 end
                 
@@ -273,9 +282,3 @@ end
 
 voi_data.data = data;
 voi_data.vtcRes = vtcRes;
-
-if isfield(preloaded_subdata, 'runtime')
-    runtime = preloaded_subdata(1).runtime;
-else
-    runtime = struct;
-end
