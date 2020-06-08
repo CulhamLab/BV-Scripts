@@ -168,7 +168,7 @@ allBetas = allBetas(indKeep,:,:);
 %save
 conditions = p.CONDITIONS;
 runtime.Step4 = p.RUNTIME;
-if p.VOI_USE_SPLIT && p.DO_ALL_SPLITS_VOI
+if p.DO_ALL_SPLITS_VOI
     warning('p.VOI_USE_SPLIT and p.DO_ALL_SPLITS_VOI are both TRUE. The full set of run betas will be saved. This results in large files that take a while to save/load.')
     save([saveFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})],'vox','allBetas_MeanAcrossRun','oddBetas_MeanAcrossRun','evenBetas_MeanAcrossRun','conditions','vtcRes','runtime', 'allBetas')
 else

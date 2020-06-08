@@ -20,7 +20,7 @@ fprintf('Running participant %g of %g...\n',par,p.NUMBER_OF_PARTICIPANTS)
 load ([inputFol sprintf('step2_demeanAndAverageBetas_%s',p.FILELIST_PAR_ID{par})])
 
 %if all split, prior step has all data needed?
-if p.VOI_USE_SPLIT && p.DO_ALL_SPLITS_VOI
+if p.DO_ALL_SPLITS_VOI
     if ~exist('allBetas', 'var')
         error('VOI_USE_SPLIT and DO_ALL_SPLITS_VOI are true, but prior step did not save all required data. Rerun step 4 with these parameters.')
     end
