@@ -139,6 +139,7 @@ try
     %   -Added "VOI_CREATE_NOLABEL_FIGURES" (default to false) to toggle creation of no-label voi figures
 	%	-VOI voxels that are outside of the data region are now automatically discarded in VOI step 6
 	%	-Support indivudal models in VOI noise ceiling (selection is any cell that is never nan across participants)
+	%	-Added support for participant-specific models in Searchlight
     p.RUNTIME.VERSION = 5;
     p.RUNTIME.RUN = datetime('now');
     
