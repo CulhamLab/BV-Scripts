@@ -720,6 +720,12 @@ end
 %0. reshape from n-by-n matrix to n^2-by-1 array
 RSMs_array = cell2mat(arrayfun(@(x) reshape(RSMs(:,:,x), n, 1), 1:dim3, 'UniformOutput', false));
 
+%if selection is 3d (individualized for participants), select cells where
+%all values are non-nan
+if size(selection,3) > 1
+    selection = ~any(~selection, 3);
+end
+
 %apply selection
 if exist('selection', 'var')
     if any(size(selection) ~= [dim1 dim2])
