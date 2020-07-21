@@ -135,7 +135,10 @@ try
 	%	-ROI step9 now creates both split and nonsplit
 	%	-ROI step10 generic noise ceiling is now corrected for the new split method (i.e., don't use whole matrix)
 	%	-ROI step6 no longer preloads all subject data, which could run out of memory in large datasets
-    p.RUNTIME.VERSION = 4;
+    %5. July 21, 2020
+    %   -Added "VOI_CREATE_NOLABEL_FIGURES" (default to false) to toggle creation of no-label voi figures
+	%	-VOI voxels that are outside of the data region are now automatically discarded in VOI step 6
+    p.RUNTIME.VERSION = 5;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
@@ -229,6 +232,10 @@ try
         end
     end
     
+    if ~any(strcmp(fs, 'VOI_CREATE_NOLABEL_FIGURES'))
+        warning('Parameter file does not contain the new field "p.VOI_CREATE_NOLABEL_FIGURES". This field will be defaulted to false.')
+        p.VOI_CREATE_NOLABEL_FIGURES = false;
+    end
 catch err
 	cd(return_path);
 	rethrow(err);

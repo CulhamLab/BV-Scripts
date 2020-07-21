@@ -19,7 +19,7 @@ end
 if ~exist(saveFol_condRSM)
     mkdir(saveFol_condRSM)
 end
-if ~exist(saveFol_condRSM_nolabel)
+if ~exist(saveFol_condRSM_nolabel) & p.VOI_CREATE_NOLABEL_FIGURES
     mkdir(saveFol_condRSM_nolabel)
 end
 if ~exist(saveFol_condMDS)
@@ -131,13 +131,15 @@ for vid = 1:numVOI_type
 
     SaveFigure(fig, [saveFol_condRSM 'SPLIT RSM - ' t]); 
     
-    clf
-    imagesc(rsm_reorder);
-    colormap(p.RSM_COLOURMAP);
-    caxis(p.RSM_COLOUR_RANGE_COND);
-    axis square
-    axis off
-    SaveFigure(fig, [saveFol_condRSM_nolabel 'SPLIT RSM - ' t]); 
+    if p.VOI_CREATE_NOLABEL_FIGURES
+        clf
+        imagesc(rsm_reorder);
+        colormap(p.RSM_COLOURMAP);
+        caxis(p.RSM_COLOUR_RANGE_COND);
+        axis square
+        axis off
+        SaveFigure(fig, [saveFol_condRSM_nolabel 'SPLIT RSM - ' t]); 
+    end
 end
 end
 
@@ -175,13 +177,15 @@ for vid = 1:numVOI_type
 
     SaveFigure(fig, [saveFol_condRSM 'NONSPLIT RSM - ' t]); 
         
-    clf;
-    imagesc(rsm_reorder);
-    colormap(p.RSM_COLOURMAP);
-    caxis(p.RSM_COLOUR_RANGE_COND);
-    axis square;
-    axis off;
-    SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
+    if p.VOI_CREATE_NOLABEL_FIGURES
+        clf;
+        imagesc(rsm_reorder);
+        colormap(p.RSM_COLOURMAP);
+        caxis(p.RSM_COLOUR_RANGE_COND);
+        axis square;
+        axis off;
+        SaveFigure(fig, [saveFol_condRSM_nolabel 'NONSPLIT RSM - ' t]); 
+    end
 end
 end
 
@@ -370,6 +374,7 @@ suptitle(t);
 
 SaveFigure(fig, [saveFol_roi t]); 
 
+if p.VOI_CREATE_NOLABEL_FIGURES
 clf;
 imagesc(rsm);
 caxis(p.RSM_COLOUR_RANGE_ROI);
@@ -377,6 +382,7 @@ colormap(p.RSM_COLOURMAP);
 axis square;
 axis off;
 SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+end
 end
 
 %% VOI-VOI RSM (nonsplit)
@@ -418,6 +424,7 @@ suptitle(t);
 
 SaveFigure(fig, [saveFol_roi t]); 
 
+if p.VOI_CREATE_NOLABEL_FIGURES
 clf;
 imagesc(rsm);
 caxis(p.RSM_COLOUR_RANGE_ROI);
@@ -425,6 +432,7 @@ colormap(p.RSM_COLOURMAP);
 axis square;
 axis off;
 SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+end
 end
 
 %% VOI+Model
@@ -469,7 +477,7 @@ if do_voi_model_split
             ind = row_val_ind & col_val_ind;
             any_mismatch = ~any(row_val_ind == col_val_ind);
             
-            if any_mismatch && ~is_data(col) && ~is_data(row)
+            if (any_mismatch && ~is_data(col) && ~is_data(row)) || ~any(ind)
                 rsm_voi_model(row,col) = 0;
                 rsm_voi_model_with_nan(row,col) = nan;
             else
@@ -514,19 +522,21 @@ if do_voi_model_split
 
     SaveFigure(fig, [saveFol_roi t]); 
 
-    clf;
-    imagesc(rsm_voi_model_with_nan);
-    caxis([-1.01 +1])
+    if p.VOI_CREATE_NOLABEL_FIGURES
+        clf;
+        imagesc(rsm_voi_model_with_nan);
+        caxis([-1.01 +1])
 
-	if any(isnan(rsm_voi_model_with_nan(:)))
-		colormap([0 0 0; p.RSM_COLOURMAP])
-	else
-		colormap(p.RSM_COLOURMAP)
-	end
-	
-    axis square;
-    axis off;
-    SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+        if any(isnan(rsm_voi_model_with_nan(:)))
+            colormap([0 0 0; p.RSM_COLOURMAP])
+        else
+            colormap(p.RSM_COLOURMAP)
+        end
+
+        axis square;
+        axis off;
+        SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+    end
     
     
     %% MDS
@@ -538,29 +548,34 @@ if do_voi_model_split
         rdm(i,i) = 0;
     end
     rdm = squareform(rdm);
-    MD2D = mdscale(rdm,2,'criterion','sstress');
+    
+    if any(isnan(rdm))
+        warning('Cannot create MDS for VOI+Models due to nan datapoints')
+    else
+        MD2D = mdscale(rdm,2,'criterion','sstress');
 
-    clf;
-    hold on
-    for i = 1:matrix_size
-        c = colours(i,:);
-        t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
-        set(t,'MarkerFaceColor',c);
-        t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
-        set(t,'FontSize',10);
+        clf;
+        hold on
+        for i = 1:matrix_size
+            c = colours(i,:);
+            t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
+            set(t,'MarkerFaceColor',c);
+            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
+            set(t,'FontSize',10);
+        end
+        hold off
+
+        axis square;
+        v=axis;
+        r = max([range(v(1:2)) range(v(3:4))])/10;
+        axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
+        grid on;
+
+        t = 'VOI-VOI-and-Models MDS (split)';
+        suptitle(t);
+
+        SaveFigure(fig, [saveFol_roi t]); 
     end
-    hold off
-
-    axis square;
-    v=axis;
-    r = max([range(v(1:2)) range(v(3:4))])/10;
-    axis([min(v) max(v) min(v) max(v)] + [-r r -r r]);
-    grid on;
-
-    t = 'VOI-VOI-and-Models MDS (split)';
-    suptitle(t);
-
-    SaveFigure(fig, [saveFol_roi t]); 
     
 end
 
@@ -606,7 +621,7 @@ if do_voi_model_nonsplit
             ind = row_val_ind & col_val_ind;
             any_mismatch = ~any(row_val_ind == col_val_ind);
             
-            if any_mismatch && ~is_data(col) && ~is_data(row)
+            if (any_mismatch && ~is_data(col) && ~is_data(row)) || ~any(ind)
                 rsm_voi_model(row,col) = 0;
                 rsm_voi_model_with_nan(row,col) = nan;
             else
@@ -653,20 +668,21 @@ if do_voi_model_nonsplit
 
     SaveFigure(fig, [saveFol_roi t]); 
 
-    clf;
-    imagesc(rsm_voi_model_with_nan);
-    caxis([-1.01 +1])
+    if p.VOI_CREATE_NOLABEL_FIGURES
+        clf;
+        imagesc(rsm_voi_model_with_nan);
+        caxis([-1.01 +1])
 
-	if any(isnan(rsm_voi_model_with_nan(:)))
-		colormap([0 0 0; p.RSM_COLOURMAP])
-	else
-		colormap(p.RSM_COLOURMAP)
-	end
-	
-    axis square;
-    axis off;
-    SaveFigure(fig, [saveFol_roi t '_nolabel']); 
-    
+        if any(isnan(rsm_voi_model_with_nan(:)))
+            colormap([0 0 0; p.RSM_COLOURMAP])
+        else
+            colormap(p.RSM_COLOURMAP)
+        end
+
+        axis square;
+        axis off;
+        SaveFigure(fig, [saveFol_roi t '_nolabel']); 
+    end
     
     %% MDS
     colours = jet(matrix_size);
@@ -746,10 +762,12 @@ if do_model_figures
         
         SaveFigure(fig, [saveFol_models t]);
         
-        clf
-        PlotModel(model , p.RSM_COLOURMAP)
-        axis off;
-        SaveFigure(fig, [saveFol_models t '_nolabel']); 
+        if p.VOI_CREATE_NOLABEL_FIGURES
+            clf
+            PlotModel(model , p.RSM_COLOURMAP)
+            axis off;
+            SaveFigure(fig, [saveFol_models t '_nolabel']); 
+        end
     end
     
 end
@@ -807,6 +825,9 @@ end
 close all
 
 function SaveFigure(fig, filepath)
+if ~strcmp(filepath(end-3), '.png')
+    filepath = [filepath '.png'];
+end
 set(fig, 'PaperPosition', [0 0 15 15]);
 % print(fig, filepath, '-dpng', '-r1200' ); 
 saveas(fig,filepath,'png');

@@ -155,6 +155,16 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
 
            %remove anything outside data
            voi_xyz{vid} = xyz(find(~isnan(sum(xyz,2))),:);
+           
+           sz = size(subdata.betas_3D_even);
+           sz = sz(1:3);
+           inval = any( (voi_xyz{vid} < 1) | (voi_xyz{vid} > sz) , 2);
+            if any(inval)
+                num_keep = sum(~inval);
+                num_toss = sum(inval);
+                fprintf('Discarding %d voxels outside of bounding box (kept %d voxels)\n', num_toss, num_keep);
+                voi_xyz{vid}(inval,:) = [];
+            end
 
            %param
            data.VOInumVox(vid) = size(voi_xyz{vid},1);

@@ -271,6 +271,9 @@ DO_FISHER_CONDITION_MDS = true;
 
 %% Figures
 
+%Create a second set of VOI figures (step 8) without labels
+p.VOI_CREATE_NOLABEL_FIGURES = false;
+
 %the range of values contained in the colour map
 RSM_COLOUR_RANGE_COND = [-1 +1];
 RSM_COLOUR_RANGE_ROI = [-1 +1];
