@@ -75,11 +75,20 @@ clearvars -except par p inputFol saveFol useParfor ss_ref vtcRes suffix prefix s
 p.MODELS.mNum = size(p.MODELS.names,2);
 for m = 1:p.MODELS.mNum
     if p.SEARCHLIGHT_USE_SPLIT
-        modelVecs{m} = p.MODELS.matrices{m}(:);
+        modelVecs{m} = p.MODELS.matrices{m};
     else
-        %nonsplit
-        modelVecs{m} = p.MODELS.matricesNonsplit{m}(:);
+        modelVecs{m} = p.MODELS.matricesNonsplit{m};
     end
+    
+    %if model is 3D, select this participant's unique model
+    if size(modelVecs{m}, 3) > 1
+        modelVecs{m} = modelVecs{m}(:,:,par);
+    end
+    
+    %convert matrix to array
+    modelVecs{m} = modelVecs{m}(:);
+    
+    %find valid
     modelVecs_indxGood{m} = find(~isnan(modelVecs{m}));
     modelVecs{m} = modelVecs{m}(modelVecs_indxGood{m});
 end

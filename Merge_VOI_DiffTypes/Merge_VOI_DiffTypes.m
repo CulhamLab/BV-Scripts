@@ -42,9 +42,15 @@ for fid = 1:num_file
         end
     else
         for f = fields_compare'
-            eval(sprintf('val = (voi.%s == voi_temp.%s);', f{1}, f{1}));
-            if ~val
-                error('Incompatible VOIs!')
+            eval(sprintf('val1 = voi.%s;', f{1})); 
+            eval(sprintf('val2 = voi_temp.%s;', f{1})); 
+            if ischar(val1)
+                same = strcmpi(val1, val2);
+            else
+                same = val1 == val2;
+            end
+            if ~same
+                error('Incompatible VOIs due difference in field "%s"!', f{1})
             end
         end
     end
