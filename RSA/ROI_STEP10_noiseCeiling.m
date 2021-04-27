@@ -18,7 +18,7 @@ load([readFolA 'VOI_RSMs'])
 load([readFolB 'VOI_corrs'])
 
 %valid version?
-if ~exist('runtime', 'var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1
+if p.VOI_USE_SPLIT && (~exist('runtime', 'var') || ~isfield(runtime, 'Step6') || runtime.Step6.VERSION<1)
     error('The odd//even split method has been improved. Rerun from step 6.')
 end
 
