@@ -229,8 +229,10 @@ try
         p.SEARCHLIGHT_MODEL_COMPARISON_TTEST = [];
     else
         %check SEARCHLIGHT_MODEL_COMPARISON_TTEST
-        if any(any(cellfun(@(x) ~any(strcmp(p.MODELS.names,x)), p.SEARCHLIGHT_MODEL_COMPARISON_TTEST)))
-            error('Parameter SEARCHLIGHT_MODEL_COMPARISON_TTEST contains one or more unknown model name')
+        if ~isempty(p.SEARCHLIGHT_MODEL_COMPARISON_TTEST)
+            if any(any(cellfun(@(x) ~any(strcmp(p.MODELS.names,x)), p.SEARCHLIGHT_MODEL_COMPARISON_TTEST)))
+                error('Parameter SEARCHLIGHT_MODEL_COMPARISON_TTEST contains one or more unknown model name')
+            end
         end
     end
     
