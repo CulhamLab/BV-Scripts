@@ -1,0 +1,137 @@
+
+FileVersion:        2
+
+ResolutionOfTime:   Volumes
+
+Experiment:         template
+
+BackgroundColor:    0 0 0
+TextColor:          255 255 255
+TimeCourseColor:    255 255 255
+TimeCourseThick:    3
+ReferenceFuncColor: 0 0 80
+ReferenceFuncThick: 3
+
+NrOfConditions:  10
+
+Baseline
+41
+1 6
+8 12
+14 18
+20 24
+26 30
+32 36
+38 42
+44 48
+50 54
+56 60
+62 66
+68 72
+74 78
+80 84
+86 90
+92 96
+98 102
+104 108
+110 114
+116 120
+122 126
+128 132
+134 138
+140 144
+146 150
+152 156
+158 162
+164 168
+170 174
+176 180
+182 186
+188 192
+194 198
+200 204
+206 210
+212 216
+218 222
+224 228
+230 234
+236 240
+242 246
+Color:  193 98 3
+
+Hammer_Handle_Left
+5
+79 79
+139 139
+163 163
+187 187
+217 217
+Color:  244 124 4
+
+Hammer_Handle_Right
+5
+49 49
+55 55
+145 145
+169 169
+235 235
+Color:  252 165 78
+
+Wrammer_Handle_Left
+5
+67 67
+109 109
+151 151
+193 193
+223 223
+Color:  253 192 131
+
+Wrammer_Handle_Right
+5
+19 19
+61 61
+97 97
+121 121
+157 157
+Color:  254 222 190
+
+Hammench_Handle_Left
+5
+43 43
+73 73
+127 127
+133 133
+175 175
+Color:  139 136 3
+
+Hammench_Handle_Right
+5
+13 13
+25 25
+85 85
+115 115
+241 241
+Color:  200 195 4
+
+Wrench_Handle_Left
+5
+7 7
+31 31
+37 37
+103 103
+205 205
+Color:  236 231 5
+
+Wrench_Handle_Right
+5
+91 91
+181 181
+199 199
+211 211
+229 229
+Color:  252 252 104
+
+Error
+0
+Color:  254 254 194
+
