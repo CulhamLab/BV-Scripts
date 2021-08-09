@@ -140,7 +140,10 @@ try
 	%	-VOI voxels that are outside of the data region are now automatically discarded in VOI step 6
 	%	-Support indivudal models in VOI noise ceiling (selection is any cell that is never nan across participants)
 	%	-Added support for participant-specific models in Searchlight
-    p.RUNTIME.VERSION = 5;
+    %6. Aug 9, 2021
+    %   -Removed RENUMBER_RUNS (could cause mismatch if steps are rerun)
+    %   -Added FUNCTIONAL_RESOLUTION for check in new Step1
+    p.RUNTIME.VERSION = 6;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
@@ -167,9 +170,11 @@ try
 	
     %check new fields
     fs = fields(p);
-    if ~any(strcmp(fs, 'RENUMBER_RUNS'))
-        warning('Parameter file does not contain the new field "p.RENUMBER_RUNS". This field will be defaulted to false.')
-        p.RENUMBER_RUNS = false;
+    if any(strcmp(fs, 'RENUMBER_RUNS'))
+        error('Parameter file contains the field "p.RENUMBER_RUNS". This mode has been removed. Use RUN_ORDER to fix this issue instead.')
+    end
+    if ~any(strcmp(fs, 'FUNCTIONAL_RESOLUTION'))
+        error('Parameter file does not contain the new field "p.FUNCTIONAL_RESOLUTION", which is required.')
     end
     
     if ~any(strcmp(fs, 'INDIVIDUAL_MODEL_NOISE_CEILING'))
