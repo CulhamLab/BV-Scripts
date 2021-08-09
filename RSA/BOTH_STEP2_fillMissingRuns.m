@@ -13,10 +13,8 @@ if ~exist(fillerFol,'dir')
 mkdir(fillerFol)
 end
 
-[~,~,filelist] = xlsread(p.FILELIST_FILENAME);
-
 for par = 1:p.NUMBER_OF_PARTICIPANTS
-    clearvars -except par fol p fillerFol filelist
+    clearvars -except par fol p fillerFol
     
     id = p.FILELIST_PAR_ID{par};
     

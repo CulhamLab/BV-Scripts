@@ -44,6 +44,9 @@ NUMBER_OF_PARTICIPANTS = 10;
 NUMBER_OF_RUNS = 8;
 NUMBER_OF_CONDITIONS = 54;
 
+%func res in mm (assumes iso)
+FUNCTIONAL_RESOLUTION = 2;
+
 %% file locations (subfolders are automatically created)
 %If multiple filepaths are entered, the first valid path will be used. This
 %is intended to allow shared scripts to be used on different machines as
@@ -151,8 +154,12 @@ SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
 
 %% options
 
+%%% THIS FIELD HAS BEEN REMOVED BECAUSE IT WAS EASY TO CREATE A RUN MISMATCH
+%%% WHEN RERUNNING STEPS. USE RUN_ORDER TO FIX THIS ISSUE INSTEAD.
+%
 %When some runs are missing, runs are renamed to consecutive numbers to split more evenly.
-%This may be desirable if several odd or even runs are missing.
+%This may be desirable if several odd or even runs are missing. If runs are
+%added/removed later, clear all RSA files and rerun to avoid run mismatch.
 %
 %Example:
 %
@@ -161,7 +168,7 @@ SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
 %if RENUMBER_RUNS is false, the split will compare runs 1/3/5/7 to just run 8
 %
 %if RENUMBER_RUNS is true, the split will compare runs 1/5/8 to 3/7
-RENUMBER_RUNS = false;
+% RENUMBER_RUNS = false;
 
 %searchlight radius (not including center voxel) in function voxels
 %For example, radius 2 equates to diameters of 5 function voxels.
