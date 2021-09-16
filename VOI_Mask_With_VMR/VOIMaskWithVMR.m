@@ -14,13 +14,13 @@ function VOIMaskWithVMR(filepath_voi, filepath_vmr, vmr_range, filepath_save, ov
 
 %% Handle inputs
 
-if ~exist('filepath_voi', 'var')
+if ~exist('filepath_voi', 'var') || isempty(filepath_voi)
     error('Missing input: filepath_voi');
 elseif ~exist(filepath_voi, 'file')
     error('VOI does not exist: %s', filepath_voi);
 end
 
-if ~exist('filepath_vmr', 'var')
+if ~exist('filepath_vmr', 'var') || isempty(filepath_vmr)
     error('Missing input: filepath_vmr');
 elseif ~exist(filepath_vmr, 'file')
     error('VMR does not exist: %s', filepath_vmr);
@@ -34,13 +34,13 @@ elseif ~isint(vmr_range)
     error('VMR range values must be integers')
 end
 
-if ~exist('filepath_save', 'var')
+if ~exist('filepath_save', 'var') || isempty(filepath_save)
     [voi_fol,voi_name] = fileparts(filepath_voi);
     [~,vmr_name] = fileparts(filepath_vmr);
     filepath_save = sprintf('%s%s%s_Mask-%s-%d-to-%d.voi', voi_fol, filesep, voi_name, vmr_name, vmr_range);
 end
 
-if ~exist('overwrite', 'var')
+if ~exist('overwrite', 'var') || isempty(overwrite)
     overwrite = false;
 end
 
