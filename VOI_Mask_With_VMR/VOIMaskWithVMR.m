@@ -4,7 +4,7 @@
 %
 % filepath_vmr      char        required        Filepath to read VMR
 %
-% vmr_range         [int int]   required        Range of VMR intensities to use as mask
+% vmr_range         [int int]   default=[1 255] Range of VMR intensities to use as mask
 %
 % filepath_save     char        default=[]      Filepath to write masked VOI. If empty, defaults to auto-generated.
 %
@@ -26,8 +26,8 @@ elseif ~exist(filepath_vmr, 'file')
     error('VMR does not exist: %s', filepath_vmr);
 end
 
-if ~exist('vmr_range', 'var')
-    error('Missing input: vmr_range');
+if ~exist('vmr_range', 'var') || isempty(vmr_range)
+    vmr_range = [1 255];
 elseif length(vmr_range) ~= 2
     error('VMR range requires exactly 2 values')
 elseif ~isint(vmr_range)
