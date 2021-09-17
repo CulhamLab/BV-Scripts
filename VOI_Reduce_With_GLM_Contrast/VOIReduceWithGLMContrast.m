@@ -149,9 +149,10 @@ for v = 1:voi.NrOfVOIs
     indicies = indicies(1:last);
     
     %apply max number of voxels
-    if length(tvalues_abs_sort) < max_voxels
+    nvox = length(tvalues_abs_sort);
+    if nvox < max_voxels
         if require_max_voxels
-            error('%s did not contain at least %d voxels above %g', voi.VOI(v).Name, max_voxels, min_t_abs);
+            error('%s did not contain at least %d voxels above %g (contained %d)', voi.VOI(v).Name, max_voxels, min_t_abs, nvox);
         else
             %use fewer voxels
         end
