@@ -66,7 +66,11 @@ for voi = 1:length(voi_names)
     name(name=='_') = ' ';
     subplot(r,c,voi)
     corrs = nanmean(data_use(:,:,voi),1);
-    stds = nanstd(data_use(:,:,voi),1);
+    if size(data_use,1)
+        stds = nan(1, size(data_use,2));
+    else
+        stds = nanstd(data_use(:,:,voi),1);
+    end
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
@@ -136,7 +140,11 @@ for m = 1:length(p.MODELS.names)
     name(name=='_') = ' ';
     subplot(r,c,m)
     corrs = nanmean(data_use(:,m,:),1);
-    stds = nanstd(data_use(:,m,:),1);
+    if size(data_use,1)
+        stds = nan(1, 1, size(data_use,3));
+    else
+        stds = nanstd(data_use(:,m,:),1);
+    end
     hold on
     for i = 1:length(corrs)
         b(i) = bar(i,corrs(i));
