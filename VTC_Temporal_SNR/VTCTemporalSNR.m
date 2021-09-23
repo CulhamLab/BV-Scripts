@@ -1,8 +1,8 @@
-% VTCTemporalSD(filename_vtc, filename_vmp)
+% VTCTemporalSNR(filename_vtc, filename_vmp)
 %
-% Creates a VMP with a single map containing the voxelwise temporal SD
+% Creates a VMP with a single map containing the voxelwise temporal SNR
 % of the VTC, calculated as [Mean / Standard Deviation] across volumes.
-% Ignores 0's and NaN values.
+% Ignores 0's and NaN values. Requires NeuroElf toolbox.
 %
 % INPUTS:
 %
@@ -10,7 +10,7 @@
 %
 %   filename_vmp    char    optional    Filepath to write output VMP. Defaults to same folder/naming as VTC with "_TemporalSD" suffix.
 %
-function VTCTemporalSD(filename_vtc, filename_vmp)
+function VTCTemporalSNR(filename_vtc, filename_vmp)
 
 %% Inputs
 
