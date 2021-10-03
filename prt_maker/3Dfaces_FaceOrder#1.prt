@@ -3,7 +3,7 @@ FileVersion:        2
 
 ResolutionOfTime:   Volumes
 
-Experiment:         3DFaces
+Experiment:         3Dfaces
 
 BackgroundColor:    0 0 0
 TextColor:          255 255 255
@@ -27,7 +27,7 @@ Baseline
 416 432
 Color:  80 80 80
 
-2D Faces
+2D
 2
 17 41
 279 303
@@ -37,17 +37,19 @@ Natural 3D
 2
 67 91
 391 415
-Color:  42 31 255
+Color:  0 187 254
 
 Pseudo 3D
 2
 117 141
 229 253
-Color:  0 216 159
+Color:  4 208 14
 
-Monocular 2D
-0
-Color:  236 231 5
+Monocular
+2
+173 197
+335 359
+Color:  252 252 104
 
 Cue
 4
@@ -55,5 +57,5 @@ Cue
 198 203
 304 309
 360 365
-Color:  225 225 225
+Color:  155 155 155
 
