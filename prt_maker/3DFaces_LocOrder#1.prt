@@ -1,0 +1,49 @@
+
+FileVersion:        2
+
+ResolutionOfTime:   Volumes
+
+Experiment:         3DFaces
+
+BackgroundColor:    0 0 0
+TextColor:          255 255 255
+TimeCourseColor:    255 255 255
+TimeCourseThick:    3
+ReferenceFuncColor: 0 0 80
+ReferenceFuncThick: 3
+
+NrOfConditions:  4
+
+
+Scrambled
+4
+33 49
+98 113
+228 243
+293 308
+Color:  244 124 4
+
+Object
+4
+50 65
+146 162
+195 210
+260 275
+Color:  42 31 255
+
+Place
+4
+17 32
+114 129
+211 227
+309 324
+Color:  4 208 14
+
+Face
+4
+66 81
+130 145
+179 194
+276 292
+Color:  255 0 0
+
