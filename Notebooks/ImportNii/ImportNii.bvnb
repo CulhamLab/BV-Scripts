@@ -1,0 +1,62 @@
+{
+    "bvnbformat": 1,
+    "bvnbformat_minor": 0,
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {
+            },
+            "source": [
+                "Attempts to open all files matching the search term in the specified folder (and any subfolders).\n",
+                "Opening nii files this way triggers the import process, which creates the BV-equivalent and saves it in derivatives."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 37,
+            "metadata": {
+            },
+            "outputs": [
+                {
+                    "name": "stdout",
+                    "output_type": "stream",
+                    "text": [
+                        "D:/Culham Lab/Load_Script/BIDS\\sub-01\\ses-01\\anat\\sub-01_ses-01_T1w.nii.gz\n",
+                        "D:/Culham Lab/Load_Script/BIDS\\sub-01\\ses-01\\func\\sub-01_ses-01_task-Example_run-03_bold.nii.gz"
+                    ]
+                }
+            ],
+            "source": [
+                "import glob\n",
+                "\n",
+                "fol = 'D:/Culham Lab/Load_Script/BIDS'\n",
+                "file_search = '*.nii.gz'\n",
+                "\n",
+                "names = glob.glob(f'{fol}/**/{file_search}', recursive = True)\n",
+                "for name in names:\n",
+                "    print(name)\n",
+                "    try:\n",
+                "        doc = bv.open_document(name)\n",
+                "        doc.close()\n",
+                "        bv.close_all()\n",
+                "    except:\n",
+                "        print('\\tFailed to import')\n",
+                "    bv.close_all()\n",
+                "bv.close_all()"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": -1,
+            "metadata": {
+            },
+            "outputs": [
+            ],
+            "source": [
+            ]
+        }
+    ],
+    "log_brainvoyager_code": false,
+    "metadata": {
+    }
+}
