@@ -1,6 +1,8 @@
 %Uses NeuroElf to set PRT links in VTC files
-%Requires the "sub-##_ses-##_task-TASKNAME_run-##" notation in VTC filenames
-%Sets prt link to "sub-##_ses-##_task-TASKNAME_run-##.prt" (make changes on line 29)
+%Sets prt link to "sub-##_ses-##_task-TASKNAME_run-##.prt"
+%   -uses sub/ses/task/run if available, if none are available then it will
+%    default to the name of the VTC
+%   -can be changed on line 40
 function LinkPRT
 
 %% parameters
@@ -20,12 +22,37 @@ number_files = length(list);
 for fid = 1:number_files
     fprintf('Processing %d of %d:\n\tFolder:\t%s\n\tFile:\t%s\n', fid, number_files, list(fid).folder, list(fid).name);
     
-    %parse sub 
-    info = regexp(list(fid).name,'(?<sub>sub-\d\d)_(?<ses>ses-\d\d)_(?<task>task-\w*)_(?<run>run-\d\d)','names');
-    fprintf('\tsub:\t%s\n\tses:\t%s\n\ttask:\t%s\n\trun:\t%s\n', info.sub, info.ses, info.task, info.run);
+    %parse sub
+    [~,fn,~] = fileparts(list(fid).name);
+    parts = strsplit(fn, '_');
+    info = struct;
+    for part = parts
+        if contains(part, '-')
+            split = strsplit(part{1},'-');
+            name = split{1};
+            value = split{2};
+            if contains(name, {'sub' 'ses' 'task' 'run'})
+                fprintf('\t%s:\t%s\n', name, value);
+                info = setfield(info, name, value);
+            end
+        end
+    end
     
     %generate PRT name
-    prt = sprintf('%s_%s_%s_%s.prt', info.sub, info.ses, info.task, info.run);
+    prt = '';
+    for f = {'sub' 'ses' 'task' 'run'}
+        f=f{1};
+        if isfield(info, f)
+            prt = [prt sprintf('%s-%s_', f, getfield(info, f))];
+        end
+    end
+    if ~isempty(prt)
+        prt(end:end+3) = '.prt';
+    else
+        %default name
+        [~,fn,~] = fileparts(list(fid).name);
+        prt = [fn '.prt'];
+    end
     fprintf('\tPRT:\t%s\n', prt);
     
     %load vtc
