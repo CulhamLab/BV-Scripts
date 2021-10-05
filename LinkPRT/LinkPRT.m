@@ -1,7 +1,9 @@
 %Uses NeuroElf to set PRT links in VTC files
-%Requires the "sub-##_ses-##_task-TASKNAME_run-##" notation in VTC filenames
-%Sets prt link to "sub-##_ses-##_task-TASKNAME_run-##.prt" (make changes on line 29)
-% function LinkPRT
+%Sets prt link to "sub-##_ses-##_task-TASKNAME_run-##.prt"
+%   -uses sub/ses/task/run if available, if none are available then it will
+%    default to the name of the VTC
+%   -can be changed on line 40
+function LinkPRT
 
 %% parameters
 root = 'D:\Culham Lab\CB_ActiveLearn\MAIN\BIDS';
