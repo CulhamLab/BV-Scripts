@@ -44,10 +44,13 @@ for fid = 1:number_files
             prt = [prt sprintf('%s-%s_', f, getfield(info, f))];
         end
     end
-    if isempty(prt)
-        error('Not enough info to generate prt filename')
+    if ~isempty(prt)
+        prt(end:end+3) = '.prt';
+    else
+        %default name
+        [~,fn,~] = fileparts(list(fid).name);
+        prt = [fn '.prt'];
     end
-    prt(end:end+3) = '.prt';
     fprintf('\tPRT:\t%s\n', prt);
     
     %load vtc
