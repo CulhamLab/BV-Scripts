@@ -60,7 +60,21 @@ for fid = 1:number_files
     vtc = xff(filepath);
     
     %display prior
-    fprintf('\tPrior:\t%s\n', vtc.NameOfLinkedPRT);
+    if iscell(vtc.NameOfLinkedPRT)
+        if isempty(vtc.NameOfLinkedPRT)
+            prior_name = '';
+        else
+            prior_name = vtc.NameOfLinkedPRT{1};
+        end
+    else
+        prior_name = vtc.NameOfLinkedPRT;
+    end
+    if isempty(prior_name)
+        prior_name = 'NONE';
+    elseif ~ischar(prior_name)
+        prior_name = 'UNKNOWN';
+    end
+    fprintf('\tPrior:\t%s\n', prior_name);
     
     %is prt already linked?
     if strcmp(vtc.NameOfLinkedPRT, prt)
