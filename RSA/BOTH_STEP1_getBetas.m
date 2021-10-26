@@ -21,6 +21,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
         %find output file
         d(run,par).out.filepath = sprintf('%s%s_%s.mat', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
         d(run,par).need_betas = ~exist(d(run,par).out.filepath, 'file');
+        d(run,par).run_glm = false;
         if ~d(run,par).need_betas
             continue
         end
