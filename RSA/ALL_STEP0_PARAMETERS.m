@@ -143,7 +143,11 @@ try
     %6. Aug 9, 2021
     %   -Removed RENUMBER_RUNS (could cause mismatch if steps are rerun)
     %   -Added FUNCTIONAL_RESOLUTION for check in new Step1
-    p.RUNTIME.VERSION = 6;
+    %7. Oct 26, 2021
+    %   -Prevent crash in step1 when there are no GLMs that need to be run
+    %   -Removed p.FILELIST_SUBFOLDERS
+    %   -Always use flexible search for SDM/VTC/GLM
+    p.RUNTIME.VERSION = 7;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
