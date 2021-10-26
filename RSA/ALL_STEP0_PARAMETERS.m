@@ -143,7 +143,11 @@ try
     %6. Aug 9, 2021
     %   -Removed RENUMBER_RUNS (could cause mismatch if steps are rerun)
     %   -Added FUNCTIONAL_RESOLUTION for check in new Step1
-    p.RUNTIME.VERSION = 6;
+    %7. Oct 26, 2021
+    %   -Prevent crash in step1 when there are no GLMs that need to be run
+    %   -Removed p.FILELIST_SUBFOLDERS
+    %   -Always use flexible search for SDM/VTC/GLM
+    p.RUNTIME.VERSION = 7;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
@@ -244,6 +248,11 @@ try
     if ~any(strcmp(fs, 'VOI_CREATE_NOLABEL_FIGURES'))
         warning('Parameter file does not contain the new field "p.VOI_CREATE_NOLABEL_FIGURES". This field will be defaulted to false.')
         p.VOI_CREATE_NOLABEL_FIGURES = false;
+    end
+    
+    if any(strcmp(fs, 'FILELIST_SUBFOLDERS'))
+        warning('Parameter file contains the old field "p.FILELIST_SUBFOLDERS". This field will be removed.')
+        p = rmfield(p, 'FILELIST_SUBFOLDERS');
     end
 catch err
 	cd(return_path);

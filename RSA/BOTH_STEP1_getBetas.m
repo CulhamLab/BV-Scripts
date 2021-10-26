@@ -11,16 +11,11 @@ end
 
 %% Find Files
 for par = 1:p.NUMBER_OF_PARTICIPANTS
-    if p.FILELIST_SUBFOLDERS
-        directory = [p.FILEPATH_TO_VTC_AND_SDM p.FILELIST_PAR_ID{par} filesep];
-    else
-        directory = p.FILEPATH_TO_VTC_AND_SDM;
-    end
-    
     for run = 1:p.NUMBER_OF_RUNS
         %find output file
         d(run,par).out.filepath = sprintf('%s%s_%s.mat', outfol, p.FILELIST_PAR_ID{par}, p.FILELIST_RUN_ID{run});
         d(run,par).need_betas = ~exist(d(run,par).out.filepath, 'file');
+        d(run,par).run_glm = false;
         if ~d(run,par).need_betas
             continue
         end
@@ -39,9 +34,9 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
                     type = 'glm';
             end
             
-            list = dir(fullfile(directory, '**', search_string));
+            list = dir(fullfile(p.FILEPATH_TO_VTC_AND_SDM, '**', search_string));
             if length(list)>1
-                error('Multiple results for search string: [%s] in [%s]', search_string, directory);
+                error('Multiple results for search string: [%s] in [%s]', search_string, p.FILEPATH_TO_VTC_AND_SDM);
             end
             
             found = ~isempty(list);

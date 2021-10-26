@@ -78,7 +78,6 @@ FILELIST_PAR_ID = arrayfun(@(x) sprintf('P%d',x), 1:NUMBER_OF_PARTICIPANTS, 'Uni
 FILELIST_RUN_ID = arrayfun(@(x) sprintf('Func-S1R%d',x), 1:NUMBER_OF_RUNS, 'UniformOutput', false); %must be strings
 FILELIST_FORMAT_VTC = '[PAR]_[RUN]_3DMCTS_LTR_THPGLMF2c_MNI.vtc'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
 FILELIST_FORMAT_SDM = '[PAR]_[RUN]_PRT-and-3DMC_Video.sdm'; %replaces [PAR] from PAR_ID and [RUN] from RUN_ID
-FILELIST_SUBFOLDERS = true; %set true if vtc/sdm files are in subfolders named the same as PAR_ID, else set false if all files are in a single directory
 
 %% Searchlight - Memory Available
 %
