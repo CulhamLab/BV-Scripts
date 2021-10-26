@@ -245,6 +245,11 @@ try
         warning('Parameter file does not contain the new field "p.VOI_CREATE_NOLABEL_FIGURES". This field will be defaulted to false.')
         p.VOI_CREATE_NOLABEL_FIGURES = false;
     end
+    
+    if any(strcmp(fs, 'FILELIST_SUBFOLDERS'))
+        warning('Parameter file contains the old field "p.FILELIST_SUBFOLDERS". This field will be removed.')
+        p = rmfield(p, 'FILELIST_SUBFOLDERS');
+    end
 catch err
 	cd(return_path);
 	rethrow(err);
