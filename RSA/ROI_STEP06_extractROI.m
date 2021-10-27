@@ -193,7 +193,7 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
     %calculate
     fprintf('\tCalculating RSMs...\n');
     for vid = 1:voi.NrOfVOIs %for each voi...
-        fprintf('\t\tProcessing ROI %d of %d: %s\n', vid, voi.NrOfVOIs, data.VOINames{vid});
+        fprintf('\t\tProcessing ROI %d of %d: %s (name in file: %s)\n', vid, voi.NrOfVOIs, data.VOINames{vid}, voi.VOI(vid).Name);
         
         %preinit [vox# cond# odd/even/all]
         betas = nan(data.VOInumVox(par,vid),p.NUMBER_OF_CONDITIONS,3);
