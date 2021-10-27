@@ -74,7 +74,9 @@ RUN_ORDER = nan;
 %Optional Cell Matrix Mode:
 %   Rows        You can specify subject-specific VOIs as rows with 1 row per
 %               subject. If there is exactly 1 row then all subjects will use
-%               that instead.
+%               that instead. VOI names are taken from the first available
+%               subject fileset. THE ORDER OF VOIS INSIDE EACH FILE MUST BE
+%               IDENTICAL.
 %
 %   Columns     You can merge multiple VOI files by specifying one file in
 %               each column. This allows merging the results from VOIs with
