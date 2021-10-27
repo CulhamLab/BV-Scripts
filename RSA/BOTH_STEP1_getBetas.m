@@ -203,7 +203,11 @@ for i = 1:num_extract
     tosave.box = p.BBOX;
 
     %save
-    save(d(ind).out.filepath, '-struct', 'tosave');
+	try
+		save(d(ind).out.filepath, '-struct', 'tosave');
+	catch
+		save(d(ind).out.filepath, '-struct', 'tosave', '-v7.3');
+	end
 end
 
 %% Complete
