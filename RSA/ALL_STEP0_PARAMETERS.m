@@ -147,7 +147,9 @@ try
     %   -Prevent crash in step1 when there are no GLMs that need to be run
     %   -Removed p.FILELIST_SUBFOLDERS
     %   -Always use flexible search for SDM/VTC/GLM
-    p.RUNTIME.VERSION = 7;
+    %8. Oct 27, 2021
+    %   -Add support for per-subject VOIs
+    p.RUNTIME.VERSION = 8;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
