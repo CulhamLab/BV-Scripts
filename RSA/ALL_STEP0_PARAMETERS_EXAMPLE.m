@@ -64,12 +64,43 @@ SUBFOLDER_ROI_DATA = 'ROI';
 %             3 2 1]; %P1 run order was 1,2,3 and P2 order was 3,2,1
 RUN_ORDER = nan;
 
+%VOI Files:
 %Path to VOI file used in ROI steps. If left as NaN, "ROI_STEP6_extractROI"
-%will prompt you to choose a VOI file with a file selector.
-%To merge multiple VOI files, provide a cell array of strings containing the names (or paths)
-%When only a filename is provided, the files are expected to be in the same
-%directory as the parameter file.
-%e.g., VOI_FILE = {'.\VOI\file1.voi' '.\VOI\file2.voi'};
+%will prompt you to choose a single VOI file with a file selector.
+%
+%When a relative filepath or just a filename is provided, then absolute
+%paths are generated relative to the directory containing the parameter file.
+%
+%Optional Cell Matrix Mode:
+%   Rows        You can specify subject-specific VOIs as rows with 1 row per
+%               subject. If there is exactly 1 row then all subjects will use
+%               that instead. VOI names are taken from the first available
+%               subject fileset. THE ORDER OF VOIS INSIDE EACH FILE MUST BE
+%               IDENTICAL.
+%
+%   Columns     You can merge multiple VOI files by specifying one file in
+%               each column. This allows merging the results from VOIs with
+%               different coordinate modes.
+%
+%   For example, cell row=4, col=1 would be the first VOI file for the 4th
+%   participant.
+%
+%Example 1: Single VOI for all subject
+% VOI_FILE = 'file1.voi';
+%
+%Example 2: Single VOI for all subject, not specified here, will be
+%prompted to select during ROI_Step06
+% VOI_FILE = nan;
+%
+%Example 3: Merge 2 VOIs for all subjects, files stored in a subfolder
+%relative to the parameter file
+% VOI_FILE = {'.\VOI\file1.voi' '.\VOI\file2.voi'};
+%
+%Example 4: different VOI for each of 3 subjects labeled as sub 3/5/8
+% VOI_FILE = {'Sub3_Custom.voi'; 
+%             'Sub5_Custom.voi'; 
+%             'Sub8_Custom.voi'};
+%
 VOI_FILE = nan;
 
 %% file list (for vtc/sdm)
