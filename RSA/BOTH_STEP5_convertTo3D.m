@@ -71,7 +71,7 @@ catch e
 end
 newVox = [X Y Z];
 r = range(newVox);
-fprintf('This particiapnt uses sub-matrix %d x %d x %d\n',r)
+fprintf('This participant uses sub-matrix %d x %d x %d\n',r)
 
 % betas_3D_all = nan([max(newVox) p.NUMBER_OF_CONDITIONS]);
 % betas_3D_even = nan([max(newVox) p.NUMBER_OF_CONDITIONS]);
