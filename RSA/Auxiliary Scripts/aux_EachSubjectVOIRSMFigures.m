@@ -40,7 +40,7 @@ fprintf('Output Directory:\t%s\n', DIR_OUT);
 %% Load RSMs
 fprintf('Loading RSMs...\n')
 load([DIR_IN 'VOI_RSMs.mat']);
-number_voi = length(data.VOInumVox);
+number_voi = size(data.VOInumVox,2);
 
 %% Plot p.RSM_COLOUR_RANGE_COND
 fig = figure('Position', [1 1 1200 1000]);
