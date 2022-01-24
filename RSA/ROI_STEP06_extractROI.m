@@ -76,6 +76,9 @@ for i = 2:length(voi_data)
     num_voi_add = size(voi_data(i).data.RSM_split,4);
     for j = 1:num_voi_add
         count_voi = count_voi + 1;
+        data.Betas_even(:,count_voi) = voi_data(i).Betas_even(:,j);
+        data.Betas_odd(:,count_voi) = voi_data(i).Betas_odd(:,j);
+        data.Betas_all(:,count_voi) = voi_data(i).Betas_all(:,j);
         data.RSM_split(:,:,:,count_voi) = voi_data(i).data.RSM_split(:,:,:,j);
         data.RSM_nonsplit(:,:,:,count_voi) = voi_data(i).data.RSM_nonsplit(:,:,:,j);
         data.VOINames{count_voi} = voi_data(i).data.VOINames{j};
@@ -115,6 +118,9 @@ data.RSM_nonsplit = nan(p.NUMBER_OF_CONDITIONS,p.NUMBER_OF_CONDITIONS,p.NUMBER_O
 data.VOINames = cell(1,voi_ref.NrOfVOIs);
 data.VOINames_short = cell(1,voi_ref.NrOfVOIs);
 data.VOInumVox = zeros(1,voi_ref.NrOfVOIs);
+data.Betas_even = cell(p.NUMBER_OF_PARTICIPANTS, voi_ref.NrOfVOIs);
+data.Betas_odd = cell(p.NUMBER_OF_PARTICIPANTS, voi_ref.NrOfVOIs);
+data.Betas_all = cell(p.NUMBER_OF_PARTICIPANTS, voi_ref.NrOfVOIs);
 
 %count
 number_splits = size(selected,1);
@@ -213,6 +219,11 @@ for par = 1:p.NUMBER_OF_PARTICIPANTS
             indNotNan = find(~isnan(sum(sum(betas,3),2)));
             betas = betas(indNotNan,:,:);
         end
+        
+        %store betas
+        data.Betas_even{par,vid} = betas(:,:,1);
+        data.Betas_odd{par,vid} = betas(:,:,2);
+        data.Betas_all{par,vid} = betas(:,:,3);
         
         %%%%%NOT VERY EFFICIENT
         for c1 = 1:p.NUMBER_OF_CONDITIONS %even

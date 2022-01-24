@@ -149,7 +149,9 @@ try
     %   -Always use flexible search for SDM/VTC/GLM
     %8. Oct 27, 2021
     %   -Add support for per-subject VOIs
-    p.RUNTIME.VERSION = 8;
+    %9. Jan 24, 2022
+    %   -ROI step6 now saves run-averaged voxel betas
+    p.RUNTIME.VERSION = 9;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
