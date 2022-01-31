@@ -47,11 +47,11 @@ catch e
     rethrow(e)
 end
 
-boundXs = p.BBOX.XStart : (p.BBOX.XEnd);
+boundXs = p.BBOX.XStart : (p.BBOX.XEnd - 1);
 boundXs_func = ceil((1:length(boundXs))/funcSize);
-boundYs = p.BBOX.YStart : (p.BBOX.YEnd);
+boundYs = p.BBOX.YStart : (p.BBOX.YEnd - 1);
 boundYs_func = ceil((1:length(boundYs))/funcSize);
-boundZs = p.BBOX.ZStart : (p.BBOX.ZEnd);
+boundZs = p.BBOX.ZStart : (p.BBOX.ZEnd - 1);
 boundZs_func = ceil((1:length(boundZs))/funcSize);
 
 X = nan(size(TAL_MAT,1),1);
