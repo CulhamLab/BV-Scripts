@@ -16,9 +16,9 @@ end
 %% Param
 
 line_colours = [0.8 0.2 0.2; 0.2 0.2 0.8; 0.8 0.8 0.2];
-dark_mode = false;
+dark_mode = true;
 
-if true
+if dark_mode
     colour_bgd = 'k';
     colour_fgd = 'w';
 else
