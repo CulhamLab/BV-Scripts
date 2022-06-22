@@ -1,3 +1,9 @@
+%PlotMotionBIDS(folder_BIDS)
+% Creates summary figures of motion for each subject/task/session.
+% The only parameter to pass is the path to the BIDS folder.
+% The figures are written to "...\derivatives\figures\PlotMotionBIDS"
+% You can change the line colours and toggle dark mode on/off at the top of the script.
+% Requires NeuroElf
 function PlotMotionBIDS(folder_BIDS)
 
 %% Requires NeuroElf
