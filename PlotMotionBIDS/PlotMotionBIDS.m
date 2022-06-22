@@ -1,5 +1,6 @@
 %PlotMotionBIDS(folder_BIDS)
 % Creates summary figures of motion for each subject/task/session.
+% You must have performed motion correction in BV to use this tool because it reads the *_3DMC.sdm files.
 % The only parameter to pass is the path to the BIDS folder.
 % The figures are written to "...\derivatives\figures\PlotMotionBIDS"
 % You can change the line colours and toggle dark mode on/off at the top of the script.
