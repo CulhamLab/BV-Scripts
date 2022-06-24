@@ -44,7 +44,13 @@ end
 %% Find Files
 
 %find motion SDMs
-files = dir(fullfile(folder_BIDS, '**', '*_desc-confounds_timeseries.tsv'));
+search_term = 'sub-*_ses-*_task-*_run-*_desc-confounds_timeseries.tsv';
+files = dir(fullfile(folder_BIDS, '**', search_term));
+
+%no files
+if isempty(files)
+    error('No files found for search "%s" in "%s"', search_term, folder_BIDS);
+end
 
 %parse info
 file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<ses>ses-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
