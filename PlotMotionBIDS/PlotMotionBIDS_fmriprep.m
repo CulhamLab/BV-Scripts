@@ -9,7 +9,7 @@ function PlotMotionBIDS_fmriprep(folder_BIDS)
 %% Param
 
 line_colours = [0.8 0.2 0.2; 0.2 0.2 0.8; 0.8 0.8 0.2];
-dark_mode = true;
+dark_mode = false;
 
 if dark_mode
     colour_bgd = 'k';
