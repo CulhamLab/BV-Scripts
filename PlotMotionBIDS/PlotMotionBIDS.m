@@ -65,7 +65,7 @@ if isempty(files)
 end
 
 %parse info
-file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<ses>ses-\d+)_(?<task>task-\w+)_(?<run>run-\d+)_*', 'names'));
+file_info = cell2mat(regexp({files.name}, '(?<par>sub-[a-zA-Z0-9]+)_(?<ses>ses-\d+)_(?<task>task-[a-zA-Z0-9]+)_(?<run>run-\d+)_*', 'names'));
 
 %organize info
 par_IDs = unique({file_info.par});
