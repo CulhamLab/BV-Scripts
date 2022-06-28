@@ -60,10 +60,10 @@ end
 
 %parse info
 if no_session_numbers
-    file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
-    file_info = arrayfun(@(x) setfield(x, 'ses', 'ses-01'), file_info)
+    file_info = cell2mat(regexp({files.name}, '(?<par>sub-[a-zA-Z0-9]+)_(?<task>task-[a-zA-Z0-9]+)_(?<run>run-\d+)', 'names'));
+    file_info = arrayfun(@(x) setfield(x, 'ses', 'ses-01'), file_info);
 else
-    file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<ses>ses-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
+    file_info = cell2mat(regexp({files.name}, '(?<par>sub-[a-zA-Z0-9]+)_(?<ses>ses-\d+)_(?<task>task-[a-zA-Z0-9]+)_(?<run>run-\d+)', 'names'));
 end
 
 %organize info
