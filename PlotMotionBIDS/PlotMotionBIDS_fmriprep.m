@@ -8,6 +8,8 @@ function PlotMotionBIDS_fmriprep(folder_BIDS)
 
 %% Param
 
+no_session_numbers = false;
+
 line_colours = [0.8 0.2 0.2; 0.2 0.2 0.8; 0.8 0.8 0.2];
 dark_mode = false;
 
@@ -44,7 +46,11 @@ end
 %% Find Files
 
 %find motion SDMs
-search_term = 'sub-*_ses-*_task-*_run-*_desc-confounds_timeseries.tsv';
+if no_session_numbers
+    search_term = 'sub-*_task-*_run-*_desc-confounds_timeseries.tsv';
+else
+    search_term = 'sub-*_ses-*_task-*_run-*_desc-confounds_timeseries.tsv';
+end
 files = dir(fullfile(folder_BIDS, '**', search_term));
 
 %no files
@@ -53,7 +59,12 @@ if isempty(files)
 end
 
 %parse info
-file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<ses>ses-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
+if no_session_numbers
+    file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
+    file_info = arrayfun(@(x) setfield(x, 'ses', 'ses-01'), file_info)
+else
+    file_info = cell2mat(regexp({files.name}, '(?<par>sub-\d+)_(?<ses>ses-\d+)_(?<task>task-\w+)_(?<run>run-\d+)', 'names'));
+end
 
 %organize info
 par_IDs = unique({file_info.par});
