@@ -99,6 +99,12 @@ for p = 1:length(par_IDs)
             files = file_info(select);
             number_files = length(files);
             
+            %continue if no files for search
+            if ~number_files
+                fprintf('No files found for %s %s ses-%02d, continuing...\n', par_IDs{p}, task_IDs{t}, s);
+                continue
+            end
+            
             %sort runs
             [~,order] = sort([files.run_num]);
             files = files(order);
