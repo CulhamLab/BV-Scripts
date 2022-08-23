@@ -43,6 +43,11 @@ for i = 1:number_files
     end
     
     sdm = prt.CreateSDM(param);
+    
+    if ~isnan(ind_first_poni)
+        sdm.FirstConfoundPredictor = ind_first_poni;
+    end
+    
     sdm.SaveAs(fp_out);
     
     prt.ClearObject;
