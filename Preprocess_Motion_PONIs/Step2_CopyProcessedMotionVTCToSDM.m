@@ -18,10 +18,10 @@ sdm_paths_out = cellfun(@(x)[x(1:end-4) p.SUFFIX '.sdm'], sdm_paths, 'UniformOut
 
 %% Adjust
 
+preprocessed_motion = preprocessed_motion(:,:,:,1);
 preprocessed_motion(~preprocessed_motion) = nan;
 preprocessed_motion = preprocessed_motion - p.ADJUST_ADD;
 preprocessed_motion = preprocessed_motion / p.ADJUST_MULTIPLY;
-preprocessed_motion = preprocessed_motion(:,:,:,1);
 
 %% Z-score
 

@@ -26,10 +26,10 @@ cond_names_out = cellfun(@(x) [x p.SUFFIX], cond_names, 'UniformOutput', false);
 
 %% Adjust
 
+preprocessed_motion = preprocessed_motion(:,:,:,1);
 preprocessed_motion(~preprocessed_motion) = nan;
 preprocessed_motion = preprocessed_motion - p.ADJUST_ADD;
 preprocessed_motion = preprocessed_motion / p.ADJUST_MULTIPLY;
-preprocessed_motion = preprocessed_motion(:,:,:,1);
 
 %% Z-score
 
