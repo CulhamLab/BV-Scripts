@@ -36,8 +36,10 @@ for f = 1:nfilepaths
         for type = 1:2
             if type == 1
                 func = @max;
+                name = 'Max';
             else
                 func = @min;
+                name = 'Min';
             end
 
             [value,ind] = func(vmp.Map(m).VMPData(:));
@@ -58,7 +60,7 @@ for f = 1:nfilepaths
             yMNI = 128 - ySyst;
             zMNI = 128 - zSyst;
     
-            fprintf('\t\t%g @ (%d,%d,%d)\n', value, xMNI, yMNI, zMNI);
+            fprintf('\t\t%s: %g @ (%d,%d,%d)\n', name, value, xMNI, yMNI, zMNI);
         end
     end
 
