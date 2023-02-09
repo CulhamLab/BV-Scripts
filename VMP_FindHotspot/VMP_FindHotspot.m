@@ -1,3 +1,11 @@
+% VMP_FindHotspot(filepath)
+%
+% Displays the location and value of the hotspots (min and max) in each map of each VMP
+%
+% filepath (optional)
+%   can be a single filepath or a cell array of filepaths
+%   if not provided, will instead use all VMPs in the current folder
+%
 function VMP_FindHotspot(filepath)
 
 if exist('filepath','var')
