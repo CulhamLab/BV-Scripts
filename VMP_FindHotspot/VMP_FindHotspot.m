@@ -1,7 +1,11 @@
 function VMP_FindHotspot(filepath)
 
 if exist('filepath','var')
-    filepaths = {filepath};
+    if iscell(filepath)
+        filepaths = filepath;
+    else
+        filepaths = {filepath};
+    end
 else
     list = dir('*.vmp');
     filepaths = arrayfun(@(x) [x.folder filesep x.name], list, 'UniformOutput', false);
