@@ -1,7 +1,19 @@
+% VMP_FindHotspot(filepath)
+%
+% Displays the location and value of the hotspots (min and max) in each map of each VMP
+%
+% filepath (optional)
+%   can be a single filepath or a cell array of filepaths
+%   if not provided, will instead use all VMPs in the current folder
+%
 function VMP_FindHotspot(filepath)
 
 if exist('filepath','var')
-    filepaths = {filepath};
+    if iscell(filepath)
+        filepaths = filepath;
+    else
+        filepaths = {filepath};
+    end
 else
     list = dir('*.vmp');
     filepaths = arrayfun(@(x) [x.folder filesep x.name], list, 'UniformOutput', false);
@@ -24,8 +36,10 @@ for f = 1:nfilepaths
         for type = 1:2
             if type == 1
                 func = @max;
+                name = 'Max';
             else
                 func = @min;
+                name = 'Min';
             end
 
             [value,ind] = func(vmp.Map(m).VMPData(:));
@@ -46,7 +60,7 @@ for f = 1:nfilepaths
             yMNI = 128 - ySyst;
             zMNI = 128 - zSyst;
     
-            fprintf('\t\t%g @ (%d,%d,%d)\n', value, xMNI, yMNI, zMNI);
+            fprintf('\t\t%s: %g @ (%d,%d,%d)\n', name, value, xMNI, yMNI, zMNI);
         end
     end
 
