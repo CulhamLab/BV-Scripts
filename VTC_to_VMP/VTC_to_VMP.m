@@ -21,7 +21,10 @@ vmp.Map.Name = sprintf('Vol-%d', vol);
 
 %fill map with volume
 vmp.Map.VMPData = squeeze(vtc.VTCData(vol,:,:,:));
-vmp.Map.ShowPositiveNegativeFlag = 3;
+vmp.Map.ShowPositiveNegativeFlag = 1; %positive only
+vmp.Map.Type = 1;
+vmp.Map.DF1 = 0;
+vmp.Map.DF2 = 0;
 
 %set colour limits
 vmp.Map.LowerThreshold = nanmin(vmp.Map.VMPData(vmp.Map.VMPData(:) > 0));
