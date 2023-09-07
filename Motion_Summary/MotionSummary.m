@@ -40,9 +40,10 @@ name_thresh_mtn_per_vol = sprintf("Motion exceeds %g/vol", args.threshold_mean_3
 name_thresh_mtn_range = sprintf("Range exceeds %g", args.threshold_total_range_3D_mm);
 variables = [   "Folder"                    "string"
                 "SDM Filename"              "string"
-                "Subject"                   "string"
-                "Session"                   "string"
-                "Run"                       "string"
+                "sub"                       "string"
+                "ses"                       "string"
+                "task"                      "string"
+                "run"                       "string"
                 "Mean 3D motion per volume" "double"
                 "Total range of 3D motion"  "double"
                 name_thresh_mtn_per_vol     "logical"
@@ -58,14 +59,15 @@ for fid = 1:number_files
     tbl.("SDM Filename")(fid) = list(fid).name;
     tbl.("Folder")(fid) = list(fid).folder;
 
-    %subject
-    %TODO
-
-    %session
-    %TODO
-
-    %run
-    %TODO
+    %info from filename
+    [~,name,~] = fileparts(list(fid).name);
+    parts = strsplit(name,'_');
+    for v = ["sub" "ses" "task" "run"]
+        ind = find(cellfun(@(x) startsWith(x, v.append('-')), parts));
+        if length(ind) == 1
+            tbl.(v)(fid) = parts{ind};
+        end
+    end
 
     %read
     fp = [list(fid).folder filesep list(fid).name];
