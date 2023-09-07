@@ -100,7 +100,7 @@ for fid = 1:number_files
     xyz = [x y z];
 
     %3D motion/volume
-    xyz_delta = [0 0 0; diff(xyz)];
+    xyz_delta = diff(xyz);
     xyz_euc = sqrt(sum(xyz_delta .^ 2, 2));
     tbl.("Mean 3D motion per volume")(fid) = mean(xyz_euc);
     tbl.(name_thresh_mtn_per_vol)(fid) = tbl.("Mean 3D motion per volume")(fid) > args.threshold_mean_3D_mtn_per_volume;
