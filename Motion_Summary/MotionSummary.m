@@ -3,8 +3,8 @@ function MotionSummary(search_folder, args)
 arguments
     search_folder (1,1) string {mustBeFolder}
     args.search_sdm_term (1,1) string {mustBeNonzeroLengthText} = "*_3DMC.sdm"
-    args.threshold_mean_3D_mm_per_volume (1,1) {isnumeric} = 0.5;
-    args.threshold_total_range_3D_mm (1,1) {isnumeric} = 3;
+    args.threshold_mean_3D_mtn_per_volume (1,1) {isnumeric} = 0.5;
+    args.threshold_total_range_3D_mtn (1,1) {isnumeric} = 3;
     args.name_translation_x (1,1) string {mustBeNonzeroLengthText} = "Translation BV-X [mm]"
     args.name_translation_y (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Y [mm]"
     args.name_translation_z (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Z [mm]"
@@ -36,8 +36,8 @@ end
 
 %% Initialize Table
 
-name_thresh_mtn_per_vol = sprintf("Motion exceeds %g/vol", args.threshold_mean_3D_mm_per_volume);
-name_thresh_mtn_range = sprintf("Range exceeds %g", args.threshold_total_range_3D_mm);
+name_thresh_mtn_per_vol = sprintf("Motion exceeds %g/vol", args.threshold_mean_3D_mtn_per_volume);
+name_thresh_mtn_range = sprintf("Range exceeds %g", args.threshold_total_range_3D_mtn);
 variables = [   "Folder"                    "string"
                 "SDM Filename"              "string"
                 "sub"                       "string"
@@ -103,11 +103,11 @@ for fid = 1:number_files
     xyz_delta = [0 0 0; diff(xyz)];
     xyz_euc = sqrt(sum(xyz_delta .^ 2, 2));
     tbl.("Mean 3D motion per volume")(fid) = mean(xyz_euc);
-    tbl.(name_thresh_mtn_per_vol)(fid) = tbl.("Mean 3D motion per volume")(fid) > args.threshold_mean_3D_mm_per_volume;
+    tbl.(name_thresh_mtn_per_vol)(fid) = tbl.("Mean 3D motion per volume")(fid) > args.threshold_mean_3D_mtn_per_volume;
 
     %3D range of motion
     tbl.("Total range of 3D motion")(fid) = max(pdist(xyz));
-    tbl.(name_thresh_mtn_range)(fid) = tbl.("Total range of 3D motion")(fid) > args.threshold_total_range_3D_mm;
+    tbl.(name_thresh_mtn_range)(fid) = tbl.("Total range of 3D motion")(fid) > args.threshold_total_range_3D_mtn;
 
     %should exclude?
     tbl.("Should Exclude")(fid) = tbl.(name_thresh_mtn_per_vol)(fid) || tbl.(name_thresh_mtn_range)(fid);
