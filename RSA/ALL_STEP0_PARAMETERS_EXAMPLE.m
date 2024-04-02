@@ -315,9 +315,11 @@ VOI_CREATE_NOLABEL_FIGURES = false;
 RSM_COLOUR_RANGE_COND = [-1 +1];
 RSM_COLOUR_RANGE_ROI = [-1 +1];
 
-%rsm reorder
+%rsm reorder (for figures **ONLY**, models and data will still use the order
+%in CONDITIONS.PREDICTOR_NAMES and CONDITIONS.DISPLAY_NAMES)
+%
 %leave nan to use the order set below
-%or create array of indices in order - e.g., RSM_PREDICTOR_ORDER = [1 3 2];
+%or create an array of indices with the new order - e.g., RSM_PREDICTOR_ORDER = [1 3 2];
 RSM_PREDICTOR_ORDER = nan;
 
 %colourmap used in RSM
