@@ -8,3 +8,11 @@ filelist.xls
 *.xls
 *.jpg
 *.DS_STORE
+*.vmp
+*.voi
+*.gz
+*.rtv
+*.nii
+*.prt
+*.sdm
+*.vmr
