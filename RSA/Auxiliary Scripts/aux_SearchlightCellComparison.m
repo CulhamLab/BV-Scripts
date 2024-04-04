@@ -30,6 +30,12 @@ EXCEL_SHEETS = {'Diagonal' , 'RedGreen'};
 TTEST_TAIL = 'right'; %right, left, or both
 MINIMUM_NUMBER_PARTICIPANTS = 5; %min number of participants with data to run a sphere
 
+
+
+%% ******* SHOULD NOT NEED TO EDIT BELOW THIS POINT *******
+
+
+
 %% Get Main Parameters
 
 returnPath = pwd;
