@@ -236,6 +236,14 @@ end
 
 %% Save
 
+if exist(filepath_voi_output,'file')
+    if overwrite
+        delete(filepath_voi_output)
+    else
+        error('Attempted to overwrite .voi file when overwrite=false')
+    end
+end
+
 fprintf('Writing new .voi file: %s\n', filepath_voi_output);
 voi_new.SaveAs(filepath_voi_output);
 
