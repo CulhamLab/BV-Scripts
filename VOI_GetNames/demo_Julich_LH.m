@@ -6,7 +6,7 @@ filepath_voi_input = 'D:\Synology\CulhamLab\Documents\Brain Atlases\BV Julich-Br
 % filepath_spreadsheet_output
 %   * filepath to the spreadsheet to write
 %   * may be any filetype supported by writetable (xls, xlsx, csv, etc.)
-filepath_spreadsheet_output = 'D:\Synology\CulhamLab\Documents\Brain Atlases\BV Julich-Brain Cytoarchitectonic Atlas\VOI\v29_ICBM152_LH_reorder.csv';
+filepath_spreadsheet_output = 'D:\Synology\CulhamLab\Documents\Brain Atlases\BV Julich-Brain Cytoarchitectonic Atlas\v29_ICBM152_LH_reorder.csv';
 
 % overwrite (OPTIONAL)
 %   * set true to overwrite the output spreadsheet file
