@@ -1,4 +1,4 @@
-% VOI_Rename_Recolour_Reorder(filepath_xls_input, filepath_voi_input, filepath_voi_output, overwrite)
+% VOI_Rename_Recolour_Reorder(filepath_spreadsheet_input, filepath_voi_input, filepath_voi_output, overwrite, column_name_CurrentName, column_name_NewName, column_name_NewColour)
 %
 % Renames, recolours, and/or reorders the VOIs in a .voi file using
 % information from a spreadsheet.
