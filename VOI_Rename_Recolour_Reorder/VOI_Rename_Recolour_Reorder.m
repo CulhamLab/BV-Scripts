@@ -142,6 +142,9 @@ if do_rename
             error('The content in the NewName column does not have the expected format')
         end
         t.NewName = vals;
+
+        % remove invalid characters
+        t.NewName = strrep(t.NewName, char(65279), '');
     end
 
     % skip rename for VOIs with empty NewName
