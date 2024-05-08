@@ -132,6 +132,11 @@ bb = ctr.BoundingBox;
 %load
 voi = xff(filepath_voi);
 
+%must be MNI space
+if ~strcmp(voi.ReferenceSpace, 'MNI')
+    error('VOI ReferenceSpace (%s) must be MNI. VOI_BV2MNI may help resolve this.', voi.ReferenceSpace)
+end
+
 %process each voi
 for v = 1:voi.NrOfVOIs
     %get values
