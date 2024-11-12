@@ -58,9 +58,9 @@ for fid = 1:number_files
     sdm.SDMMatrix(:,1) = tbl.trans_x;
     sdm.SDMMatrix(:,2) = tbl.trans_y;
     sdm.SDMMatrix(:,3) = tbl.trans_z;
-    sdm.SDMMatrix(:,4) = tbl.rot_x;
-    sdm.SDMMatrix(:,5) = tbl.rot_y;
-    sdm.SDMMatrix(:,6) = tbl.rot_z;
+    sdm.SDMMatrix(:,4) = rad2deg(tbl.rot_x);
+    sdm.SDMMatrix(:,5) = rad2deg(tbl.rot_y);
+    sdm.SDMMatrix(:,6) = rad2deg(tbl.rot_z);
 
     % save
     [~,name,~] = fileparts(list(fid).name);
