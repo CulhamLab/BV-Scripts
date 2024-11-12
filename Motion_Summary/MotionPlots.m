@@ -25,6 +25,9 @@ end
 
 %% Output Folder
 
+if ~args.output_folder.endsWith(filesep)
+    args.output_folder = args.output_folder + filesep;
+end
 if ~exist(args.output_folder, "dir")
     mkdir(args.output_folder)
 end
