@@ -202,7 +202,7 @@ SEARCHLIGHT_NUMBER_VOXELS_PER_FILE = 10000;
 
 %searchlight radius (not including center voxel) in function voxels
 %For example, radius 2 equates to diameters of 5 function voxels.
-SEARCHLIGHT_RADIUS = 3;
+SEARCHLIGHT_RADIUS = 2; %NOTE: The Culham Lab default is radius=2 (diameter=5)
 
 %if your VMP output is flipped Left/Right, set this to true
 %most of the time this should be false
