@@ -174,7 +174,12 @@ try
 			mat(indClear) = nan;
 			p.MODELS.matrices{i}(:,:,j) = mat;
 		end
-	end
+    end
+
+    %check defaults
+    if p.SEARCHLIGHT_RADIUS ~= 2
+        warning("The parameter p.SEARCHLIGHT_RADIUS is currently set to a non-default value: %d. The Culham Lab default is radius=2 (diameter=5).", p.SEARCHLIGHT_RADIUS)
+    end
 	
     %check new fields
     fs = fields(p);
