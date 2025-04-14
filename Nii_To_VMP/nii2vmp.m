@@ -1,5 +1,7 @@
 function nii2vmp
 
+resolution = 3;
+
 %% nii.gz to nii
 
 list = dir('*.nii.gz');
@@ -23,7 +25,7 @@ for m = 1:length(list)
     
     fprintf('%s ==> %s\n',name,name_noext);
     
-    vmp = ne.importvmpfromspms(name);
+    vmp = ne.importvmpfromspms(name,[],[],resolution);
     vmp.Map(1).Name = name_noext;
     vmp.SaveAs([name_noext '.vmp']);
 
