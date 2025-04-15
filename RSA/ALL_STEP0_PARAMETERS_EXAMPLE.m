@@ -323,7 +323,7 @@ RSM_COLOUR_RANGE_ROI = [-1 +1];
 RSM_PREDICTOR_ORDER = nan;
 
 %colourmap used in RSM
-RSM_COLOURMAP = parula(100); %original Kriegeskorte colour scheme is called jet
+RSM_COLOURMAP = make_cmap(3); %parula(100); %original Kriegeskorte colour scheme is called jet
 
 %create noise ceiling bar plots during ROI_STEP10_noiseCeiling
 CREATE_FIGURE_NOISE_CEILING = true;
