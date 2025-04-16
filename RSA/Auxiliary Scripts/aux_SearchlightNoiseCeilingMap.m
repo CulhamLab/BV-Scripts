@@ -10,6 +10,7 @@ try
     cd ..
 
     %get params
+    dir_main = pwd;
     p = ALL_STEP0_PARAMETERS;
     
     %return to aux folder
@@ -23,6 +24,13 @@ end
 
 DIR_IN = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SEARCHLIGHT_DATA filesep '6. 3D Matrices of RSMs' filesep];
 DIR_OUT = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SEARCHLIGHT_DATA filesep 'aux_SearchlightNoiseCeilingMap' filesep];
+
+if DIR_IN(1) == '.'
+    DIR_IN = [dir_main filesep DIR_IN];
+end
+if DIR_OUT(1) == '.'
+    DIR_OUT = [dir_main filesep DIR_OUT];
+end
 
 if ~exist(DIR_IN, 'dir')
     error('Cannot located input directory: %s', DIR_IN);
