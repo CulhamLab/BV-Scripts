@@ -42,6 +42,7 @@ returnPath = pwd;
 try
     cd ..
     p = ALL_STEP0_PARAMETERS;
+    dir_main = pwd;
     cd(returnPath)
 catch
     cd(returnPath)
@@ -98,6 +99,10 @@ end
 %% Load Participant 1 Part 1 for settings
 
 input_dir = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_SEARCHLIGHT_DATA filesep '6. 3D Matrices of RSMs' filesep];
+
+if input_dir(1) == '.'
+    input_dir = [dir_main filesep input_dir];
+end
 
 fprintf('-Loading participant 1, part 1 and initializing...\n');
 step6 = load(sprintf('%sstep6_RSMs_%s_PART%02d%s.mat', input_dir, p.FILELIST_PAR_ID{1}, 1, split_suffix));
