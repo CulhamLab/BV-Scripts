@@ -28,9 +28,9 @@ fprintf('Reading %s\n',fpath)
 vtc = xff(fpath);
 
 %display
-fprintf('XStart: %d\n',vtc.XStart);
-fprintf('XEnd: %d\n',vtc.XEnd);
-fprintf('YStart: %d\n',vtc.YStart);
-fprintf('YEnd: %d\n',vtc.YEnd);
-fprintf('ZStart: %d\n',vtc.ZStart);
-fprintf('ZEnd: %d\n',vtc.ZEnd);
+fprintf('XStart\t= %d\n',vtc.XStart);
+fprintf('XEnd\t= %d\n',vtc.XEnd);
+fprintf('YStart\t= %d\n',vtc.YStart);
+fprintf('YEnd\t= %d\n',vtc.YEnd);
+fprintf('ZStart\t= %d\n',vtc.ZStart);
+fprintf('ZEnd\t= %d\n',vtc.ZEnd);
