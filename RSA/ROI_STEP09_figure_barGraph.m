@@ -40,6 +40,10 @@ ran = [min(temp(:)) max(temp(:))];
 % ran = [ran(1)-(range(ran)*0.1) ran(2)+(range(ran)*0.1)];
 ran = [ran(1)-0.1 ran(2)+0.1];
 
+if any(isnan(ran))
+    ran = [0 1];
+end
+
 %fig
 fig = figure('Position', get(0,'ScreenSize'));
 
