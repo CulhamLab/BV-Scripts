@@ -151,7 +151,13 @@ try
     %   -Add support for per-subject VOIs
     %9. Jan 24, 2022
     %   -ROI step6 now saves run-averaged voxel betas
-    p.RUNTIME.VERSION = 9;
+    %10. April 15, 2025
+    %   -updated default RSM colour map
+    %   -added MDS_FONT_SIZE
+    %   -added MDS_FONT_COLOUR_FUNCTION 
+    %   -added fix for when split data model correlations are all NaN
+    %       (e.g., if there is only the diag model)
+    p.RUNTIME.VERSION = 10;
     p.RUNTIME.RUN = datetime('now');
     
 	%copy for nonsplit model, clear lower half plus diag (keep upper)
@@ -257,6 +263,16 @@ try
     if any(strcmp(fs, 'FILELIST_SUBFOLDERS'))
         warning('Parameter file contains the old field "p.FILELIST_SUBFOLDERS". This field will be removed.')
         p = rmfield(p, 'FILELIST_SUBFOLDERS');
+    end
+
+    if ~any(strcmp(fs, 'MDS_FONT_SIZE'))
+        warning('Parameter file does not contain the new field "p.MDS_FONT_SIZE". This field will be defaulted to 20.')
+        p.MDS_FONT_SIZE = 20;
+    end
+
+    if ~any(strcmp(fs, 'MDS_FONT_COLOUR_FUNCTION'))
+        warning('Parameter file does not contain the new field "p.MDS_FONT_COLOUR_FUNCTION". This field will be defaulted.')
+        p.MDS_FONT_COLOUR_FUNCTION = @(x) parula(ceil(x*1.25));
     end
 catch err
 	cd(return_path);
