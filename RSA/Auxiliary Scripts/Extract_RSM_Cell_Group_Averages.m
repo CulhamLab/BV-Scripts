@@ -286,9 +286,10 @@ for voi = 1:number_vois
                     end
                     hold off
                     
-                    suptitle([strrep(group(gid).name,'_',' ') ' (' type ')']);
+                    
                     set(gca,'XAxisLocation','top','xtick',1:p.NUMBER_OF_CONDITIONS,'xticklabel',cell(1,p.NUMBER_OF_CONDITIONS),'ytick',1:p.NUMBER_OF_CONDITIONS,'yticklabel',condition_labels);
                     hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_labels);
+                    suptitle([strrep(group(gid).name,'_',' ') ' (' type ')' char(10)]);
                     
                     fp = strrep(FILEPATH_FIGURE, '[GROUP]', group(gid).name);
                     fprintf('Saving selection #%d to: %s\n', gid, fp);
