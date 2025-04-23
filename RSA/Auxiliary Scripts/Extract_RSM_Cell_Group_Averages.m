@@ -73,6 +73,15 @@ end
 
 has_exclude = isfield(group, 'exclude');
 
+has_nodiag = isfield(group, 'nodiag');
+if has_nodiag
+    for g = 1:length(group)
+        if isempty(group(g).nodiag)
+            group(g).nodiag = false;
+        end
+    end
+end
+
 number_groups = length(group);
 
 if ~number_groups
@@ -240,6 +249,11 @@ for voi = 1:number_vois
                             end
                         end
                     end
+                end
+
+                % remove diagonal?
+                if has_nodiag && group(gid).nodiag
+                    selection(eye(size(selection))==1) = 0;
                 end
                 
                 values = rsm(selection);
