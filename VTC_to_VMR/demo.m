@@ -1,9 +1,14 @@
 %% Parameters
 
+% VTC file search
 directory_search = "D:\Sofia\RSA\RSA_Inputs\Run_Files\";    % also searches subfolders
-vtc_search_term = "*_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c.vtc"; % allows wildcards (*)
-volume = 1;                                                 % VTC volume to convert to VMR (usually 1 = first volume)
+vtc_search_term = "*_bold_SCCTBL_3DMCTS_MNI_THPGLMF3c.vtc"; % include one or more wildcards (*)
 
+% VMR property overrides (optional)
+volume = 1;                                                 % VTC volume to convert to VMR (usually 1 = first volume)
+data_threshold = 500;                                       % VTC threshold to be counted as non-missing data
+int_min = 0;                                                % intensity min in resulting VMR
+int_range = 225;                                            % intensity range of values in resulting VMR
 
 %% Prep
 
@@ -32,7 +37,7 @@ end
 for fid = 1:number_files
     fn_vmr = [list(fid).name '.vmr'];
     fprintf("Processing VTC %d of %d...\n  Directory:\t%s\n  VTC:\t\t%s\n  VMR:\t\t%s\n", fid, number_files, list(fid).folder, list(fid).name, fn_vmr);
-    vtc_to_vmr([list(fid).folder filesep list(fid).name], [list(fid).folder filesep fn_vmr], volume);
+    vtc_to_vmr([list(fid).folder filesep list(fid).name], [list(fid).folder filesep fn_vmr], volume=volume, data_threshold=data_threshold, int_min=int_min, int_range=int_range);
 end
 
 
