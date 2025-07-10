@@ -1,10 +1,26 @@
-function vtc_to_vmr(fp_vtc, fp_vmr, vol)
+function vtc_to_vmr(fp_vtc, fp_vmr, opt)
 
-%% Param
+arguments
+    fp_vtc              (1,:) {mustBeTextScalar}                            % filepath to VTC
+    fp_vmr              (1,:) {mustBeTextScalar}                            % filepath of VMR to create
+    opt.volume          (1,1) {mustBePositive, mustBeInteger}       = 1     % which volume to draw
+    opt.data_threshold  (1,1) {mustBeNonnegative}                   = 500   % values below this threshold are ignored
+    opt.int_min         (1,1) {mustBeNonnegative, mustBeInteger}    = 0     % minimum insensity of non-missing values in VMR
+    opt.int_range       (1,1) {mustBePositive, mustBeInteger}       = 225   % range of intensities for non-missing values in VMR
+end
 
-%intensities
-int_min = 33;
-int_range = 192;
+%% Intensity values must be valid
+if (opt.int_min + opt.int_range) > 255
+    error("(int_min + int_range) must be 255 or less")
+end
+
+%% Paths must be char arrays (not strings)
+if isstring(fp_vtc)
+    fp_vtc = fp_vtc.char;
+end
+if isstring(fp_vmr)
+    fp_vmr = fp_vmr.char;
+end
 
 %% Read
 
@@ -16,10 +32,7 @@ vtc = xff(fp_vtc);
 sr = 1 / vtc.Resolution;
 
 %read vol from vtc
-data = squeeze(vtc.VTCData(vol,:,:,:));
-
-%record voxels with zero
-ind_zero = single(~data);
+data = squeeze(vtc.VTCData(opt.volume,:,:,:));
 
 %meshgrids for trilinear interp
 s = size(data);
@@ -27,23 +40,28 @@ s = size(data);
 [x2,y2,z2] = meshgrid(1:sr:s(2), 1:sr:s(1), 1:sr:s(3));
 
 %trilinear interp vtc data
-data2 = interp3(x,y,z,data,x2,y2,z2);
+data_interp = interp3(x,y,z,data,x2,y2,z2);
+
+%find voxels with valid data
+has_value = data_interp >= opt.data_threshold;
+
+%calculate percentile
+data_interp_pct = (data_interp - min(data_interp(has_value))) / range(data_interp(has_value));
+data_interp_pct(data_interp_pct<0) = 0;
 
 %set intensity
-data2 = min(data2 / (max(data2(:))/2), 1);
-data2 = uint8(int_min + (data2 * int_range));
+data2 = uint8(opt.int_min + (opt.int_range * data_interp_pct));
 
 %zero-out voxels that had zero
-data2_zero = interp3(x,y,z,ind_zero,x2,y2,z2);
-data2(data2_zero>0.33) = int_min;
+data2(~has_value) = 0;
 
 %add padding
 x_range = vtc.XEnd - vtc.XStart;
-data2(end+1:x_range, :, :) = int_min;
+data2(end+1:x_range, :, :) = opt.int_min;
 y_range = vtc.YEnd - vtc.YStart;
-data2(:, end+1:y_range, :) = int_min;
+data2(:, end+1:y_range, :) = opt.int_min;
 z_range = vtc.ZEnd - vtc.ZStart;
-data2(:, :, end+1:z_range) = int_min;
+data2(:, :, end+1:z_range) = opt.int_min;
 
 %xyz coord
 xs = (vtc.XStart+1) : vtc.XEnd;
