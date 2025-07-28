@@ -8,7 +8,7 @@ arguments
     args.name_translation_x (1,1) string {mustBeNonzeroLengthText} = "Translation BV-X [mm]"
     args.name_translation_y (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Y [mm]"
     args.name_translation_z (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Z [mm]"
-    args.output_filepath (1,1) string {mustBeNonzeroLengthText} = [pwd filesep mfilename '.xlsx'];
+    args.output_filepath (1,1) string {mustBeNonzeroLengthText} = [pwd filesep mfilename '.csv'];
 end
 
 %% Argument Checks
