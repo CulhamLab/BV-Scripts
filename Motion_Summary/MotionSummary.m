@@ -3,12 +3,16 @@ function MotionSummary(search_folder, args)
 arguments
     search_folder (1,1) string {mustBeFolder}
     args.search_sdm_term (1,1) string {mustBeNonzeroLengthText} = "*_3DMC.sdm"
-    args.threshold_mean_3D_mtn_per_volume (1,1) {isnumeric} = 0.5;
-    args.threshold_total_range_3D_mtn (1,1) {isnumeric} = 3;
+    args.threshold_mean_FD_per_volume (1,1) {isnumeric} = 0.5;
+    args.threshold_total_range_3D_translation (1,1) {isnumeric} = 3
     args.name_translation_x (1,1) string {mustBeNonzeroLengthText} = "Translation BV-X [mm]"
     args.name_translation_y (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Y [mm]"
     args.name_translation_z (1,1) string {mustBeNonzeroLengthText} = "Translation BV-Z [mm]"
-    args.output_filepath (1,1) string {mustBeNonzeroLengthText} = [pwd filesep mfilename '.csv'];
+    args.name_rotation_x (1,1) string {mustBeNonzeroLengthText} = "Rotation BV-X [deg]"
+    args.name_rotation_y (1,1) string {mustBeNonzeroLengthText} = "Rotation BV-Y [deg]"
+    args.name_rotation_z (1,1) string {mustBeNonzeroLengthText} = "Rotation BV-Z [deg]"
+    args.output_filepath (1,1) string {mustBeNonzeroLengthText} = [pwd filesep mfilename '.csv']
+    args.framewise_displacement_radius_mm (1,1) {isnumeric} = 50
 end
 
 %% Argument Checks
@@ -36,19 +40,19 @@ end
 
 %% Initialize Table
 
-name_thresh_mtn_per_vol = sprintf("Motion exceeds %g/vol", args.threshold_mean_3D_mtn_per_volume);
-name_thresh_mtn_range = sprintf("Range exceeds %g", args.threshold_total_range_3D_mtn);
-variables = [   "Folder"                    "string"
-                "SDM Filename"              "string"
-                "sub"                       "string"
-                "ses"                       "string"
-                "task"                      "string"
-                "run"                       "string"
-                "Mean 3D motion per volume" "double"
-                "Total range of 3D motion"  "double"
-                name_thresh_mtn_per_vol     "logical"
-                name_thresh_mtn_range       "logical"
-                "Should Exclude"            "logical"
+name_thresh_FD_per_vol = sprintf("FD exceeds %g mm/vol", args.threshold_mean_FD_per_volume);
+name_thresh_translation_range = sprintf("Translation range exceeds %gmm", args.threshold_total_range_3D_translation);
+variables = [   "Folder"                        "string"
+                "SDM Filename"                  "string"
+                "sub"                           "string"
+                "ses"                           "string"
+                "task"                          "string"
+                "run"                           "string"
+                "Mean FD per volume"            "double"
+                "Total range of 3D translation" "double"
+                name_thresh_FD_per_vol          "logical"
+                name_thresh_translation_range   "logical"
+                "Consider Excluding"                "logical"
                 ];
 tbl = table('Size',[number_files size(variables,1)], 'VariableNames', variables(:,1), 'VariableTypes', variables(:,2));
 
@@ -64,7 +68,7 @@ for fid = 1:number_files
     parts = strsplit(name,'_');
     for v = ["sub" "ses" "task" "run"]
         ind = find(cellfun(@(x) startsWith(x, v.append('-')), parts));
-        if length(ind) == 1
+        if isscalar(ind)
             tbl.(v)(fid) = parts{ind};
         end
     end
@@ -75,49 +79,70 @@ for fid = 1:number_files
     sdm = xff(fp);
 
     %find motion parameters
-    for v = 'xyz'
-        %name to look for
-        name = eval(['args.name_translation_' v]);
-
-        %find
-        ind = find(strcmp(sdm.PredictorNames, name));
-
-        %handle issues
-        if length(ind) > 1
-            error('Found multiple matches for: %s', name)
-        elseif isempty(ind)
-            error('Found no matches for: %s', name)
+    for v = ["x" "y" "z"]
+        for type = ["translation" "rotation"]
+            %name to look for
+            name = args.("name_" + type + "_" + v);
+    
+            %find
+            ind = find(strcmp(sdm.PredictorNames, name));
+    
+            %handle issues
+            if length(ind) > 1
+                error('Found multiple matches for: %s', name)
+            elseif isempty(ind)
+                error('Found no matches for: %s', name)
+            end
+            
+            %get values
+            eval(type.extract(1) + v + " = sdm.SDMMatrix(:,ind);")
         end
-        
-        %get values
-        eval([v ' = sdm.SDMMatrix(:,ind);'])
     end
 
     %cleanup SDM object
     sdm.ClearObject;
 
-    %combine
-    xyz = [x y z];
+    %calculate framewise displacement...
 
-    %3D motion/volume
-    xyz_delta = diff(xyz);
-    xyz_euc = sqrt(sum(xyz_delta .^ 2, 2));
-    tbl.("Mean 3D motion per volume")(fid) = mean(xyz_euc);
-    tbl.(name_thresh_mtn_per_vol)(fid) = tbl.("Mean 3D motion per volume")(fid) > args.threshold_mean_3D_mtn_per_volume;
+        % 1st deriv
+        d_tx = [0; diff(tx)];
+        d_ty = [0; diff(ty)];
+        d_tz = [0; diff(tz)];
+        d_rx = [0; diff(rx)];
+        d_ry = [0; diff(ry)];
+        d_rz = [0; diff(rz)];
+    
+        % convert rotation angles (deg) to displacement (mm)
+        d_rx = d_rx * (pi/180) * args.framewise_displacement_radius_mm;
+        d_ry = d_ry * (pi/180) * args.framewise_displacement_radius_mm;
+        d_rz = d_rz * (pi/180) * args.framewise_displacement_radius_mm;
+    
+        % calculate FD as sum of absolutes
+        FD =    abs(d_tx) + ...
+                abs(d_ty) + ...
+                abs(d_tz) + ...
+                abs(d_rx) + ...
+                abs(d_ry) + ...
+                abs(d_rz);
 
-    %3D range of motion
-    tbl.("Total range of 3D motion")(fid) = max(pdist(xyz));
-    tbl.(name_thresh_mtn_range)(fid) = tbl.("Total range of 3D motion")(fid) > args.threshold_total_range_3D_mtn;
+    %store FD framewise displacement summary
+    tbl.("Mean FD per volume")(fid) = mean(FD);
+    tbl.(name_thresh_FD_per_vol)(fid) = tbl.("Mean FD per volume")(fid) > args.threshold_mean_FD_per_volume;
+    
+    %range of translational motion
+    range_translation = max(pdist([tx ty tz]));
+    tbl.("Total range of 3D translation")(fid) = range_translation;
+    tbl.(name_thresh_translation_range)(fid) = tbl.("Total range of 3D translation")(fid) > args.threshold_total_range_3D_translation;
 
     %should exclude?
-    tbl.("Should Exclude")(fid) = tbl.(name_thresh_mtn_per_vol)(fid) || tbl.(name_thresh_mtn_range)(fid);
+    tbl.("Consider Excluding")(fid) = tbl.(name_thresh_FD_per_vol)(fid) || tbl.(name_thresh_translation_range)(fid);
 end
 
 %% Display
 disp(tbl)
 
 %% Write
-disp(sprintf('Writing %s\n', args.output_filepath))
+fprintf('Writing %s\n', args.output_filepath);
 writetable(tbl, args.output_filepath);
 
 %% Done

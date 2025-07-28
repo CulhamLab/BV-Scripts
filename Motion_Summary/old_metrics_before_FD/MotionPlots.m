@@ -16,13 +16,11 @@ arguments
     args.name_rotation_y (1,1) string {mustBeNonzeroLengthText} = "Rotation BV-Y [deg]"
     args.name_rotation_z (1,1) string {mustBeNonzeroLengthText} = "Rotation BV-Z [deg]"
     args.output_folder (1,1) string {mustBeNonzeroLengthText} = [pwd filesep] + "MotionPlots" + filesep
-    args.figure_size_position (1,4) double = get(0,"ScreenSize") %defaults to full screen, can instead do [xStart yStart width height]
-    args.line_colour (4,4) double = [1 0 0 0.8; 0 1 0 0.8; 0 0 1 0.8; 1 0 0 0.8] %[red green blue opacity] for x, y, z, FD
+    args.figure_size_position (1,4) double = get(0,"ScreenSize") - [1920 0 0 0] %defaults to full screen, can instead do [xStart yStart width height]
+    args.line_colour (5,4) double = [1 0 0 0.8; 0 1 0 0.8; 0 0 1 0.8; 1 0 0 0.8; 0 0 1 0.8] %[red green blue opacity] for x, y, z, translation, rotation
     args.ylimits_position (1,2) double = [nan nan] %leave as nans to fit the data, else [min max]
     args.ylimits_rotation (1,2) double = [nan nan] %leave as nans to fit the data, else [min max]
     args.ylimits_pervol (1,2) double = [nan nan] %leave as nans to fit the data, else [min max]
-    args.framewise_displacement_radius_mm (1,1) {isnumeric} = 50
-    args.close_figure (1,1) logical = true
 end
 
 %% Output Folder
@@ -57,9 +55,6 @@ fprintf("Found %d unique IDs:\n\t%s\n", unique_IDs_count, strjoin(unique_IDs, '\
 %% Open Figure
 
 fig = figure(Position=args.figure_size_position);
-if isprop(fig, "Theme")
-    fig.Theme = "Light";
-end
 
 %% Process by ID
 
@@ -155,45 +150,40 @@ for ID_ind = 1:unique_IDs_count
     xlabel("Volumes")
     title("Raw Rotation")
 
-    %% Figure 3: Framewise displacement
+    %% Figure 3: Per Volume
     subplot(3,1,3)
-
-    % calcualte 1st deriv
-    d_trans_xyz = cellfun(@(x) [0 0 0 ; diff(x)], trans_xyz, UniformOutput=false);
-    d_rot_xyz =   cellfun(@(x) [0 0 0 ; diff(x)], rot_xyz,   UniformOutput=false);
-
-    % convert rotation angles (deg) to displacement (mm)
-    d_rot_xyz = cellfun(@(x) x * (pi/180) * args.framewise_displacement_radius_mm, d_rot_xyz, UniformOutput=false);
-
-    % sum of absolutes
-    FD = cellfun(@(a,b) sum(abs([a b]), 2), d_trans_xyz, d_rot_xyz, UniformOutput=false);
+    
+    trans_per_vol = cellfun(@(x) sqrt(sum([0 0 0; diff(x)] .^ 2, 2)), trans_xyz, UniformOutput=false);
+    rot_per_vol = cellfun(@(x) sqrt(sum([0 0 0; diff(x)] .^ 2, 2)), rot_xyz, UniformOutput=false);
+    combined = cellfun(@(a,b) [a b], trans_per_vol, rot_per_vol, UniformOutput=false);
 
     hold on
     v=0;
 
     if any(isnan(args.ylimits_pervol))
-        yl = [0 nanmax(cellfun(@(x) nanmax(x(:)), FD))];
+        yl = [0 nanmax(cellfun(@(x) nanmax(x(:)), combined))];
     else
         yl = args.ylimits_pervol;
     end
 
     for i = 1:file_info_count
-        xs = v + (1:size(FD{i},1));
+        xs = v + (1:size(combined{i},1));
 
         plot([v v], yl, "-k")
         text(v, yl(2), file_info.run(i))
 
-        p = plot(xs, FD{i}, Color=args.line_colour(4,:));
+        p = plot(xs, combined{i});
+        arrayfun(@(j) set(p(j),Color=args.line_colour(3+j,:)), 1:2)
 
         v = xs(end);
     end
     hold off
     xlim([1 v])
     ylim(yl)
-    legend(p, "mm/vol", Location="eastoutside")
-    ylabel("mm")
+    legend(p, ["  Translation" "     Rotation"], Location="eastoutside")
+    ylabel("mm or deg")
     xlabel("Volumes")
-    title("Framewise Displacement")
+    title("Combined Translation and Rotation Per Volume")
 
     %% Title and Save
     sgtitle(strrep(unique_IDs(ID_ind),"_","\_"))
@@ -201,11 +191,6 @@ for ID_ind = 1:unique_IDs_count
     fprintf("\tWriting: %s\n", fp);
     saveas(fig, fp)
 
-end
-
-%% Close figure?
-if args.close_figure
-    close(fig)
 end
 
 %% Done
