@@ -1,4 +1,4 @@
-%% Generate 3DMC 
+%% Generate 3DMC SDMs from fMRIprep outputs
 folder_fmriprep_project = "S:\Transfer\example_fmriprep_for_kevin\example_fmriprep_for_kevin\project_root";
 folder_generated_sdm = ".\Generate_MotionSDM_from_fmriprep\";
 Generate_3DMC_SDM_from_fmriprep(folder_fmriprep_project, folder_generated_sdm)
