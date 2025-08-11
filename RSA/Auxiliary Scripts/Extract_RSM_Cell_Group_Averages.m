@@ -1,11 +1,12 @@
 function Extract_RSM_Cell_Group_Averages
 
 %read main parameters
-p = Get_Main_Params;
+[p,dir_main] = Get_Main_Params;
 
 %% EDIT HERE - parameters
 USE_SPLIT_DATA = true;
 ALLOW_EXCEL_OVERWRITE = true;
+FILEPATH_MAT = 'Extract_RSM_Group_Averages_[SPLITTYPE].mat';
 FILEPATH_EXCEL_OUTPUT = 'Extract_RSM_Group_Averages_[SPLITTYPE].xlsx'; %replaces [SPLITTYPE] with SPLIT or NONSPLIT
 FILEPATH_FIGURE = 'Extract_RSM_Group_Averages_[SPLITTYPE]_[GROUP].png';
 
@@ -71,6 +72,15 @@ if ~exist('group', 'var')
 end
 
 has_exclude = isfield(group, 'exclude');
+
+has_nodiag = isfield(group, 'nodiag');
+if has_nodiag
+    for g = 1:length(group)
+        if isempty(group(g).nodiag)
+            group(g).nodiag = false;
+        end
+    end
+end
 
 number_groups = length(group);
 
@@ -140,6 +150,7 @@ if USE_SPLIT_DATA
 else
     type = 'NONSPLIT';
 end
+FILEPATH_MAT = strrep(FILEPATH_MAT, '[SPLITTYPE]', type);
 FILEPATH_EXCEL_OUTPUT = strrep(FILEPATH_EXCEL_OUTPUT, '[SPLITTYPE]', type);
 FILEPATH_FIGURE = strrep(FILEPATH_FIGURE, '[SPLITTYPE]', type);
 
@@ -155,7 +166,11 @@ end
 %% read VOI RSMs
 fprintf('Loading VOI RSMs...\n');
 try
-    load([p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep 'VOI_RSMs.mat']);
+    fol = [p.FILEPATH_TO_SAVE_LOCATION p.SUBFOLDER_ROI_DATA filesep '6. ROI RSMs' filesep];
+    if fol(1)=='.'
+        fol = [dir_main filesep fol];
+    end
+    load([fol 'VOI_RSMs.mat']);
 catch err
     warning('Could not load VOI RSMs. Has VOI step6 been run or has data moved?')
     rethrow(err);
@@ -183,6 +198,7 @@ number_vois = length(data.VOINames);
 row = 0;
 created_figure = false;
 missing = [];
+group_means = nan(p.NUMBER_OF_PARTICIPANTS, number_groups, number_vois);
 for voi = 1:number_vois
     row = row + 1;
     xls{row,1} = data.VOINames{voi};
@@ -234,6 +250,11 @@ for voi = 1:number_vois
                         end
                     end
                 end
+
+                % remove diagonal?
+                if has_nodiag && group(gid).nodiag
+                    selection(eye(size(selection))==1) = 0;
+                end
                 
                 values = rsm(selection);
                 
@@ -241,7 +262,9 @@ for voi = 1:number_vois
                     error('Group #%d (%s) contains no cells!', gid, group(gid).name);
                 end
                 
-                xls{row, 1+gid} = mean(values);
+                group_mean = mean(values);
+                xls{row, 1+gid} = group_mean;
+                group_means(pid,gid,voi) = group_mean;
                 
                 selections(:,:,gid) = selection;
             end
@@ -263,9 +286,10 @@ for voi = 1:number_vois
                     end
                     hold off
                     
-                    suptitle([strrep(group(gid).name,'_',' ') ' (' type ')']);
+                    
                     set(gca,'XAxisLocation','top','xtick',1:p.NUMBER_OF_CONDITIONS,'xticklabel',cell(1,p.NUMBER_OF_CONDITIONS),'ytick',1:p.NUMBER_OF_CONDITIONS,'yticklabel',condition_labels);
                     hText = xticklabel_rotate(1:p.NUMBER_OF_CONDITIONS,90,condition_labels);
+                    suptitle([strrep(group(gid).name,'_',' ') ' (' type ')' char(10)]);
                     
                     fp = strrep(FILEPATH_FIGURE, '[GROUP]', group(gid).name);
                     fprintf('Saving selection #%d to: %s\n', gid, fp);
@@ -301,6 +325,12 @@ if exist(FILEPATH_EXCEL_OUTPUT, 'file')
 end
 xlswrite(FILEPATH_EXCEL_OUTPUT, xls);
 
+%% Save MAT
+group_means_legend = 'subject x cell group x VOI';
+group_names = {group.name};
+voi_names = data.VOINames;
+save(FILEPATH_MAT, 'group_means', 'group_means_legend', 'group_names', 'voi_names')
+
 %% Done
 fprintf('Complete!\n');
 
@@ -308,11 +338,12 @@ fprintf('Complete!\n');
 
 
 %%
-function [p] = Get_Main_Params
+function [p,dir_main] = Get_Main_Params
 return_path = pwd;
 main_path = ['..' filesep];
 try
     cd(main_path)
+    dir_main = pwd;
     p = ALL_STEP0_PARAMETERS;
     cd(return_path);
 catch err

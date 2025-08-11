@@ -191,7 +191,7 @@ end
 
 %% Condition MDS (nonsplit)
 if do_cond_mds_nonsplit
-colours = jet(p.NUMBER_OF_CONDITIONS);
+colours = p.MDS_FONT_COLOUR_FUNCTION(p.NUMBER_OF_CONDITIONS);
 for vid = 1:numVOI_type
     clf;
     
@@ -224,7 +224,7 @@ for vid = 1:numVOI_type
         c = colours(cond,:);
         a(cond) = plot(MD2D(cond,1),MD2D(cond,2),'o','color',c);
         set(a(cond),'MarkerFaceColor',c);
-        text(MD2D(cond,1)+offset,MD2D(cond,2),CONDITIONS{cond},'color',c);
+        text(MD2D(cond,1)+offset,MD2D(cond,2),CONDITIONS{cond},'color',c,'FontSize',p.MDS_FONT_SIZE);
     end
     hold off;
     axis square;
@@ -247,7 +247,7 @@ end
     
 %% VOI-VOI MDS
 if do_voi_mds_split
-colours = jet(numVOI_type);
+colours = p.MDS_FONT_COLOUR_FUNCTION(numVOI_type);
 %init
 rsms = nan(num_cell_split, numVOI_type);
 
@@ -273,8 +273,7 @@ for vid = 1:numVOI_type
     c = colours(vid,:);
     t = plot(MD2D(vid,1),MD2D(vid,2),'o','color',c);
     set(t,'MarkerFaceColor',c);
-    t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c);
-    set(t,'FontSize',10);
+    t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c,'FontSize',p.MDS_FONT_SIZE);
 end
 hold off
 
@@ -292,7 +291,7 @@ end
 
 %% VOI-VOI MDS (nonsplit)
 if do_voi_mds_nonsplit
-colours = jet(numVOI_type);
+colours = p.MDS_FONT_COLOUR_FUNCTION(numVOI_type);
 %init
 rsms = nan(num_cell_nonsplit,numVOI_type);
 
@@ -318,8 +317,7 @@ for vid = 1:numVOI_type
     c = colours(vid,:);
     t = plot(MD2D(vid,1),MD2D(vid,2),'o','color',c);
     set(t,'MarkerFaceColor',c);
-    t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c);
-    set(t,'FontSize',10);
+    t = text(MD2D(vid,1),MD2D(vid,2),voi_names_nounder{vid},'color',c,'FontSize',p.MDS_FONT_SIZE);
 end
 hold off
 
@@ -540,7 +538,7 @@ if do_voi_model_split
     
     
     %% MDS
-    colours = jet(matrix_size);
+    colours = p.MDS_FONT_COLOUR_FUNCTION(matrix_size);
     
     rdm = (rsm_voi_model-1) *-1;
     %set diag to true zero
@@ -560,8 +558,7 @@ if do_voi_model_split
             c = colours(i,:);
             t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
             set(t,'MarkerFaceColor',c);
-            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
-            set(t,'FontSize',10);
+            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c,'FontSize',p.MDS_FONT_SIZE);
         end
         hold off
 
@@ -685,7 +682,7 @@ if do_voi_model_nonsplit
     end
     
     %% MDS
-    colours = jet(matrix_size);
+    colours = p.MDS_FONT_COLOUR_FUNCTION(matrix_size);
     
     rdm = (rsm_voi_model-1) *-1;
     %set diag to true zero
@@ -705,8 +702,7 @@ if do_voi_model_nonsplit
             c = colours(i,:);
             t = plot(MD2D(i,1),MD2D(i,2),'o','color',c);
             set(t,'MarkerFaceColor',c);
-            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c);
-            set(t,'FontSize',10);
+            t = text(MD2D(i,1),MD2D(i,2),labels{i},'color',c,'FontSize',p.MDS_FONT_SIZE);
         end
         hold off
 
