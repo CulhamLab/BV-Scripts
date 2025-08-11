@@ -30,7 +30,7 @@ end
 
 %% Process
 for fid = 1:number_files
-    fprintf("Processing %d of %d: %sf\n", number_files, list(fid).name);
+    fprintf("Processing %d of %d: %s\n", fid, number_files, list(fid).name);
 
     % load sdm
     sdm = xff([list(fid).folder filesep list(fid).name]);
