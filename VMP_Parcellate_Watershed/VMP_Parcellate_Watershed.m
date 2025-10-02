@@ -124,6 +124,9 @@ for m = 1:vmp.NrOfMaps
     vmp.Map(m).UpperThreshold = max(map(:));
 
     % number of parcels
+    if vmp.Map(m).UpperThreshold <= 0
+        error("No parcels were found! You may need to adjust the settings and/or check the input maps.")
+    end
     fprintf("\tFound %d parcels\n", vmp.Map(m).UpperThreshold);
 
     % append label
