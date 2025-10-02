@@ -60,7 +60,7 @@ for m = 1:vmp.NrOfMaps
 
     % select values
     if label.strlength, label = label + ","; end
-    label = label + sprintf("polarity=%g", args.polarity);
+    label = label + sprintf("polarity=%s", args.polarity);
     switch args.polarity
         case "positive"
             map(map<0) = 0;
