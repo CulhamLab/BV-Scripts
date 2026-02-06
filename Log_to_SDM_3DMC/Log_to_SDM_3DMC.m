@@ -1,7 +1,7 @@
-% function Log_to_SDM_3DMC(filepath, overwrite)
+% Log_to_SDM_3DMC
 %
 % Reads a .log file created by BrainVoyager during motion correction and
-% creates an equivalent .sdm containing the 6 motion metrics plus framewise
+% creates an .sdm containing the 6 motion metrics plus framewise
 % displacement as a 7th metric.
 %
 % Requires NeuroElf.
