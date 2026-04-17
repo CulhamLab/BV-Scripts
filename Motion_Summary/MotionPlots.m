@@ -23,6 +23,7 @@ arguments
     args.ylimits_pervol (1,2) double = [nan nan] %leave as nans to fit the data, else [min max]
     args.framewise_displacement_radius_mm (1,1) {isnumeric} = 50
     args.close_figure (1,1) logical = true
+    args.resume_from_prior_runs_endpoint (1,1) logical = false %if true, then the starting point of each run will be adjusted to match the endpoint of the prior run
 end
 
 %% Output Folder
@@ -89,6 +90,17 @@ for ID_ind = 1:unique_IDs_count
         
         % cleanup sdm (otherwise can accumulate in memory)
         sdm.ClearObject;
+    end
+
+    % apply resume_from_prior_runs_endpoint
+    if args.resume_from_prior_runs_endpoint
+        for i = 2:file_info_count
+            % translation
+            trans_xyz{i} = trans_xyz{i} + (trans_xyz{i-1}(end,:) - trans_xyz{i}(1,:));
+
+            % rotation
+            rot_xyz{i} = rot_xyz{i} + (rot_xyz{i-1}(end,:) - rot_xyz{i}(1,:));
+        end
     end
 
     % Figure prep
