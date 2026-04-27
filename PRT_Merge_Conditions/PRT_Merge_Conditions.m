@@ -3,6 +3,8 @@
 % Combines and/or reorders and/or recolours the conditions in a PRT and
 % saves the modified copy.
 %
+% Requires NeuroElf.
+%
 % Inputs:
 %   filepath_input      filepath to read PRT (1x1 string)
 %   filepath_output     filepath to write to (1x1 string)
