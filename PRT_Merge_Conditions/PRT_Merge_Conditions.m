@@ -1,4 +1,4 @@
-% PRT_Merge_Conditions(args)
+% PRT_Merge_Conditions
 %
 % Combines and/or reorders and/or recolours the conditions in a PRT and
 % saves the modified copy.
