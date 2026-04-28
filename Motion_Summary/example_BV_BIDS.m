@@ -8,3 +8,7 @@ MotionSummary(folder_BIDS_deriv, output_filepath=filepath_summary);
 %% Run MotionPlots
 folder_plots = ".\example_MotionSummary";
 MotionPlots(folder_BIDS_deriv, output_folder=folder_plots);
+
+%% Motion ERA
+folder_plots = ".\example_MotionERA";
+MotionEventRelatedAverages(folder_BIDS_deriv, output_folder=folder_plots, ylimits=[0 0.4])

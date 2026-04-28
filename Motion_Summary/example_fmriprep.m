@@ -10,3 +10,7 @@ MotionSummary(folder_generated_sdm, output_filepath=filepath_summary);
 %% Run MotionPlots
 folder_plots = ".\example_fmriprep_MotionSummary";
 MotionPlots(folder_generated_sdm, output_folder=folder_plots);
+
+%% Motion ERA
+folder_plots = ".\example_fmriprep_MotionERA";
+MotionEventRelatedAverages(folder_generated_sdm, output_folder=folder_plots)
